@@ -108,6 +108,11 @@ export default function CityPage() {
                 </p>
                 {item.qualification && <p className="card-area">🏷️ {item.qualification}</p>}
                 {item.area && <p className="card-area">📍 {item.area}</p>}
+                {item.about && (
+                  <p className="card-note" style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>
+                    {item.about.length > 140 ? item.about.slice(0, 140) + '…' : item.about}
+                  </p>
+                )}
                 <p className="card-rating">
                   {item.avgRating ? `★ ${item.avgRating.toFixed(1)} (${item.ratingCount})` : 'No ratings yet'}
                 </p>
