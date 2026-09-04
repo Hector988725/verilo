@@ -27,6 +27,14 @@ function ProfileContent() {
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [payingNow, setPayingNow] = useState(false);
+  const [pausing, setPausing] = useState(false);
+
+  async function togglePause() {
+    setPausing(true);
+    await supabase.from('listings').update({ is_active: !listing.is_active }).eq('id', id);
+    setPausing(false);
+    load();
+  }
 
   async function load() {
     const { data: listingData } = await supabase.from('listings').select('*').eq('id', id).single();
@@ -148,6 +156,14 @@ function ProfileContent() {
 
       {isOwner && (
         <div className="profile-card">
+          {!listing.is_active && (
+            <div style={{ background: '#F3EEDD', border: '1.5px dashed #8A94A6', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
+              <strong style={{ color: '#6B7280' }}>⏸️ Your listing is paused</strong>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280' }}>
+                It's hidden from search results and calls. Unpause anytime to make it visible again.
+              </p>
+            </div>
+          )}
           <h3>{trial ? `Free trial — ${daysLeft(listing)} days left` : 'Monthly fee due'}</h3>
           <p style={{ marginBottom: 12 }}>
             {trial
@@ -156,6 +172,14 @@ function ProfileContent() {
           </p>
           <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
             {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
+          </button>
+          <button
+            className="btn-primary"
+            onClick={togglePause}
+            disabled={pausing}
+            style={{ marginTop: 10, background: listing.is_active ? '#6B7280' : '#2E6B4E' }}
+          >
+            {pausing ? 'Updating...' : listing.is_active ? '⏸️ Pause my listing' : '▶️ Unpause my listing'}
           </button>
           <Link
             href={`/city/${encodeURIComponent(city)}/${listing.id}/edit`}
