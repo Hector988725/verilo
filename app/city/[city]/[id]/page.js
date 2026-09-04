@@ -157,6 +157,15 @@ function ProfileContent() {
           <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
             {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
           </button>
+          <Link
+            href={`/city/${encodeURIComponent(city)}/${listing.id}/edit`}
+            style={{
+              display: 'block', textAlign: 'center', marginTop: 10, fontSize: 13.5,
+              color: '#C97F1E', fontWeight: 700, textDecoration: 'underline',
+            }}
+          >
+            ✏️ Edit my listing
+          </Link>
         </div>
       )}
 
