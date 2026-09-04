@@ -78,6 +78,14 @@ export default function AddListingPage() {
       if (insertError) throw insertError;
 
       // 4. Redirect to their profile — payment happens after trial via the profile page's "Pay Now" button
+      // Remember this listing as "mine" on this device, so only the owner
+      // sees payment/trial controls on the profile page (not customers browsing).
+      try {
+        const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
+        if (!mine.includes(listing.id)) mine.push(listing.id);
+        localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
+      } catch (e) {}
+
       router.push(`/city/${encodeURIComponent(city)}/${listing.id}?welcome=1`);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');

@@ -25,6 +25,14 @@ export default function FindListingPage() {
       .eq('phone', phone.trim());
     setResults(data || []);
     setSearching(false);
+
+    // Mark all found listings as "mine" on this device, so the owner sees
+    // payment/trial controls when they open their profile from here.
+    try {
+      const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
+      (data || []).forEach((item) => { if (!mine.includes(item.id)) mine.push(item.id); });
+      localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
+    } catch (e) {}
   }
 
   return (

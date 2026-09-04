@@ -97,6 +97,11 @@ function ProfileContent() {
   if (!listing) return <div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>;
 
   const trial = isInTrial(listing);
+  let isOwner = false;
+  try {
+    const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
+    isOwner = mine.includes(listing.id);
+  } catch (e) {}
 
   return (
     <div className="wrap">
@@ -141,17 +146,19 @@ function ProfileContent() {
         <div className="profile-card"><h3>Note</h3><p>{listing.note}</p></div>
       )}
 
-      <div className="profile-card">
-        <h3>{trial ? `Free trial — ${daysLeft(listing)} days left` : 'Monthly fee due'}</h3>
-        <p style={{ marginBottom: 12 }}>
-          {trial
-            ? 'Your listing is free until the trial ends. Pay anytime to lock in your spot after that.'
-            : 'Your free trial has ended. Pay ₹30 to keep this listing active for another month.'}
-        </p>
-        <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
-          {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
-        </button>
-      </div>
+      {isOwner && (
+        <div className="profile-card">
+          <h3>{trial ? `Free trial — ${daysLeft(listing)} days left` : 'Monthly fee due'}</h3>
+          <p style={{ marginBottom: 12 }}>
+            {trial
+              ? 'Your listing is free until the trial ends. Pay anytime to lock in your spot after that.'
+              : 'Your free trial has ended. Pay ₹30 to keep this listing active for another month.'}
+          </p>
+          <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
+            {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
+          </button>
+        </div>
+      )}
 
       <div className="profile-card">
         <h3>Rate this listing</h3>
