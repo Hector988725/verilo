@@ -65,8 +65,6 @@ export default function CityPage() {
         <h1>Verilo</h1>
         <p className="tagline">📍 Trusted people in {city} — all in one place</p>
         <Link href="/" className="back-link">Switch area</Link>
-        {' · '}
-        <Link href={`/city/${encodeURIComponent(city)}/find`} className="back-link">Manage my listing</Link>
       </header>
 
       <input className="search-bar" placeholder="Search by name or area..." value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -124,6 +122,27 @@ export default function CityPage() {
       ))}
 
       <Link href={`/city/${encodeURIComponent(city)}/add`} className="fab">+ Add Listing</Link>
+
+      <div style={{
+        marginTop: 40, padding: '18px 16px', borderRadius: 14,
+        background: 'rgba(232,163,61,0.08)', border: '1px solid rgba(232,163,61,0.25)', textAlign: 'center',
+      }}>
+        <p style={{ fontFamily: "'Rozha One', serif", fontSize: 16, color: '#E8A33D', margin: '0 0 6px' }}>
+          Are you a service provider?
+        </p>
+        <p style={{ fontSize: 13, color: '#8A94A6', margin: '0 0 12px' }}>
+          Already have a listing on Verilo? Find it to check your status, pay, or edit your profile.
+        </p>
+        <Link
+          href={`/city/${encodeURIComponent(city)}/find`}
+          style={{
+            display: 'inline-block', background: '#232F3E', color: '#FFFDF6', border: '1px solid rgba(255,255,255,0.15)',
+            padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
+          }}
+        >
+          Manage My Listing →
+        </Link>
+      </div>
     </div>
   );
 }

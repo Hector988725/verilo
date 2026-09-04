@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel } from '../../../../lib/categories';
+import { catLabel, isInTrial, daysLeft } from '../../../../lib/categories';
 
 export default function FindListingPage() {
   const params = useParams();
@@ -75,20 +75,28 @@ export default function FindListingPage() {
               <div>No listing in {city} is registered with this number.</div>
             </div>
           )}
-          {results.map((item) => (
-            <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
-              <div className="card-top">
-                <div className="card-left">
-                  <div style={{ minWidth: 0 }}>
-                    <div className="card-service">{catLabel(item.service)}</div>
-                    <p className="card-name">{item.name}</p>
-                    {item.area && <p className="card-area">📍 {item.area}</p>}
+          {results.map((item) => {
+            const trial = isInTrial(item);
+            const statusText = trial ? `🟢 Trial — ${daysLeft(item)}d left` : '🔴 Fee due';
+            const statusColor = trial ? '#2E6B4E' : '#C1442E';
+            return (
+              <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
+                <div className="card-top">
+                  <div className="card-left">
+                    <div style={{ minWidth: 0 }}>
+                      <div className="card-service">{catLabel(item.service)}</div>
+                      <p className="card-name">{item.name}</p>
+                      {item.area && <p className="card-area">📍 {item.area}</p>}
+                      <p style={{ fontSize: 12.5, fontWeight: 700, color: statusColor, margin: '3px 0 0' }}>
+                        {statusText} {!item.is_active && '· ⏸️ Paused'}
+                      </p>
+                    </div>
                   </div>
+                  <span style={{ color: '#C1442E', fontWeight: 700, fontSize: 13.5 }}>Manage →</span>
                 </div>
-                <span style={{ color: '#C1442E', fontWeight: 700, fontSize: 13.5 }}>View →</span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>
