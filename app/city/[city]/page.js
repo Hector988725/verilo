@@ -118,6 +118,9 @@ export default function CityPage() {
                     {item.is_available === false ? '· 🔴 Not available now' : '· 🟢 Available now'}
                   </span>
                 </p>
+                {item.is_available === false && item.unavailable_note && (
+                  <p style={{ fontSize: 12, color: '#8A94A6', margin: '2px 0 0' }}>{item.unavailable_note}</p>
+                )}
               </div>
             </div>
             <a className="call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call</a>

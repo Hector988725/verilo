@@ -37,7 +37,16 @@ function ProfileContent() {
   }
 
   async function toggleAvailability() {
-    await supabase.from('listings').update({ is_available: !(listing.is_available !== false) }).eq('id', id);
+    const nowAvailable = listing.is_available === false; // currently unavailable, about to become available
+    let note = null;
+    if (!nowAvailable) {
+      // going from available -> not available, ask for an optional note
+      note = prompt('Optional: when will you be available again? (e.g. "Back on Monday", "Available after 5 PM")') || null;
+    }
+    await supabase.from('listings').update({
+      is_available: nowAvailable,
+      unavailable_note: nowAvailable ? null : note,
+    }).eq('id', id);
     load();
   }
 
@@ -151,6 +160,9 @@ function ProfileContent() {
         <p style={{ marginTop: 6, fontSize: 13.5, fontWeight: 700, color: listing.is_available === false ? '#C1442E' : '#2E6B4E' }}>
           {listing.is_available === false ? '🔴 Not available right now' : '🟢 Available now'}
         </p>
+        {listing.is_available === false && listing.unavailable_note && (
+          <p style={{ fontSize: 12.5, color: '#8A94A6', marginTop: 2 }}>{listing.unavailable_note}</p>
+        )}
         {isOwner && (
           <button
             onClick={toggleAvailability}
@@ -163,15 +175,6 @@ function ProfileContent() {
           </button>
         )}
       </div>
-
-      <a className="profile-call" href={`tel:${listing.phone}`}>📞 Call Now</a>
-
-      {listing.about && (
-        <div className="profile-card"><h3>About</h3><p>{listing.about}</p></div>
-      )}
-      {listing.note && (
-        <div className="profile-card"><h3>Note</h3><p>{listing.note}</p></div>
-      )}
 
       {isOwner && (
         <div className="profile-card">
@@ -210,6 +213,15 @@ function ProfileContent() {
             ✏️ Edit my listing
           </Link>
         </div>
+      )}
+
+      <a className="profile-call" href={`tel:${listing.phone}`}>📞 Call Now</a>
+
+      {listing.about && (
+        <div className="profile-card"><h3>About</h3><p>{listing.about}</p></div>
+      )}
+      {listing.note && (
+        <div className="profile-card"><h3>Note</h3><p>{listing.note}</p></div>
       )}
 
       <div className="profile-card">
