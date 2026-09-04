@@ -65,6 +65,8 @@ export default function CityPage() {
         <h1>Verilo</h1>
         <p className="tagline">📍 Trusted people in {city} — all in one place</p>
         <Link href="/" className="back-link">Switch area</Link>
+        {' · '}
+        <Link href={`/city/${encodeURIComponent(city)}/find`} className="back-link">Manage my listing</Link>
       </header>
 
       <input className="search-bar" placeholder="Search by name or area..." value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -104,7 +106,7 @@ export default function CityPage() {
                   {item.name}
                   {item.verified && <span className="verified-badge">✓ Verified</span>}
                 </p>
-                {item.qualification && <p className="card-area">🩺 {item.qualification}</p>}
+                {item.qualification && <p className="card-area">🏷️ {item.qualification}</p>}
                 {item.area && <p className="card-area">📍 {item.area}</p>}
                 <p className="card-rating">
                   {item.avgRating ? `★ ${item.avgRating.toFixed(1)} (${item.ratingCount})` : 'No ratings yet'}

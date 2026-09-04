@@ -1,13 +1,23 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, initials, isInTrial, daysLeft } from '../../../../lib/categories';
 
 export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+function ProfileContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const isWelcome = searchParams.get('welcome') === '1';
   const city = decodeURIComponent(params.city);
   const id = params.id;
 
@@ -93,6 +103,20 @@ export default function ProfilePage() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to list</Link>
 
+      {isWelcome && (
+        <div className="profile-card" style={{ background: '#F3EEDD', border: '1.5px dashed #C97F1E' }}>
+          <h3>🎉 Your listing is live!</h3>
+          <p style={{ marginBottom: 8 }}>
+            Bookmark this page or save this link — this is your profile. Come back here anytime
+            to check your trial status or pay your monthly fee.
+          </p>
+          <p style={{ fontSize: 12.5, color: '#6B7280' }}>
+            Forgot to save the link? Just search "Manage my listing" on the {city} page with
+            your phone number.
+          </p>
+        </div>
+      )}
+
       <div className="profile-header">
         <div className="profile-avatar">
           {listing.photo_url ? <img src={listing.photo_url} alt="" /> : initials(listing.name)}
@@ -100,7 +124,7 @@ export default function ProfilePage() {
         <h2 className="profile-name">{listing.name}</h2>
         <div className="profile-service">{catLabel(listing.service)}</div>
         {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
-        {listing.qualification && <p className="profile-meta">🩺 {listing.qualification}</p>}
+        {listing.qualification && <p className="profile-meta">🏷️ {listing.qualification}</p>}
         {listing.experience && <p className="profile-meta">💼 {listing.experience} experience</p>}
         {listing.area && <p className="profile-meta">📍 {listing.area}</p>}
         <p className="profile-rating">

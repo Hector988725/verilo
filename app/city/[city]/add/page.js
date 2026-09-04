@@ -6,6 +6,16 @@ import Script from 'next/script';
 import { supabase } from '../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../lib/categories';
 
+const SPECIALIZATION_LABELS = {
+  doctor: { label: 'Qualification / Specialization', placeholder: 'e.g. MBBS, General Physician' },
+  tuition: { label: 'Subject(s) You Teach', placeholder: 'e.g. Maths & Science, Class 9-12' },
+  plumber: { label: 'Specialization', placeholder: 'e.g. Pipe fitting, bathroom fitting' },
+  electrician: { label: 'Specialization', placeholder: 'e.g. Wiring, AC repair, appliance repair' },
+  mistri: { label: 'Specialization', placeholder: 'e.g. Furniture, doors, woodwork' },
+  'milk-veg': { label: 'What You Deliver', placeholder: 'e.g. Fresh milk, seasonal vegetables' },
+  other: { label: 'Specialization', placeholder: 'What do you specialize in?' },
+};
+
 export default function AddListingPage() {
   const params = useParams();
   const router = useRouter();
@@ -103,12 +113,8 @@ export default function AddListingPage() {
           {CATEGORIES.filter((c) => c.key !== 'all').map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
         </select>
 
-        {form.service === 'doctor' && (
-          <>
-            <label>Qualification / Specialization</label>
-            <input value={form.qualification} onChange={(e) => update('qualification', e.target.value)} placeholder="e.g. MBBS, General Physician" />
-          </>
-        )}
+        <label>{SPECIALIZATION_LABELS[form.service]?.label || 'Specialization'}</label>
+        <input value={form.qualification} onChange={(e) => update('qualification', e.target.value)} placeholder={SPECIALIZATION_LABELS[form.service]?.placeholder || ''} />
 
         <label>Experience</label>
         <input value={form.experience} onChange={(e) => update('experience', e.target.value)} placeholder="e.g. 8 years" />
