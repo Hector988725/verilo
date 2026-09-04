@@ -29,18 +29,23 @@ export default function DueListPage() {
 
   useEffect(() => {
     if (!unlocked) return;
-    async function load() {
-      setLoading(true);
-      const { data } = await supabase
-        .from('listings')
-        .select('*, cities(name)')
-        .eq('is_active', true)
-        .order('trial_ends_at', { ascending: true });
-      setListings(data || []);
-      setLoading(false);
-    }
-    load();
+    loadListings();
   }, [unlocked]);
+
+  async function loadListings() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('listings')
+      .select('*, cities(name)')
+      .order('trial_ends_at', { ascending: true });
+    setListings(data || []);
+    setLoading(false);
+  }
+
+  async function adminTogglePause(item) {
+    await supabase.from('listings').update({ is_active: !item.is_active }).eq('id', item.id);
+    loadListings();
+  }
 
   if (!unlocked) {
     return (
@@ -68,8 +73,9 @@ export default function DueListPage() {
     return { ...l, daysLeft, status, statusColor };
   }).sort((a, b) => a.daysLeft - b.daysLeft);
 
-  const urgent = withStatus.filter((l) => l.daysLeft <= 3);
-  const upcoming = withStatus.filter((l) => l.daysLeft > 3);
+  const urgent = withStatus.filter((l) => l.daysLeft <= 3 && l.is_active);
+  const upcoming = withStatus.filter((l) => l.daysLeft > 3 && l.is_active);
+  const paused = withStatus.filter((l) => !l.is_active);
 
   function whatsappLink(item) {
     const cityName = item.cities?.name || '';
@@ -106,15 +112,24 @@ export default function DueListPage() {
                     <p className="card-rating" style={{ color: item.statusColor }}>{item.status}</p>
                   </div>
                 </div>
-                <a
-                  className="call-btn"
-                  style={{ background: '#2E6B4E' }}
-                  href={whatsappLink(item)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  💬 WhatsApp
-                </a>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                  <a
+                    className="call-btn"
+                    style={{ background: '#2E6B4E' }}
+                    href={whatsappLink(item)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    💬 WhatsApp
+                  </a>
+                  <button
+                    className="call-btn"
+                    style={{ background: '#6B7280', border: 'none', cursor: 'pointer' }}
+                    onClick={() => adminTogglePause(item)}
+                  >
+                    ⏸️ Pause
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -135,6 +150,39 @@ export default function DueListPage() {
                     <p className="card-rating" style={{ color: item.statusColor }}>{item.status}</p>
                   </div>
                 </div>
+                <button
+                  className="call-btn"
+                  style={{ background: '#6B7280', border: 'none', cursor: 'pointer' }}
+                  onClick={() => adminTogglePause(item)}
+                >
+                  ⏸️ Pause
+                </button>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {!loading && paused.length > 0 && (
+        <>
+          <h3 style={{ color: '#6B7280', fontFamily: "'Rozha One', serif", marginTop: 24 }}>⏸️ Paused ({paused.length})</h3>
+          {paused.map((item) => (
+            <div key={item.id} className="card" style={{ cursor: 'default', opacity: 0.6 }}>
+              <div className="card-top">
+                <div className="card-left">
+                  <div style={{ minWidth: 0 }}>
+                    <div className="card-service">{catLabel(item.service)} · {item.cities?.name}</div>
+                    <p className="card-name">{item.name}</p>
+                    <p className="card-area">📞 {item.phone}</p>
+                  </div>
+                </div>
+                <button
+                  className="call-btn"
+                  style={{ background: '#2E6B4E', border: 'none', cursor: 'pointer' }}
+                  onClick={() => adminTogglePause(item)}
+                >
+                  ▶️ Unpause
+                </button>
               </div>
             </div>
           ))}

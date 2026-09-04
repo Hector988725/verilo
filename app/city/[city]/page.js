@@ -113,6 +113,10 @@ export default function CityPage() {
                 )}
                 <p className="card-rating">
                   {item.avgRating ? `★ ${item.avgRating.toFixed(1)} (${item.ratingCount})` : 'No ratings yet'}
+                  {' '}
+                  <span style={{ color: item.is_available === false ? '#C1442E' : '#2E6B4E', fontWeight: 700 }}>
+                    {item.is_available === false ? '· 🔴 Not available now' : '· 🟢 Available now'}
+                  </span>
                 </p>
               </div>
             </div>

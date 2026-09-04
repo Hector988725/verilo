@@ -36,6 +36,11 @@ function ProfileContent() {
     load();
   }
 
+  async function toggleAvailability() {
+    await supabase.from('listings').update({ is_available: !(listing.is_available !== false) }).eq('id', id);
+    load();
+  }
+
   async function load() {
     const { data: listingData } = await supabase.from('listings').select('*').eq('id', id).single();
     setListing(listingData);
@@ -143,6 +148,20 @@ function ProfileContent() {
         <p className="profile-rating">
           {avg ? `★ ${avg.toFixed(1)} (${ratings.length} rating${ratings.length > 1 ? 's' : ''})` : 'No ratings yet — be the first'}
         </p>
+        <p style={{ marginTop: 6, fontSize: 13.5, fontWeight: 700, color: listing.is_available === false ? '#C1442E' : '#2E6B4E' }}>
+          {listing.is_available === false ? '🔴 Not available right now' : '🟢 Available now'}
+        </p>
+        {isOwner && (
+          <button
+            onClick={toggleAvailability}
+            style={{
+              marginTop: 8, background: 'none', border: '1px solid rgba(255,255,255,0.25)', color: '#FFFDF6',
+              borderRadius: 999, padding: '5px 14px', fontSize: 12.5, cursor: 'pointer',
+            }}
+          >
+            {listing.is_available === false ? 'Mark as Available' : 'Mark as Not Available'}
+          </button>
+        )}
       </div>
 
       <a className="profile-call" href={`tel:${listing.phone}`}>📞 Call Now</a>
