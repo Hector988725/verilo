@@ -91,7 +91,8 @@ export default function CityPage() {
         </div>
       )}
 
-      {filtered.map((item) => (
+      <div className="listings-grid">
+        {filtered.map((item) => (
         <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
           <div className="card-top">
             <div className="card-left">
@@ -126,7 +127,8 @@ export default function CityPage() {
             <a className="call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call</a>
           </div>
         </Link>
-      ))}
+        ))}
+      </div>
 
       <Link href={`/city/${encodeURIComponent(city)}/add`} className="fab">+ Add Listing</Link>
 
