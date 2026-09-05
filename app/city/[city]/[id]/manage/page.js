@@ -54,13 +54,19 @@ function ManageContent() {
     load();
   }
 
-  async function handlePayNow() {
+  const PLAN_LABELS = {
+    1: { title: '1 Month', price: '₹30', note: null },
+    6: { title: '6 Months', price: '₹150', note: 'Save ₹30 — 1 month free' },
+    12: { title: '12 Months', price: '₹300', note: 'Save ₹60 — 2 months free' },
+  };
+
+  async function handlePayNow(months) {
     setPayingNow(true);
     try {
       const res = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listing_id: id }),
+        body: JSON.stringify({ listing_id: id, months }),
       });
       const order = await res.json();
       if (!order.id) throw new Error(order.error || 'Could not create payment order');
@@ -70,7 +76,7 @@ function ManageContent() {
         amount: order.amount,
         currency: order.currency,
         name: 'Verilo',
-        description: 'Monthly listing fee',
+        description: `Listing fee — ${months} month${months > 1 ? 's' : ''}`,
         order_id: order.id,
         handler: async function (response) {
           await fetch('/api/razorpay/verify', {
@@ -201,9 +207,29 @@ function ManageContent() {
           <li>Keep your rating & reviews public and growing</li>
           <li>Only ₹1/day — less than a cup of tea</li>
         </ul>
-        <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
-          {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
-        </button>
+
+        <div style={{ display: 'grid', gap: 10 }}>
+          {[1, 6, 12].map((m) => (
+            <button
+              key={m}
+              className="btn-primary"
+              onClick={() => handlePayNow(m)}
+              disabled={payingNow}
+              style={{
+                marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                background: m === 12 ? '#C97F1E' : m === 6 ? '#C1442E' : '#6B7280', textAlign: 'left', padding: '12px 16px',
+              }}
+            >
+              <span>
+                <strong>{PLAN_LABELS[m].title}</strong> — {PLAN_LABELS[m].price}
+                {PLAN_LABELS[m].note && (
+                  <span style={{ display: 'block', fontSize: 11.5, fontWeight: 500, opacity: 0.9 }}>{PLAN_LABELS[m].note}</span>
+                )}
+              </span>
+              <span>{payingNow ? '...' : '→'}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="profile-card" style={{ textAlign: 'center' }}>
