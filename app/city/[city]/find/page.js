@@ -80,7 +80,7 @@ export default function FindListingPage() {
             const statusText = trial ? `🟢 Trial — ${daysLeft(item)}d left` : '🔴 Fee due';
             const statusColor = trial ? '#2E6B4E' : '#C1442E';
             return (
-              <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
+              <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}/manage`}>
                 <div className="card-top">
                   <div className="card-left">
                     <div style={{ minWidth: 0 }}>

@@ -86,7 +86,7 @@ export default function AddListingPage() {
         localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
       } catch (e) {}
 
-      router.push(`/city/${encodeURIComponent(city)}/${listing.id}?welcome=1`);
+      router.push(`/city/${encodeURIComponent(city)}/${listing.id}/manage?welcome=1`);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

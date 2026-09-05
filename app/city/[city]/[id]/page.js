@@ -1,23 +1,15 @@
 'use client';
-import { Suspense, useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import Script from 'next/script';
 import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel, initials, isInTrial, daysLeft } from '../../../../lib/categories';
+import { catLabel, initials } from '../../../../lib/categories';
 
+// PUBLIC PROFILE PAGE — anyone can view this (customers browsing Verilo).
+// It NEVER shows owner controls (pay, pause, edit, availability toggle).
+// Those live only on the separate /manage page, reachable via phone verification.
 export default function ProfilePage() {
-  return (
-    <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>}>
-      <ProfileContent />
-    </Suspense>
-  );
-}
-
-function ProfileContent() {
   const params = useParams();
-  const searchParams = useSearchParams();
-  const isWelcome = searchParams.get('welcome') === '1';
   const city = decodeURIComponent(params.city);
   const id = params.id;
 
@@ -26,29 +18,6 @@ function ProfileContent() {
   const [starValue, setStarValue] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [payingNow, setPayingNow] = useState(false);
-  const [pausing, setPausing] = useState(false);
-
-  async function togglePause() {
-    setPausing(true);
-    await supabase.from('listings').update({ is_active: !listing.is_active }).eq('id', id);
-    setPausing(false);
-    load();
-  }
-
-  async function toggleAvailability() {
-    const nowAvailable = listing.is_available === false; // currently unavailable, about to become available
-    let note = null;
-    if (!nowAvailable) {
-      // going from available -> not available, ask for an optional note
-      note = prompt('Optional: when will you be available again? (e.g. "Back on Monday", "Available after 5 PM")') || null;
-    }
-    await supabase.from('listings').update({
-      is_available: nowAvailable,
-      unavailable_note: nowAvailable ? null : note,
-    }).eq('id', id);
-    load();
-  }
 
   async function load() {
     const { data: listingData } = await supabase.from('listings').select('*').eq('id', id).single();
@@ -78,71 +47,11 @@ function ProfileContent() {
     alert('Thanks — we will review this listing.');
   }
 
-  async function handlePayNow() {
-    setPayingNow(true);
-    try {
-      const res = await fetch('/api/razorpay/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listing_id: id }),
-      });
-      const order = await res.json();
-      if (!order.id) throw new Error(order.error || 'Could not create payment order');
-
-      const rzp = new window.Razorpay({
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: 'Verilo',
-        description: 'Monthly listing fee',
-        order_id: order.id,
-        handler: async function (response) {
-          await fetch('/api/razorpay/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ...response, listing_id: id }),
-          });
-          alert('Payment successful! Your listing is active for another month.');
-          load();
-        },
-        prefill: { contact: listing.phone },
-        theme: { color: '#C1442E' },
-      });
-      rzp.open();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setPayingNow(false);
-    }
-  }
-
   if (!listing) return <div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>;
-
-  const trial = isInTrial(listing);
-  let isOwner = false;
-  try {
-    const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-    isOwner = mine.includes(listing.id);
-  } catch (e) {}
 
   return (
     <div className="wrap">
-      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to list</Link>
-
-      {isWelcome && (
-        <div className="profile-card" style={{ background: '#F3EEDD', border: '1.5px dashed #C97F1E' }}>
-          <h3>🎉 Your listing is live!</h3>
-          <p style={{ marginBottom: 8 }}>
-            Bookmark this page or save this link — this is your profile. Come back here anytime
-            to check your trial status or pay your monthly fee.
-          </p>
-          <p style={{ fontSize: 12.5, color: '#6B7280' }}>
-            Forgot to save the link? Just search "Manage my listing" on the {city} page with
-            your phone number.
-          </p>
-        </div>
-      )}
 
       <div className="profile-header">
         <div className="profile-avatar">
@@ -163,57 +72,7 @@ function ProfileContent() {
         {listing.is_available === false && listing.unavailable_note && (
           <p style={{ fontSize: 12.5, color: '#8A94A6', marginTop: 2 }}>{listing.unavailable_note}</p>
         )}
-        {isOwner && (
-          <button
-            onClick={toggleAvailability}
-            style={{
-              marginTop: 8, background: 'none', border: '1px solid rgba(255,255,255,0.25)', color: '#FFFDF6',
-              borderRadius: 999, padding: '5px 14px', fontSize: 12.5, cursor: 'pointer',
-            }}
-          >
-            {listing.is_available === false ? 'Mark as Available' : 'Mark as Not Available'}
-          </button>
-        )}
       </div>
-
-      {isOwner && (
-        <div className="profile-card">
-          {!listing.is_active && (
-            <div style={{ background: '#F3EEDD', border: '1.5px dashed #8A94A6', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
-              <strong style={{ color: '#6B7280' }}>⏸️ Your listing is paused</strong>
-              <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280' }}>
-                It's hidden from search results and calls. Unpause anytime to make it visible again.
-              </p>
-            </div>
-          )}
-          <h3>{trial ? `Free trial — ${daysLeft(listing)} days left` : 'Monthly fee due'}</h3>
-          <p style={{ marginBottom: 12 }}>
-            {trial
-              ? 'Your listing is free until the trial ends. Pay anytime to lock in your spot after that.'
-              : 'Your free trial has ended. Pay ₹30 to keep this listing active for another month.'}
-          </p>
-          <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
-            {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
-          </button>
-          <button
-            className="btn-primary"
-            onClick={togglePause}
-            disabled={pausing}
-            style={{ marginTop: 10, background: listing.is_active ? '#6B7280' : '#2E6B4E' }}
-          >
-            {pausing ? 'Updating...' : listing.is_active ? '⏸️ Pause my listing' : '▶️ Unpause my listing'}
-          </button>
-          <Link
-            href={`/city/${encodeURIComponent(city)}/${listing.id}/edit`}
-            style={{
-              display: 'block', textAlign: 'center', marginTop: 10, fontSize: 13.5,
-              color: '#C97F1E', fontWeight: 700, textDecoration: 'underline',
-            }}
-          >
-            ✏️ Edit my listing
-          </Link>
-        </div>
-      )}
 
       <a className="profile-call" href={`tel:${listing.phone}`}>📞 Call Now</a>
 
