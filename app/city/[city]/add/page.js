@@ -12,6 +12,10 @@ const SPECIALIZATION_LABELS = {
   plumber: { label: 'Specialization', placeholder: 'e.g. Pipe fitting, bathroom fitting' },
   electrician: { label: 'Specialization', placeholder: 'e.g. Wiring, AC repair, appliance repair' },
   mistri: { label: 'Specialization', placeholder: 'e.g. Furniture, doors, woodwork' },
+  mechanic: { label: 'Specialization', placeholder: 'e.g. Bike repair, car servicing' },
+  'ac-repair': { label: 'Specialization', placeholder: 'e.g. AC servicing, fridge, washing machine repair' },
+  beautician: { label: 'Services Offered', placeholder: 'e.g. Haircut, facial, bridal makeup' },
+  tailor: { label: 'Specialization', placeholder: 'e.g. Blouse stitching, alterations, uniforms' },
   'milk-veg': { label: 'What You Deliver', placeholder: 'e.g. Fresh milk, seasonal vegetables' },
   other: { label: 'Specialization', placeholder: 'What do you specialize in?' },
 };
