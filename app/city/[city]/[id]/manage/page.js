@@ -1,6 +1,6 @@
 'use client';
 import { Suspense, useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import { supabase } from '../../../../../lib/supabaseClient';
@@ -16,6 +16,7 @@ export default function ManageListingPage() {
 
 function ManageContent() {
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const isWelcome = searchParams.get('welcome') === '1';
   const city = decodeURIComponent(params.city);
@@ -24,7 +25,8 @@ function ManageContent() {
   const [listing, setListing] = useState(null);
   const [allowed, setAllowed] = useState(null);
   const [payingNow, setPayingNow] = useState(false);
-  const [pausing, setPausing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [justPaid, setJustPaid] = useState(false);
 
   useEffect(() => {
     try {
@@ -37,13 +39,6 @@ function ManageContent() {
   async function load() {
     const { data } = await supabase.from('listings').select('*').eq('id', id).single();
     setListing(data);
-  }
-
-  async function togglePause() {
-    setPausing(true);
-    await supabase.from('listings').update({ is_active: !listing.is_active }).eq('id', id);
-    setPausing(false);
-    load();
   }
 
   async function toggleAvailability() {
@@ -83,7 +78,7 @@ function ManageContent() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...response, listing_id: id }),
           });
-          alert('Payment successful! Your listing is active for another month.');
+          setJustPaid(true);
           load();
         },
         prefill: { contact: listing.phone },
@@ -95,6 +90,18 @@ function ManageContent() {
     } finally {
       setPayingNow(false);
     }
+  }
+
+  async function handleDelete() {
+    const sure = confirm('This will permanently remove your listing from Verilo. This cannot be undone. Continue?');
+    if (!sure) return;
+    setDeleting(true);
+    await supabase.from('listings').delete().eq('id', id);
+    try {
+      const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
+      localStorage.setItem('verilo_my_listings', JSON.stringify(mine.filter((x) => x !== id)));
+    } catch (e) {}
+    router.push(`/city/${encodeURIComponent(city)}`);
   }
 
   if (allowed === false) {
@@ -136,6 +143,17 @@ function ManageContent() {
         </div>
       )}
 
+      {justPaid && (
+        <div className="profile-card" style={{ background: 'rgba(46,107,78,0.12)', border: '1.5px solid #2E6B4E' }}>
+          <h3 style={{ color: '#2E6B4E' }}>✅ Payment successful</h3>
+          <p style={{ margin: 0 }}>
+            Your listing is active for another month — active until{' '}
+            <strong>{new Date(listing.trial_ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+            Thank you for keeping Verilo running!
+          </p>
+        </div>
+      )}
+
       <div className="profile-header">
         <div className="profile-avatar">
           {listing.photo_url ? <img src={listing.photo_url} alt="" /> : initials(listing.name)}
@@ -165,28 +183,26 @@ function ManageContent() {
       <div className="profile-card">
         {!listing.is_active && (
           <div style={{ background: '#F3EEDD', border: '1.5px dashed #8A94A6', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
-            <strong style={{ color: '#6B7280' }}>⏸️ Your listing is paused</strong>
+            <strong style={{ color: '#6B7280' }}>⏸️ Your listing has been paused by Verilo</strong>
             <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280' }}>
-              It's hidden from search results. Unpause anytime to make it visible again.
+              This usually happens if payment is overdue. Pay below to get it active again, or
+              contact us if you think this is a mistake.
             </p>
           </div>
         )}
         <h3>{trial ? `Free trial — ${daysLeft(listing)} days left` : 'Monthly fee due'}</h3>
-        <p style={{ marginBottom: 12 }}>
+        <p style={{ marginBottom: 10 }}>
           {trial
-            ? 'Your listing is free until the trial ends. Pay anytime to lock in your spot after that.'
+            ? "Your listing is free until the trial ends. Pay anytime to lock in your spot after that."
             : 'Your free trial has ended. Pay ₹30 to keep this listing active for another month.'}
         </p>
+        <ul style={{ margin: '0 0 14px', paddingLeft: 18, fontSize: 13, color: '#6B7280' }}>
+          <li>Stay visible to everyone searching in {city}</li>
+          <li>Keep your rating & reviews public and growing</li>
+          <li>Only ₹1/day — less than a cup of tea</li>
+        </ul>
         <button className="btn-primary" onClick={handlePayNow} disabled={payingNow} style={{ marginTop: 0 }}>
           {payingNow ? 'Opening payment...' : 'Pay ₹30 for this month'}
-        </button>
-        <button
-          className="btn-primary"
-          onClick={togglePause}
-          disabled={pausing}
-          style={{ marginTop: 10, background: listing.is_active ? '#6B7280' : '#2E6B4E' }}
-        >
-          {pausing ? 'Updating...' : listing.is_active ? '⏸️ Pause my listing' : '▶️ Unpause my listing'}
         </button>
       </div>
 
@@ -197,6 +213,18 @@ function ManageContent() {
         >
           ✏️ Edit my listing details
         </Link>
+      </div>
+
+      <div className="profile-card" style={{ textAlign: 'center' }}>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          style={{
+            background: 'none', border: 'none', color: '#C1442E', fontSize: 13, textDecoration: 'underline', cursor: 'pointer',
+          }}
+        >
+          {deleting ? 'Removing...' : 'Permanently delete my listing'}
+        </button>
       </div>
     </div>
   );
