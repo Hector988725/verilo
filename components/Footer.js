@@ -7,6 +7,7 @@ export default function Footer() {
       borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 20,
     }}>
       <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
+        <Link href="/pricing" style={{ color: '#8A94A6' }}>Pricing</Link>
         <Link href="/contact" style={{ color: '#8A94A6' }}>Contact Us</Link>
         <Link href="/privacy" style={{ color: '#8A94A6' }}>Privacy Policy</Link>
         <Link href="/terms" style={{ color: '#8A94A6' }}>Terms & Conditions</Link>
