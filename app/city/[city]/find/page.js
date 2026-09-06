@@ -1,39 +1,20 @@
 'use client';
-import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel, isInTrial, daysLeft } from '../../../../lib/categories';
 
+// This used to let anyone "recover" a listing by typing in its phone number —
+// but phone numbers are public (shown on the Call button), so that let a
+// stranger claim someone else's listing. Recovery now goes through a human
+// (the Verilo owner) via WhatsApp, who can verify the person before sharing
+// their real secret manage link.
 export default function FindListingPage() {
   const params = useParams();
   const city = decodeURIComponent(params.city);
-  const [phone, setPhone] = useState('');
-  const [results, setResults] = useState(null);
-  const [searching, setSearching] = useState(false);
 
-  async function handleSearch(e) {
-    e.preventDefault();
-    setSearching(true);
-    setResults(null);
-    const { data: cityRow } = await supabase.from('cities').select('id').eq('name', city).maybeSingle();
-    if (!cityRow) { setResults([]); setSearching(false); return; }
-    const { data } = await supabase
-      .from('listings')
-      .select('*')
-      .eq('city_id', cityRow.id)
-      .eq('phone', phone.trim());
-    setResults(data || []);
-    setSearching(false);
-
-    // Mark all found listings as "mine" on this device, so the owner sees
-    // payment/trial controls when they open their profile from here.
-    try {
-      const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-      (data || []).forEach((item) => { if (!mine.includes(item.id)) mine.push(item.id); });
-      localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
-    } catch (e) {}
-  }
+  const supportPhone = '918959992195';
+  const message = encodeURIComponent(
+    `Hi, I added my listing on Verilo (${city}) but lost my management link. My registered phone number is: `
+  );
 
   return (
     <div className="wrap">
@@ -45,60 +26,27 @@ export default function FindListingPage() {
 
       <div className="form-card">
         <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>
-          Find Your Listing
+          Lost Access to Your Listing?
         </h2>
-        <p style={{ color: '#6B7280', fontSize: 14, marginTop: -8, marginBottom: 16 }}>
-          Enter the phone number you used when you added your listing. You'll be able to
-          view your profile, check your trial status, and pay your monthly fee.
+        <p style={{ color: '#6B7280', fontSize: 14 }}>
+          When you first added your listing, we gave you a private link to manage it — pay,
+          edit, or pause it. If you saved that link (or you're on the same phone/browser you
+          used to add it), just open it directly.
         </p>
-        <form onSubmit={handleSearch}>
-          <label>Your Phone Number</label>
-          <input
-            type="tel"
-            required
-            pattern="[0-9]{10}"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="10-digit number"
-          />
-          <button className="btn-primary" type="submit" disabled={searching}>
-            {searching ? 'Searching...' : 'Find My Listing'}
-          </button>
-        </form>
+        <p style={{ color: '#6B7280', fontSize: 14 }}>
+          If you've lost that link, message us on WhatsApp with your registered phone number
+          and we'll verify and send it back to you.
+        </p>
+        <a
+          href={`https://wa.me/${supportPhone}?text=${message}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary"
+          style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
+        >
+          💬 Message Support on WhatsApp
+        </a>
       </div>
-
-      {results !== null && (
-        <div style={{ marginTop: 20 }}>
-          {results.length === 0 && (
-            <div className="empty">
-              <div className="empty-title">No listing found</div>
-              <div>No listing in {city} is registered with this number.</div>
-            </div>
-          )}
-          {results.map((item) => {
-            const trial = isInTrial(item);
-            const statusText = trial ? `🟢 Trial — ${daysLeft(item)}d left` : '🔴 Fee due';
-            const statusColor = trial ? '#2E6B4E' : '#C1442E';
-            return (
-              <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}/manage`}>
-                <div className="card-top">
-                  <div className="card-left">
-                    <div style={{ minWidth: 0 }}>
-                      <div className="card-service">{catLabel(item.service)}</div>
-                      <p className="card-name">{item.name}</p>
-                      {item.area && <p className="card-area">📍 {item.area}</p>}
-                      <p style={{ fontSize: 12.5, fontWeight: 700, color: statusColor, margin: '3px 0 0' }}>
-                        {statusText} {!item.is_active && '· ⏸️ Paused'}
-                      </p>
-                    </div>
-                  </div>
-                  <span style={{ color: '#C1442E', fontWeight: 700, fontSize: 13.5 }}>Manage →</span>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

@@ -1,14 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '../../../lib/supabaseClient';
 import { catLabel } from '../../../lib/categories';
-
-const ADMIN_PASSCODE = process.env.NEXT_PUBLIC_ADMIN_PASSCODE || 'verilo123';
 
 export default function ReportsPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [passInput, setPassInput] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -18,13 +16,19 @@ export default function ReportsPage() {
     }
   }, []);
 
-  function checkPasscode(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    if (passInput === ADMIN_PASSCODE) {
-      localStorage.setItem('verilo_admin_ok', '1');
+    setLoginError('');
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: passInput }),
+    });
+    if (res.ok) {
+      localStorage.setItem('verilo_admin_ok', '1'); // convenience flag only — real check is server-side
       setUnlocked(true);
     } else {
-      alert('Wrong passcode');
+      setLoginError('Wrong passcode');
     }
   }
 
@@ -35,21 +39,33 @@ export default function ReportsPage() {
 
   async function loadReports() {
     setLoading(true);
-    const { data } = await supabase
-      .from('reports')
-      .select('*, listings(*, cities(name))')
-      .order('created_at', { ascending: false });
-    setReports(data || []);
+    const res = await fetch('/api/admin/reports');
+    if (res.status === 401) {
+      localStorage.removeItem('verilo_admin_ok');
+      setUnlocked(false);
+      setLoading(false);
+      return;
+    }
+    const result = await res.json();
+    setReports(result.reports || []);
     setLoading(false);
   }
 
   async function dismissReport(reportId) {
-    await supabase.from('reports').delete().eq('id', reportId);
+    await fetch('/api/admin/dismiss-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report_id: reportId }),
+    });
     loadReports();
   }
 
   async function pauseListing(listingId) {
-    await supabase.from('listings').update({ is_active: false }).eq('id', listingId);
+    await fetch('/api/admin/toggle-pause', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: listingId, is_active: false }),
+    });
     alert('Listing paused.');
   }
 
@@ -58,9 +74,10 @@ export default function ReportsPage() {
       <div className="wrap" style={{ maxWidth: 400, paddingTop: 80 }}>
         <div className="form-card">
           <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Owner Login</h2>
-          <form onSubmit={checkPasscode}>
+          <form onSubmit={handleLogin}>
             <label>Passcode</label>
             <input type="password" value={passInput} onChange={(e) => setPassInput(e.target.value)} autoFocus />
+            {loginError && <p style={{ color: '#C1442E', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
             <button className="btn-primary" type="submit">Enter</button>
           </form>
         </div>

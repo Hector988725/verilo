@@ -29,12 +29,49 @@ function ManageContent() {
   const [justPaid, setJustPaid] = useState(false);
 
   useEffect(() => {
+    checkAccess();
+  }, [id]);
+
+  async function checkAccess() {
+    const tokenFromUrl = searchParams.get('t');
+
+    let isOwnerOnThisDevice = false;
     try {
       const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-      setAllowed(mine.includes(id));
-    } catch (e) { setAllowed(false); }
-    load();
-  }, [id]);
+      isOwnerOnThisDevice = mine.includes(id);
+    } catch (e) {}
+
+    if (isOwnerOnThisDevice) {
+      setAllowed(true);
+      load();
+      return;
+    }
+
+    if (tokenFromUrl) {
+      try {
+        const res = await fetch('/api/verify-manage-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ listing_id: id, token: tokenFromUrl }),
+        });
+        const result = await res.json();
+        if (result.valid) {
+          // Valid secret link — grant access and remember it on this device
+          // so the token doesn't need to stay in the URL going forward.
+          try {
+            const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
+            if (!mine.includes(id)) mine.push(id);
+            localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
+          } catch (e) {}
+          setAllowed(true);
+          load();
+          return;
+        }
+      } catch (e) {}
+    }
+
+    setAllowed(false);
+  }
 
   async function load() {
     const { data } = await supabase.from('listings').select('*').eq('id', id).single();
@@ -115,12 +152,12 @@ function ManageContent() {
       <div className="wrap">
         <header><div className="pin"></div><h1>Verilo</h1></header>
         <div className="empty">
-          <div className="empty-title">Not verified</div>
+          <div className="empty-title">Access Not Verified</div>
           <div>
-            This management page can only be opened from the device that added the listing,
-            or after verifying with your phone number.{' '}
+            This page can only be opened using your private management link, or from the
+            device that originally added the listing.{' '}
             <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#E8A33D' }}>
-              Verify with your phone number →
+              Lost your link? →
             </Link>
           </div>
         </div>

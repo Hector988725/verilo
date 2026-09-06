@@ -66,7 +66,13 @@ export default function AddListingPage() {
         photo_url = publicUrl.publicUrl;
       }
 
-      // 3. Insert listing — inactive until payment (no free trial, pay from day 1)
+      // 3. Generate a private, hard-to-guess access token for this listing.
+      // This token — not the (public) phone number — is the real "key" to
+      // managing the listing, so a stranger who sees the phone number on the
+      // public profile cannot claim ownership just by typing it in.
+      const manageToken = crypto.randomUUID();
+
+      // 4. Insert listing — inactive until payment (no free trial, pay from day 1)
       const { data: listing, error: insertError } = await supabase.from('listings').insert({
         city_id: cityRow.id,
         name: form.name,
@@ -81,19 +87,20 @@ export default function AddListingPage() {
         maps_link: form.mapsLink || null,
         is_active: false,
         trial_ends_at: new Date().toISOString(),
+        manage_token: manageToken,
       }).select().single();
       if (insertError) throw insertError;
 
-      // 4. Redirect to their manage page to complete payment and go live
-      // Remember this listing as "mine" on this device, so only the owner
-      // sees payment/trial controls on the profile page (not customers browsing).
+      // 5. Redirect to their manage page (with their secret token) to complete
+      // payment and go live. Remember this listing as "mine" on this device too,
+      // so future visits on this same browser don't need the token in the URL.
       try {
         const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
         if (!mine.includes(listing.id)) mine.push(listing.id);
         localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
       } catch (e) {}
 
-      router.push(`/city/${encodeURIComponent(city)}/${listing.id}/manage?welcome=1`);
+      router.push(`/city/${encodeURIComponent(city)}/${listing.id}/manage?t=${manageToken}&welcome=1`);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {

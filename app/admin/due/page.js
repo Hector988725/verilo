@@ -1,13 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabaseClient';
+import Link from 'next/link';
 import { catLabel } from '../../../lib/categories';
-
-const ADMIN_PASSCODE = process.env.NEXT_PUBLIC_ADMIN_PASSCODE || 'verilo123';
 
 export default function DueListPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [passInput, setPassInput] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -17,13 +16,19 @@ export default function DueListPage() {
     }
   }, []);
 
-  function checkPasscode(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    if (passInput === ADMIN_PASSCODE) {
-      localStorage.setItem('verilo_admin_ok', '1');
+    setLoginError('');
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: passInput }),
+    });
+    if (res.ok) {
+      localStorage.setItem('verilo_admin_ok', '1'); // convenience flag only — real check is server-side
       setUnlocked(true);
     } else {
-      alert('Wrong passcode');
+      setLoginError('Wrong passcode');
     }
   }
 
@@ -34,17 +39,44 @@ export default function DueListPage() {
 
   async function loadListings() {
     setLoading(true);
-    const { data } = await supabase
-      .from('listings')
-      .select('*, cities(name)')
-      .order('trial_ends_at', { ascending: true });
-    setListings(data || []);
+    const res = await fetch('/api/admin/due-list');
+    if (res.status === 401) {
+      localStorage.removeItem('verilo_admin_ok');
+      setUnlocked(false);
+      setLoading(false);
+      return;
+    }
+    const result = await res.json();
+    setListings(result.listings || []);
     setLoading(false);
   }
 
   async function adminTogglePause(item) {
-    await supabase.from('listings').update({ is_active: !item.is_active }).eq('id', item.id);
+    await fetch('/api/admin/toggle-pause', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: item.id, is_active: !item.is_active }),
+    });
     loadListings();
+  }
+
+  async function copyManageLink(item) {
+    try {
+      const res = await fetch('/api/admin/manage-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: item.id }),
+      });
+      const result = await res.json();
+      if (result.link) {
+        await navigator.clipboard.writeText(result.link);
+        alert(`Link copied! Paste it to ${item.name} on WhatsApp:\n\n${result.link}`);
+      } else {
+        alert('Could not fetch link.');
+      }
+    } catch (e) {
+      alert('Something went wrong.');
+    }
   }
 
   if (!unlocked) {
@@ -52,9 +84,10 @@ export default function DueListPage() {
       <div className="wrap" style={{ maxWidth: 400, paddingTop: 80 }}>
         <div className="form-card">
           <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Owner Login</h2>
-          <form onSubmit={checkPasscode}>
+          <form onSubmit={handleLogin}>
             <label>Passcode</label>
             <input type="password" value={passInput} onChange={(e) => setPassInput(e.target.value)} autoFocus />
+            {loginError && <p style={{ color: '#C1442E', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
             <button className="btn-primary" type="submit">Enter</button>
           </form>
         </div>
@@ -94,6 +127,7 @@ export default function DueListPage() {
         <div className="pin"></div>
         <h1>Verilo</h1>
         <p className="tagline">Owner Dashboard — Payment Due List</p>
+        <Link href="/admin/reports" className="back-link">View Reports →</Link>
       </header>
 
       {loading && <p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p>}
@@ -129,6 +163,13 @@ export default function DueListPage() {
                   >
                     ⏸️ Pause
                   </button>
+                  <button
+                    className="call-btn"
+                    style={{ background: '#C97F1E', border: 'none', cursor: 'pointer' }}
+                    onClick={() => copyManageLink(item)}
+                  >
+                    🔗 Get Link
+                  </button>
                 </div>
               </div>
             </div>
@@ -150,13 +191,22 @@ export default function DueListPage() {
                     <p className="card-rating" style={{ color: item.statusColor }}>{item.status}</p>
                   </div>
                 </div>
-                <button
-                  className="call-btn"
-                  style={{ background: '#6B7280', border: 'none', cursor: 'pointer' }}
-                  onClick={() => adminTogglePause(item)}
-                >
-                  ⏸️ Pause
-                </button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                  <button
+                    className="call-btn"
+                    style={{ background: '#6B7280', border: 'none', cursor: 'pointer' }}
+                    onClick={() => adminTogglePause(item)}
+                  >
+                    ⏸️ Pause
+                  </button>
+                  <button
+                    className="call-btn"
+                    style={{ background: '#C97F1E', border: 'none', cursor: 'pointer' }}
+                    onClick={() => copyManageLink(item)}
+                  >
+                    🔗 Get Link
+                  </button>
+                </div>
               </div>
             </div>
           ))}
