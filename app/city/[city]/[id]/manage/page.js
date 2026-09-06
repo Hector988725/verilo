@@ -4,7 +4,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import { supabase } from '../../../../../lib/supabaseClient';
-import { catLabel, initials, isInTrial, daysLeft } from '../../../../../lib/categories';
+import { catLabel, initials } from '../../../../../lib/categories';
 
 export default function ManageListingPage() {
   return (
@@ -132,28 +132,28 @@ function ManageContent() {
     return <div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>;
   }
 
-  const trial = isInTrial(listing);
+
 
   return (
     <div className="wrap">
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Link href={`/city/${encodeURIComponent(city)}/${id}`} className="back-link">← View my public profile</Link>
 
-      {isWelcome && (
+      {isWelcome && !listing.is_active && (
         <div className="profile-card" style={{ background: '#F3EEDD', border: '1.5px dashed #C97F1E' }}>
-          <h3>🎉 Your listing is live!</h3>
+          <h3>👋 Almost there!</h3>
           <p style={{ margin: 0 }}>
-            Bookmark this page — this is where you manage your listing, pay your monthly fee,
-            and update your details.
+            Your listing is saved but not visible to customers yet. Complete a payment below to
+            go live in {city}. Bookmark this page — it's where you'll always manage your listing.
           </p>
         </div>
       )}
 
       {justPaid && (
         <div className="profile-card" style={{ background: 'rgba(46,107,78,0.12)', border: '1.5px solid #2E6B4E' }}>
-          <h3 style={{ color: '#2E6B4E' }}>✅ Payment successful</h3>
+          <h3 style={{ color: '#2E6B4E' }}>✅ Payment successful — you're live!</h3>
           <p style={{ margin: 0 }}>
-            Your listing is active for another month — active until{' '}
+            Your listing is now visible to customers, active until{' '}
             <strong>{new Date(listing.trial_ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
             Thank you for keeping Verilo running!
           </p>
@@ -189,18 +189,15 @@ function ManageContent() {
       <div className="profile-card">
         {!listing.is_active && (
           <div style={{ background: '#F3EEDD', border: '1.5px dashed #8A94A6', borderRadius: 10, padding: '10px 12px', marginBottom: 14 }}>
-            <strong style={{ color: '#6B7280' }}>⏸️ Your listing has been paused by Verilo</strong>
+            <strong style={{ color: '#6B7280' }}>🔒 Your listing isn't visible to customers yet</strong>
             <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280' }}>
-              This usually happens if payment is overdue. Pay below to get it active again, or
-              contact us if you think this is a mistake.
+              Complete a payment below to publish it. This also applies if a past payment lapsed.
             </p>
           </div>
         )}
-        <h3>{trial ? `Free trial — ${daysLeft(listing)} days left` : 'Monthly fee due'}</h3>
+        <h3>{listing.is_active ? 'Renew your listing' : 'Activate your listing'}</h3>
         <p style={{ marginBottom: 10 }}>
-          {trial
-            ? "Your listing is free until the trial ends. Pay anytime to lock in your spot after that."
-            : 'Your free trial has ended. Pay ₹30 to keep this listing active for another month.'}
+          Choose a plan below — longer plans save you money and mean fewer things to remember.
         </p>
         <ul style={{ margin: '0 0 14px', paddingLeft: 18, fontSize: 13, color: '#6B7280' }}>
           <li>Stay visible to everyone searching in {city}</li>

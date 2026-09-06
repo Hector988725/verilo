@@ -76,6 +76,20 @@ export default function ProfilePage() {
 
       <a className="profile-call" href={`tel:${listing.phone}`}>📞 Call Now</a>
 
+      {listing.maps_link && (
+        <a
+          href={listing.maps_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'block', textAlign: 'center', color: '#8A94A6', fontSize: 13, marginBottom: 16,
+            textDecoration: 'underline',
+          }}
+        >
+          📍 View on Google Maps
+        </a>
+      )}
+
       {listing.about && (
         <div className="profile-card"><h3>About</h3><p>{listing.about}</p></div>
       )}

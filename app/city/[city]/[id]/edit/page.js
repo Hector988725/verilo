@@ -43,7 +43,7 @@ export default function EditListingPage() {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
           qualification: data.qualification || '', experience: data.experience || '',
-          about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '',
+          about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '',
         });
         setPhotoPreview(data.photo_url || '');
       }
@@ -76,7 +76,7 @@ export default function EditListingPage() {
       const updatePayload = {
         name: form.name, service: form.service,
         qualification: form.qualification || null, experience: form.experience || null,
-        about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null,
+        about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null,
       };
       if (photo_url) updatePayload.photo_url = photo_url;
 
@@ -153,6 +153,9 @@ export default function EditListingPage() {
 
         <label>Note (optional)</label>
         <textarea value={form.note} onChange={(e) => update('note', e.target.value)} />
+
+        <label>Google Maps / Business Profile Link (optional)</label>
+        <input value={form.mapsLink} onChange={(e) => update('mapsLink', e.target.value)} placeholder="Paste your Google Maps or Business Profile link" />
 
         {error && <p style={{ color: '#C1442E', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 

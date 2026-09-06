@@ -27,7 +27,7 @@ export default function AddListingPage() {
 
   const [form, setForm] = useState({
     name: '', service: 'plumber', qualification: '', experience: '',
-    about: '', phone: '', area: '', note: '',
+    about: '', phone: '', area: '', note: '', mapsLink: '',
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -66,7 +66,7 @@ export default function AddListingPage() {
         photo_url = publicUrl.publicUrl;
       }
 
-      // 3. Insert listing
+      // 3. Insert listing — inactive until payment (no free trial, pay from day 1)
       const { data: listing, error: insertError } = await supabase.from('listings').insert({
         city_id: cityRow.id,
         name: form.name,
@@ -78,10 +78,13 @@ export default function AddListingPage() {
         area: form.area || null,
         note: form.note || null,
         photo_url,
+        maps_link: form.mapsLink || null,
+        is_active: false,
+        trial_ends_at: new Date().toISOString(),
       }).select().single();
       if (insertError) throw insertError;
 
-      // 4. Redirect to their profile — payment happens after trial via the profile page's "Pay Now" button
+      // 4. Redirect to their manage page to complete payment and go live
       // Remember this listing as "mine" on this device, so only the owner
       // sees payment/trial controls on the profile page (not customers browsing).
       try {
@@ -143,12 +146,19 @@ export default function AddListingPage() {
         <label>Note (optional)</label>
         <textarea value={form.note} onChange={(e) => update('note', e.target.value)} placeholder="e.g. Available 9 AM - 1 PM" />
 
+        <label>Google Maps / Business Profile Link (optional)</label>
+        <input
+          value={form.mapsLink}
+          onChange={(e) => update('mapsLink', e.target.value)}
+          placeholder="Paste your Google Maps or Business Profile link"
+        />
+
         {error && <p style={{ color: '#C1442E', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 
         <button className="btn-primary" type="submit" disabled={submitting}>
           {submitting ? 'Adding...' : 'Add Listing'}
         </button>
-        <p className="status-note">First 15 days completely free — small monthly fee after that</p>
+        <p className="status-note">Your listing goes live as soon as you complete payment (starts at ₹30/month)</p>
       </form>
     </div>
   );
