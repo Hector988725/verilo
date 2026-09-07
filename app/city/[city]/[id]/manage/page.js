@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { supabase } from '../../../../../lib/supabaseClient';
 import { catLabel, initials } from '../../../../../lib/categories';
+import { getMyToken, saveMyToken, forgetMyToken } from '../../../../../lib/ownership';
 
 export default function ManageListingPage() {
   return (
@@ -35,13 +36,8 @@ function ManageContent() {
   async function checkAccess() {
     const tokenFromUrl = searchParams.get('t');
 
-    let isOwnerOnThisDevice = false;
-    try {
-      const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-      isOwnerOnThisDevice = mine.includes(id);
-    } catch (e) {}
-
-    if (isOwnerOnThisDevice) {
+    const savedToken = getMyToken(id);
+    if (savedToken) {
       setAllowed(true);
       load();
       return;
@@ -56,13 +52,10 @@ function ManageContent() {
         });
         const result = await res.json();
         if (result.valid) {
-          // Valid secret link — grant access and remember it on this device
-          // so the token doesn't need to stay in the URL going forward.
-          try {
-            const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-            if (!mine.includes(id)) mine.push(id);
-            localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
-          } catch (e) {}
+          // Valid secret link — grant access and remember the actual token
+          // on this device (not just the id), so future actions like edit,
+          // delete, or availability changes can be verified server-side.
+          saveMyToken(id, tokenFromUrl);
           setAllowed(true);
           load();
           return;
@@ -84,10 +77,16 @@ function ManageContent() {
     if (!goingAvailable) {
       note = prompt('Optional: when will you be available again? (e.g. "Back on Monday", "Available after 5 PM")') || null;
     }
-    await supabase.from('listings').update({
-      is_available: goingAvailable,
-      unavailable_note: goingAvailable ? null : note,
-    }).eq('id', id);
+    await fetch('/api/listing/availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        listing_id: id,
+        token: getMyToken(id),
+        is_available: goingAvailable,
+        unavailable_note: goingAvailable ? null : note,
+      }),
+    });
     load();
   }
 
@@ -139,11 +138,12 @@ function ManageContent() {
     const sure = confirm('This will permanently remove your listing from Verilo. This cannot be undone. Continue?');
     if (!sure) return;
     setDeleting(true);
-    await supabase.from('listings').delete().eq('id', id);
-    try {
-      const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-      localStorage.setItem('verilo_my_listings', JSON.stringify(mine.filter((x) => x !== id)));
-    } catch (e) {}
+    await fetch('/api/listing/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ listing_id: id, token: getMyToken(id) }),
+    });
+    forgetMyToken(id);
     router.push(`/city/${encodeURIComponent(city)}`);
   }
 

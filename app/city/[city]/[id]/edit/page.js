@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../../lib/categories';
+import { getMyToken } from '../../../../../lib/ownership';
 
 const SPECIALIZATION_LABELS = {
   doctor: { label: 'Qualification / Specialization', placeholder: 'e.g. MBBS, General Physician' },
@@ -33,10 +34,7 @@ export default function EditListingPage() {
   const [allowed, setAllowed] = useState(null);
 
   useEffect(() => {
-    try {
-      const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-      setAllowed(mine.includes(id));
-    } catch (e) { setAllowed(false); }
+    setAllowed(!!getMyToken(id));
 
     supabase.from('listings').select('*').eq('id', id).single().then(({ data }) => {
       if (data) {
@@ -80,10 +78,15 @@ export default function EditListingPage() {
       };
       if (photo_url) updatePayload.photo_url = photo_url;
 
-      const { error: updateError } = await supabase.from('listings').update(updatePayload).eq('id', id);
-      if (updateError) throw updateError;
+      const res = await fetch('/api/listing/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: id, token: getMyToken(id), updates: updatePayload }),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || 'Could not save changes');
 
-      router.push(`/city/${encodeURIComponent(city)}/${id}`);
+      router.push(`/city/${encodeURIComponent(city)}/${id}/manage`);
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -96,11 +99,11 @@ export default function EditListingPage() {
       <div className="wrap">
         <header><div className="pin"></div><h1>Verilo</h1></header>
         <div className="empty">
-          <div className="empty-title">Not your listing</div>
+          <div className="empty-title">Access Not Verified</div>
           <div>
-            You can only edit listings added from this device. Use{' '}
-            <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#E8A33D' }}>Manage my listing</Link>{' '}
-            with your phone number to unlock editing.
+            You can only edit this listing from the device that added it, or using your
+            private management link.{' '}
+            <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#E8A33D' }}>Lost your link? →</Link>
           </div>
         </div>
       </div>

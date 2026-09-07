@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { supabase } from '../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../lib/categories';
+import { saveMyToken } from '../../../../lib/ownership';
 
 const SPECIALIZATION_LABELS = {
   doctor: { label: 'Qualification / Specialization', placeholder: 'e.g. MBBS, General Physician' },
@@ -92,13 +93,9 @@ export default function AddListingPage() {
       if (insertError) throw insertError;
 
       // 5. Redirect to their manage page (with their secret token) to complete
-      // payment and go live. Remember this listing as "mine" on this device too,
-      // so future visits on this same browser don't need the token in the URL.
-      try {
-        const mine = JSON.parse(localStorage.getItem('verilo_my_listings') || '[]');
-        if (!mine.includes(listing.id)) mine.push(listing.id);
-        localStorage.setItem('verilo_my_listings', JSON.stringify(mine));
-      } catch (e) {}
+      // payment and go live. Remember the token on this device too, so future
+      // visits on this same browser don't need the token in the URL.
+      saveMyToken(listing.id, manageToken);
 
       router.push(`/city/${encodeURIComponent(city)}/${listing.id}/manage?t=${manageToken}&welcome=1`);
     } catch (err) {
