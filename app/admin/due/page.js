@@ -9,6 +9,7 @@ export default function DueListPage() {
   const [loginError, setLoginError] = useState('');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [linkModal, setLinkModal] = useState(null); // { name, link } | null
 
   useEffect(() => {
     if (typeof window !== 'undefined' && localStorage.getItem('verilo_admin_ok') === '1') {
@@ -69,8 +70,8 @@ export default function DueListPage() {
       });
       const result = await res.json();
       if (result.link) {
-        await navigator.clipboard.writeText(result.link);
-        alert(`Link copied! Paste it to ${item.name} on WhatsApp:\n\n${result.link}`);
+        setLinkModal({ name: item.name, link: result.link });
+        try { await navigator.clipboard.writeText(result.link); } catch (e) {}
       } else {
         alert('Could not fetch link.');
       }
@@ -243,6 +244,56 @@ export default function DueListPage() {
         <div className="empty">
           <div className="empty-title">No listings yet</div>
           <div>Once people start adding listings, they'll show up here.</div>
+        </div>
+      )}
+
+      {linkModal && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(10,14,20,0.75)', zIndex: 100,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+          }}
+          onClick={() => setLinkModal(null)}
+        >
+          <div
+            className="form-card"
+            style={{ maxWidth: 420, width: '100%' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>
+              Manage link for {linkModal.name}
+            </h3>
+            <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 10 }}>
+              Tap the box below to select it, or use the Copy button, then paste it to them on WhatsApp.
+            </p>
+            <input
+              readOnly
+              value={linkModal.link}
+              onFocus={(e) => e.target.select()}
+              style={{ marginBottom: 12, fontSize: 12.5 }}
+            />
+            <div className="sheet-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                style={{ flex: 1 }}
+                onClick={() => setLinkModal(null)}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                style={{ flex: 1, marginTop: 0 }}
+                onClick={async () => {
+                  try { await navigator.clipboard.writeText(linkModal.link); alert('Copied!'); }
+                  catch (e) { alert('Could not copy automatically — please select the text manually.'); }
+                }}
+              >
+                Copy
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
