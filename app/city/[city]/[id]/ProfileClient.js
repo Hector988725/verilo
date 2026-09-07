@@ -62,7 +62,7 @@ export default function ProfileClient() {
         {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
         {listing.qualification && <p className="profile-meta">🏷️ {listing.qualification}</p>}
         {listing.experience && <p className="profile-meta">💼 {listing.experience} experience</p>}
-        {listing.area && <p className="profile-meta">📍 {listing.area}</p>}
+        {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
         <p className="profile-rating">
           {avg ? `★ ${avg.toFixed(1)} (${ratings.length} rating${ratings.length > 1 ? 's' : ''})` : 'No ratings yet — be the first'}
         </p>

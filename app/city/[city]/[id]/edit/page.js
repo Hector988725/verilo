@@ -41,7 +41,7 @@ export default function EditListingPage() {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
           qualification: data.qualification || '', experience: data.experience || '',
-          about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '',
+          about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '', pincode: data.pincode || '',
         });
         setPhotoPreview(data.photo_url || '');
       }
@@ -74,7 +74,7 @@ export default function EditListingPage() {
       const updatePayload = {
         name: form.name, service: form.service,
         qualification: form.qualification || null, experience: form.experience || null,
-        about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null,
+        about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null, pincode: form.pincode || null,
       };
       if (photo_url) updatePayload.photo_url = photo_url;
 
@@ -153,6 +153,9 @@ export default function EditListingPage() {
 
         <label>Area / Locality</label>
         <input value={form.area} onChange={(e) => update('area', e.target.value)} />
+
+        <label>Pincode (optional)</label>
+        <input value={form.pincode} onChange={(e) => update('pincode', e.target.value)} maxLength={6} />
 
         <label>Note (optional)</label>
         <textarea value={form.note} onChange={(e) => update('note', e.target.value)} />

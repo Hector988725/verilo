@@ -28,7 +28,7 @@ export default function AddListingPage() {
 
   const [form, setForm] = useState({
     name: '', service: 'plumber', qualification: '', experience: '',
-    about: '', phone: '', area: '', note: '', mapsLink: '',
+    about: '', phone: '', area: '', note: '', mapsLink: '', pincode: '',
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -49,8 +49,8 @@ export default function AddListingPage() {
     setSubmitting(true);
     setError('');
     try {
-      // 1. Ensure city exists, get id
-      let { data: cityRow } = await supabase.from('cities').select('id').eq('name', city).maybeSingle();
+      // 1. Ensure city exists (case-insensitive lookup), get id
+      let { data: cityRow } = await supabase.from('cities').select('id').ilike('name', city).maybeSingle();
       if (!cityRow) {
         const { data: newCity } = await supabase.from('cities').insert({ name: city }).select().single();
         cityRow = newCity;
@@ -86,6 +86,7 @@ export default function AddListingPage() {
         note: form.note || null,
         photo_url,
         maps_link: form.mapsLink || null,
+        pincode: form.pincode || null,
         is_active: false,
         trial_ends_at: new Date().toISOString(),
         manage_token: manageToken,
@@ -146,6 +147,9 @@ export default function AddListingPage() {
 
         <label>Area / Locality</label>
         <input value={form.area} onChange={(e) => update('area', e.target.value)} placeholder="e.g. Gandhi Nagar" />
+
+        <label>Pincode (optional)</label>
+        <input value={form.pincode} onChange={(e) => update('pincode', e.target.value)} placeholder="e.g. 484116" maxLength={6} />
 
         <label>Note (optional)</label>
         <textarea value={form.note} onChange={(e) => update('note', e.target.value)} placeholder="e.g. Available 9 AM - 1 PM" />

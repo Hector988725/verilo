@@ -1,14 +1,25 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import { CATEGORIES, catLabel, initials } from '../../../lib/categories';
 
 export default function CityPageClient() {
+  return (
+    <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>}>
+      <CityPageContent />
+    </Suspense>
+  );
+}
+
+function CityPageContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const city = decodeURIComponent(params.city);
+  const stateFromUrl = searchParams.get('state') || '';
   const [listings, setListings] = useState([]);
+  const [cityState, setCityState] = useState(stateFromUrl);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('rating');
@@ -17,25 +28,35 @@ export default function CityPageClient() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data: cityRow } = await supabase.from('cities').select('id').eq('name', city).maybeSingle();
+      // Case-insensitive lookup so "Anuppur" and "anuppur" are treated as the same place.
+      let query = supabase.from('cities').select('id, state').ilike('name', city);
+      if (stateFromUrl) query = query.eq('state', stateFromUrl);
+      let { data: cityRow } = await query.maybeSingle();
+
       if (!cityRow) {
-        // create city on first visit
-        await supabase.from('cities').insert({ name: city });
+        // create city on first visit, tagged with its state so it's properly grouped
+        const { data: created } = await supabase
+          .from('cities')
+          .insert({ name: city, state: stateFromUrl || null })
+          .select()
+          .maybeSingle();
+        cityRow = created;
       }
-      const { data: cityRow2 } = await supabase.from('cities').select('id').eq('name', city).maybeSingle();
-      if (!cityRow2) { setLoading(false); return; }
+      if (!cityRow) { setLoading(false); return; }
+      setCityState(cityRow.state || stateFromUrl);
 
       const { data: listingRows } = await supabase
         .from('listings')
         .select('*, ratings(stars)')
-        .eq('city_id', cityRow2.id)
+        .eq('city_id', cityRow.id)
         .eq('is_active', true);
 
       setListings(listingRows || []);
       setLoading(false);
     }
     load();
-  }, [city]);
+  }, [city, stateFromUrl]);
+
 
   const withRating = listings.map((l) => {
     const stars = (l.ratings || []).map((r) => r.stars);
@@ -48,7 +69,11 @@ export default function CityPageClient() {
     if (activeTab !== 'all') list = list.filter((l) => l.service === activeTab);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter((l) => l.name.toLowerCase().includes(q) || (l.area || '').toLowerCase().includes(q));
+      list = list.filter((l) =>
+        l.name.toLowerCase().includes(q) ||
+        (l.area || '').toLowerCase().includes(q) ||
+        (l.pincode || '').includes(q.trim())
+      );
     }
     if (sortBy === 'rating') {
       list = [...list].sort((a, b) => (b.avgRating || 0) - (a.avgRating || 0));
@@ -63,7 +88,7 @@ export default function CityPageClient() {
       <header>
         <div className="pin"></div>
         <h1>Verilo</h1>
-        <p className="tagline">📍 Trusted people in {city} — all in one place</p>
+        <p className="tagline">📍 Trusted people in {city}{cityState ? `, ${cityState}` : ''} — all in one place</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <Link href="/" className="back-link" style={{ margin: 0 }}>Switch area</Link>
           <span style={{ color: '#4A5568' }}>·</span>
@@ -81,7 +106,7 @@ export default function CityPageClient() {
 
       <div className="city-layout">
         <div className="city-main">
-          <input className="search-bar" placeholder="Search by name or area..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="search-bar" placeholder="Search by name, area, or pincode..." value={search} onChange={(e) => setSearch(e.target.value)} />
 
           <div className="tabs">
             {CATEGORIES.map((cat) => (
@@ -120,7 +145,7 @@ export default function CityPageClient() {
                   {item.verified && <span className="verified-badge">✓ Verified</span>}
                 </p>
                 {item.qualification && <p className="card-area">🏷️ {item.qualification}</p>}
-                {item.area && <p className="card-area">📍 {item.area}</p>}
+                {item.area && <p className="card-area">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
                 {item.about && (
                   <p className="card-note" style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>
                     {item.about.length > 140 ? item.about.slice(0, 140) + '…' : item.about}

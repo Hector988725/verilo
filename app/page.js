@@ -2,44 +2,88 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
+import { INDIAN_STATES } from '../lib/indianStates';
 
 export default function HomePage() {
   const router = useRouter();
-  const [query, setQuery] = useState('');
-  const [cities, setCities] = useState([]);
+  const [step, setStep] = useState('state'); // 'state' | 'district'
+  const [stateQuery, setStateQuery] = useState('');
+  const [selectedState, setSelectedState] = useState('');
+  const [districtQuery, setDistrictQuery] = useState('');
+  const [existingDistricts, setExistingDistricts] = useState([]);
 
-  useEffect(() => {
-    supabase.from('cities').select('name').order('name').then(({ data }) => {
-      if (data) setCities(data.map((c) => c.name));
+  const filteredStates = INDIAN_STATES.filter((s) =>
+    s.toLowerCase().includes(stateQuery.trim().toLowerCase())
+  );
+
+  function pickState(state) {
+    setSelectedState(state);
+    setStep('district');
+    supabase.from('cities').select('name').eq('state', state).order('name').then(({ data }) => {
+      setExistingDistricts((data || []).map((c) => c.name));
     });
-  }, []);
+  }
 
-  const filtered = cities.filter((c) => c.toLowerCase().includes(query.trim().toLowerCase()));
-  const exactMatch = cities.some((c) => c.toLowerCase() === query.trim().toLowerCase());
+  const filteredDistricts = existingDistricts.filter((d) =>
+    d.toLowerCase().includes(districtQuery.trim().toLowerCase())
+  );
+  const exactMatch = existingDistricts.some((d) => d.toLowerCase() === districtQuery.trim().toLowerCase());
 
-  function goToCity(city) {
-    router.push('/city/' + encodeURIComponent(city.trim()));
+  function goToDistrict(district) {
+    router.push('/city/' + encodeURIComponent(district.trim()) + '?state=' + encodeURIComponent(selectedState));
+  }
+
+  if (step === 'state') {
+    return (
+      <div className="city-screen">
+        <div className="pin"></div>
+        <h1>Verilo</h1>
+        <p className="tagline">Trusted people in your area — all in one place</p>
+        <input
+          className="city-search"
+          placeholder="Search your state..."
+          value={stateQuery}
+          onChange={(e) => setStateQuery(e.target.value)}
+          autoFocus
+        />
+        <div className="city-list">
+          {filteredStates.map((s) => (
+            <a key={s} className="city-item" onClick={() => pickState(s)} href="#">🏳️ {s}</a>
+          ))}
+          {filteredStates.length === 0 && (
+            <p style={{ color: '#8A94A6', fontSize: 13.5, textAlign: 'center' }}>No matching state found.</p>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="city-screen">
       <div className="pin"></div>
       <h1>Verilo</h1>
-      <p className="tagline">Trusted people in your area — all in one place</p>
+      <p className="tagline">📍 {selectedState}</p>
+      <p
+        style={{ fontSize: 12.5, color: '#8A94A6', cursor: 'pointer', marginBottom: 6, textDecoration: 'underline' }}
+        onClick={() => { setStep('state'); setDistrictQuery(''); }}
+      >
+        ← Change state
+      </p>
       <input
         className="city-search"
-        placeholder="Search your city/area..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Search your district/town..."
+        value={districtQuery}
+        onChange={(e) => setDistrictQuery(e.target.value)}
+        autoFocus
       />
       <div className="city-list">
-        {filtered.map((c) => (
-          <a key={c} className="city-item" onClick={() => goToCity(c)} href="#">📍 {c}</a>
+        {filteredDistricts.map((d) => (
+          <a key={d} className="city-item" onClick={() => goToDistrict(d)} href="#">📍 {d}</a>
         ))}
       </div>
-      {query.trim() && !exactMatch && (
-        <p style={{ marginTop: 16, fontSize: 13.5, color: '#E8A33D', cursor: 'pointer' }} onClick={() => goToCity(query)}>
-          Start a new area for "{query}" →
+      {districtQuery.trim() && !exactMatch && (
+        <p style={{ marginTop: 16, fontSize: 13.5, color: '#E8A33D', cursor: 'pointer' }} onClick={() => goToDistrict(districtQuery)}>
+          Start a new area for "{districtQuery}" in {selectedState} →
         </p>
       )}
     </div>

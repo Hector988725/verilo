@@ -11,7 +11,7 @@ export async function POST(req) {
     if (!ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Only allow updating fields a professional should be able to edit themselves.
-    const allowedFields = ['name', 'service', 'qualification', 'experience', 'about', 'phone', 'area', 'note', 'photo_url', 'maps_link'];
+    const allowedFields = ['name', 'service', 'qualification', 'experience', 'about', 'phone', 'area', 'note', 'photo_url', 'maps_link', 'pincode'];
     const safeUpdates = {};
     for (const key of allowedFields) {
       if (key in updates) safeUpdates[key] = updates[key];
