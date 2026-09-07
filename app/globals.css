@@ -45,9 +45,11 @@ a { color: inherit; }
 
 .form-card { max-width: 480px; }
 @media (min-width: 1024px) {
-  .city-layout { display: grid; grid-template-columns: 1fr 280px; gap: 28px; align-items: start; }
+  .city-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; align-items: start; }
+  .city-main { min-width: 0; }
   .city-sidebar { position: sticky; top: 24px; }
 }
+html, body { overflow-x: hidden; }
 header { text-align: center; margin-bottom: 22px; }
 .pin {
   width: 10px; height: 10px; border-radius: 50%;
