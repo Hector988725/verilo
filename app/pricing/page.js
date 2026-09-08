@@ -15,7 +15,7 @@ export default function PricingPage() {
       <div className="profile-card">
         <h3>What Verilo Is</h3>
         <p>
-          Verilo is a local service directory. Plumbers, electricians, doctors, tutors, tailors,
+          Verilo is a local service directory. Plumbers, electricians, tutors, tailors,
           and other service providers create a public profile listing their name, service,
           experience, area, and contact number. Customers browse by city and category, view
           ratings and reviews, and call the provider directly — Verilo does not take a cut of

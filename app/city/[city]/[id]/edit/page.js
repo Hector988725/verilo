@@ -7,7 +7,6 @@ import { CATEGORIES } from '../../../../../lib/categories';
 import { getMyToken } from '../../../../../lib/ownership';
 
 const SPECIALIZATION_LABELS = {
-  doctor: { label: 'Qualification / Specialization', placeholder: 'e.g. MBBS, General Physician' },
   tuition: { label: 'Subject(s) You Teach', placeholder: 'e.g. Maths & Science, Class 9-12' },
   plumber: { label: 'Specialization', placeholder: 'e.g. Pipe fitting, bathroom fitting' },
   electrician: { label: 'Specialization', placeholder: 'e.g. Wiring, AC repair, appliance repair' },

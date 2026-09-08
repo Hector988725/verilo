@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import ProfileClient from './ProfileClient';
 
 const CATEGORY_LABELS = {
-  doctor: 'Doctor', plumber: 'Plumber', electrician: 'Electrician', mistri: 'Carpenter/Mistri',
+  plumber: 'Plumber', electrician: 'Electrician', mistri: 'Carpenter/Mistri',
   mechanic: 'Mechanic', 'ac-repair': 'AC/Appliance Repair', beautician: 'Beauty Parlour/Salon',
   tailor: 'Tailor', tuition: 'Tuition Teacher', 'milk-veg': 'Milk/Veg Delivery', other: 'Service Provider',
 };

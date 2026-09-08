@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 
 export const metadata = {
   title: 'Verilo — Trusted local professionals',
-  description: 'Find trusted plumbers, electricians, doctors, tutors and more in your area.',
+  description: 'Find trusted plumbers, electricians, tutors and more in your area.',
   manifest: '/manifest.json',
   themeColor: '#1B2430',
   appleWebApp: {

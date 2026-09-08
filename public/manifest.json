@@ -1,7 +1,7 @@
 {
   "name": "Verilo — Trusted Local Professionals",
   "short_name": "Verilo",
-  "description": "Find trusted plumbers, electricians, doctors, tutors and more in your area.",
+  "description": "Find trusted plumbers, electricians, tutors and more in your area.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

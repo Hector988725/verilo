@@ -18,7 +18,7 @@ export default function TermsPage() {
         <p>Verilo is a local service directory operated by Hector365. By using Verilo, you agree to the following terms.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>What Verilo Is</h4>
-        <p>Verilo is a directory that lets service providers (plumbers, electricians, doctors, tutors, and others) list their contact details for customers in their area to find them. Verilo does not employ, supervise, or take responsibility for the work performed by any listed provider.</p>
+        <p>Verilo is a directory that lets service providers (plumbers, electricians, tutors, and others) list their contact details for customers in their area to find them. Verilo does not employ, supervise, or take responsibility for the work performed by any listed provider.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Listings</h4>
         <p>Anyone adding a listing confirms that the information provided (name, phone number, service, and any other details) is accurate and belongs to them or their business. Verilo reserves the right to pause or remove any listing that is found to be false, misleading, spam, or in violation of these terms.</p>
