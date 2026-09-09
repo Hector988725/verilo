@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import { supabase } from '../../../../lib/supabaseClient';
@@ -21,9 +21,19 @@ const SPECIALIZATION_LABELS = {
 };
 
 export default function AddListingPage() {
+  return (
+    <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>}>
+      <AddListingContent />
+    </Suspense>
+  );
+}
+
+function AddListingContent() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const city = decodeURIComponent(params.city);
+  const stateFromUrl = searchParams.get('state') || '';
 
   const [form, setForm] = useState({
     name: '', service: 'plumber', qualification: '', experience: '',
@@ -51,9 +61,15 @@ export default function AddListingPage() {
       // 1. Ensure city exists (case-insensitive lookup), get id
       let { data: cityRow } = await supabase.from('cities').select('id').ilike('name', city).maybeSingle();
       if (!cityRow) {
-        const { data: newCity } = await supabase.from('cities').insert({ name: city }).select().single();
+        const { data: newCity, error: cityInsertError } = await supabase
+          .from('cities')
+          .insert({ name: city, state: stateFromUrl || null })
+          .select('id')
+          .single();
+        if (cityInsertError) throw new Error('Could not create area: ' + cityInsertError.message);
         cityRow = newCity;
       }
+      if (!cityRow) throw new Error('Could not find or create this area. Please try again.');
 
       // 2. Upload photo if provided
       let photo_url = null;
