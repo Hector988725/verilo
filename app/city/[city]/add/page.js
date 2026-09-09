@@ -89,7 +89,7 @@ export default function AddListingPage() {
         is_active: false,
         trial_ends_at: new Date().toISOString(),
         manage_token: manageToken,
-      }).select().single();
+      }).select('id').single();
       if (insertError) throw insertError;
 
       // 5. Redirect to their manage page (with their secret token) to complete
