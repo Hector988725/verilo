@@ -93,7 +93,7 @@ function CityPageContent() {
           <Link href="/" className="back-link" style={{ margin: 0 }}>Switch area</Link>
           <span style={{ color: '#4A5568' }}>·</span>
           <Link
-            href={`/city/${encodeURIComponent(city)}/find`}
+            href={`/city/${encodeURIComponent(city)}/find${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
             style={{
               fontSize: 12.5, fontWeight: 700, color: '#E8A33D', background: 'rgba(232,163,61,0.12)',
               border: '1px solid rgba(232,163,61,0.3)', padding: '4px 12px', borderRadius: 999, textDecoration: 'none',
@@ -182,7 +182,7 @@ function CityPageContent() {
               Already have a listing on Verilo? Find it to check your status, pay, or edit your profile.
             </p>
             <Link
-              href={`/city/${encodeURIComponent(city)}/find`}
+              href={`/city/${encodeURIComponent(city)}/find${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
               style={{
                 display: 'inline-block', background: '#232F3E', color: '#FFFDF6', border: '1px solid rgba(255,255,255,0.15)',
                 padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
@@ -194,7 +194,7 @@ function CityPageContent() {
         </div>
       </div>
 
-      <Link href={`/city/${encodeURIComponent(city)}/add`} className="fab">+ Add Listing</Link>
+      <Link href={`/city/${encodeURIComponent(city)}/add${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`} className="fab">+ Add Listing</Link>
     </div>
   );
 }

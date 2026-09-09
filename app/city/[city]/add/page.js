@@ -58,8 +58,10 @@ function AddListingContent() {
     setSubmitting(true);
     setError('');
     try {
-      // 1. Ensure city exists (case-insensitive lookup), get id
-      let { data: cityRow } = await supabase.from('cities').select('id').ilike('name', city).maybeSingle();
+      // 1. Ensure city exists (case-insensitive lookup, scoped to state), get id
+      let cityQuery = supabase.from('cities').select('id').ilike('name', city);
+      if (stateFromUrl) cityQuery = cityQuery.eq('state', stateFromUrl);
+      let { data: cityRow } = await cityQuery.maybeSingle();
       if (!cityRow) {
         const { data: newCity, error: cityInsertError } = await supabase
           .from('cities')
