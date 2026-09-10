@@ -6,6 +6,7 @@ import { catLabel } from '../../../lib/categories';
 export default function DueListPage() {
   const [unlocked, setUnlocked] = useState(false);
   const [passInput, setPassInput] = useState('');
+  const [showPass, setShowPass] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,6 +32,13 @@ export default function DueListPage() {
     } else {
       setLoginError('Wrong passcode');
     }
+  }
+
+  async function handleLogout() {
+    try { await fetch('/api/admin/logout', { method: 'POST' }); } catch (e) {}
+    localStorage.removeItem('verilo_admin_ok');
+    setUnlocked(false);
+    setPassInput('');
   }
 
   useEffect(() => {
@@ -87,7 +95,27 @@ export default function DueListPage() {
           <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Owner Login</h2>
           <form onSubmit={handleLogin}>
             <label>Passcode</label>
-            <input type="password" value={passInput} onChange={(e) => setPassInput(e.target.value)} autoFocus />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPass ? 'text' : 'password'}
+                value={passInput}
+                onChange={(e) => setPassInput(e.target.value)}
+                autoFocus
+                style={{ paddingRight: 44 }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass((s) => !s)}
+                aria-label={showPass ? 'Hide passcode' : 'Show passcode'}
+                style={{
+                  position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', fontSize: 16,
+                  color: '#8A94A6', padding: 4, lineHeight: 1,
+                }}
+              >
+                {showPass ? '🙈' : '👁️'}
+              </button>
+            </div>
             {loginError && <p style={{ color: '#C1442E', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
             <button className="btn-primary" type="submit">Enter</button>
           </form>
@@ -128,7 +156,19 @@ export default function DueListPage() {
         <div className="pin"></div>
         <h1>Verilo</h1>
         <p className="tagline">Owner Dashboard — Payment Due List</p>
-        <Link href="/admin/reports" className="back-link">View Reports →</Link>
+        <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link href="/admin/reports" className="back-link">View Reports →</Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              background: 'none', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 6,
+              color: '#8A94A6', fontSize: 12.5, padding: '4px 10px', cursor: 'pointer',
+            }}
+          >
+            🔒 Logout
+          </button>
+        </div>
       </header>
 
       {loading && <p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p>}
