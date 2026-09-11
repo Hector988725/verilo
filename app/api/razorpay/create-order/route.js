@@ -31,15 +31,25 @@ export async function POST(req) {
     });
 
     const admin = supabaseAdmin();
-    await admin.from('payments').insert({
+    const { error: dbError } = await admin.from('payments').insert({
       listing_id,
       razorpay_order_id: order.id,
       amount_paise: amount,
       status: 'created',
     });
+    if (dbError) {
+      console.error('[create-order] Supabase insert failed:', dbError);
+      return NextResponse.json({ error: `Database error: ${dbError.message}` }, { status: 500 });
+    }
 
     return NextResponse.json({ ...order, months: plan });
   } catch (err) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // Razorpay's SDK often throws a plain object like
+    // { statusCode, error: { code, description } } instead of a real Error,
+    // so err.message can be undefined. Pull the real reason out either way.
+    const razorpayDescription = err?.error?.description;
+    const message = razorpayDescription || err?.message || 'Unknown error creating payment order';
+    console.error('[create-order] Failed:', JSON.stringify(err, null, 2));
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
