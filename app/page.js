@@ -48,10 +48,10 @@ export default function HomePage() {
         />
         <div className="city-list">
           {filteredStates.map((s) => (
-            <a key={s} className="city-item" onClick={() => pickState(s)} href="#">🏳️ {s}</a>
+            <a key={s} className="city-item" onClick={() => pickState(s)} href="#">{s}</a>
           ))}
           {filteredStates.length === 0 && (
-            <p style={{ color: '#8A94A6', fontSize: 13.5, textAlign: 'center' }}>No matching state found.</p>
+            <p style={{ color: 'var(--muted)', fontSize: 13.5, textAlign: 'center' }}>No matching state found.</p>
           )}
         </div>
       </div>
@@ -64,7 +64,7 @@ export default function HomePage() {
       <h1>Verilo</h1>
       <p className="tagline">📍 {selectedState}</p>
       <p
-        style={{ fontSize: 12.5, color: '#8A94A6', cursor: 'pointer', marginBottom: 6, textDecoration: 'underline' }}
+        style={{ fontSize: 12.5, color: 'var(--muted)', cursor: 'pointer', marginBottom: 6, textDecoration: 'underline' }}
         onClick={() => { setStep('state'); setDistrictQuery(''); }}
       >
         ← Change state
@@ -78,11 +78,11 @@ export default function HomePage() {
       />
       <div className="city-list">
         {filteredDistricts.map((d) => (
-          <a key={d} className="city-item" onClick={() => goToDistrict(d)} href="#">📍 {d}</a>
+          <a key={d} className="city-item" onClick={() => goToDistrict(d)} href="#">{d}</a>
         ))}
       </div>
       {districtQuery.trim() && !exactMatch && (
-        <p style={{ marginTop: 16, fontSize: 13.5, color: '#E8A33D', cursor: 'pointer' }} onClick={() => goToDistrict(districtQuery)}>
+        <p style={{ marginTop: 16, fontSize: 13.5, color: 'var(--marigold-deep)', cursor: 'pointer', fontWeight: 600 }} onClick={() => goToDistrict(districtQuery)}>
           Start a new area for "{districtQuery}" in {selectedState} →
         </p>
       )}

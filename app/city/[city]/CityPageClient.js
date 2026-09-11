@@ -4,12 +4,24 @@ import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import { CATEGORIES, catLabel, initials } from '../../../lib/categories';
+import { CategoryIcon } from '../../../lib/categoryIcons';
 
 export default function CityPageClient() {
   return (
-    <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: '#8A94A6' }}>Loading...</p></div>}>
+    <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: 'var(--muted)' }}>Loading...</p></div>}>
       <CityPageContent />
     </Suspense>
+  );
+}
+
+function Stars({ value }) {
+  const rounded = Math.round((value || 0) * 2) / 2;
+  return (
+    <span style={{ color: 'var(--marigold-deep)' }}>
+      {'★'.repeat(Math.floor(rounded))}
+      {rounded % 1 !== 0 ? '½' : ''}
+      {'☆'.repeat(5 - Math.ceil(rounded))}
+    </span>
   );
 }
 
@@ -91,12 +103,12 @@ function CityPageContent() {
         <p className="tagline">📍 Trusted people in {city}{cityState ? `, ${cityState}` : ''} — all in one place</p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
           <Link href="/" className="back-link" style={{ margin: 0 }}>Switch area</Link>
-          <span style={{ color: '#4A5568' }}>·</span>
+          <span style={{ color: 'var(--line)' }}>·</span>
           <Link
             href={`/city/${encodeURIComponent(city)}/find${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
             style={{
-              fontSize: 12.5, fontWeight: 700, color: '#E8A33D', background: 'rgba(232,163,61,0.12)',
-              border: '1px solid rgba(232,163,61,0.3)', padding: '4px 12px', borderRadius: 999, textDecoration: 'none',
+              fontSize: 12.5, fontWeight: 700, color: 'var(--marigold-deep)', background: 'rgba(232,163,61,0.14)',
+              border: '1px solid rgba(232,163,61,0.35)', padding: '4px 12px', borderRadius: 999, textDecoration: 'none',
             }}
           >
             👤 I'm a Provider
@@ -108,10 +120,15 @@ function CityPageContent() {
         <div className="city-main">
           <input className="search-bar" placeholder="Search by name, area, or pincode..." value={search} onChange={(e) => setSearch(e.target.value)} />
 
-          <div className="tabs">
+          <div className="cat-strip">
             {CATEGORIES.map((cat) => (
-              <button key={cat.key} className={'tab' + (cat.key === activeTab ? ' active' : '')} onClick={() => setActiveTab(cat.key)}>
-                {cat.label}
+              <button
+                key={cat.key}
+                className={'cat-chip' + (cat.key === activeTab ? ' active' : '')}
+                onClick={() => setActiveTab(cat.key)}
+              >
+                <span className="cat-chip-icon"><CategoryIcon name={cat.key} width={22} height={22} /></span>
+                <span className="cat-chip-label">{cat.label}</span>
               </button>
             ))}
           </div>
@@ -121,7 +138,7 @@ function CityPageContent() {
             <button className={'tab' + (sortBy === 'new' ? ' active' : '')} onClick={() => setSortBy('new')}>Newest</button>
           </div>
 
-          {loading && <p style={{ color: '#8A94A6', textAlign: 'center' }}>Loading...</p>}
+          {loading && <p style={{ color: 'var(--muted)', textAlign: 'center' }}>Loading...</p>}
 
           {!loading && filtered.length === 0 && (
             <div className="empty">
@@ -135,8 +152,17 @@ function CityPageContent() {
         <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
           <div className="card-top">
             <div className="card-left">
-              <div className="avatar">
-                {item.photo_url ? <img src={item.photo_url} alt="" /> : initials(item.name)}
+              <div style={{ position: 'relative', flex: '0 0 auto' }}>
+                <div className="avatar">
+                  {item.photo_url ? <img src={item.photo_url} alt="" /> : initials(item.name)}
+                </div>
+                <span style={{
+                  position: 'absolute', bottom: -5, right: -5, width: 22, height: 22, borderRadius: 7,
+                  background: 'var(--marigold)', color: '#2A1B05', display: 'flex', alignItems: 'center',
+                  justifyContent: 'center', border: '2px solid var(--paper)',
+                }}>
+                  <CategoryIcon name={item.service} width={12} height={12} strokeWidth={2.2} />
+                </span>
               </div>
               <div style={{ minWidth: 0 }}>
                 <div className="card-service">{catLabel(item.service)}</div>
@@ -147,19 +173,19 @@ function CityPageContent() {
                 {item.qualification && <p className="card-area">🏷️ {item.qualification}</p>}
                 {item.area && <p className="card-area">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
                 {item.about && (
-                  <p className="card-note" style={{ margin: '4px 0 0', fontSize: 13, color: '#6B7280', fontStyle: 'italic' }}>
+                  <p className="card-note" style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted)', fontStyle: 'italic' }}>
                     {item.about.length > 140 ? item.about.slice(0, 140) + '…' : item.about}
                   </p>
                 )}
                 <p className="card-rating">
-                  {item.avgRating ? `★ ${item.avgRating.toFixed(1)} (${item.ratingCount})` : 'No ratings yet'}
+                  {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
                   {' '}
-                  <span style={{ color: item.is_available === false ? '#C1442E' : '#2E6B4E', fontWeight: 700 }}>
+                  <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#2E6B4E', fontWeight: 700 }}>
                     {item.is_available === false ? '· 🔴 Not available now' : '· 🟢 Available now'}
                   </span>
                 </p>
                 {item.is_available === false && item.unavailable_note && (
-                  <p style={{ fontSize: 12, color: '#8A94A6', margin: '2px 0 0' }}>{item.unavailable_note}</p>
+                  <p style={{ fontSize: 12, color: 'var(--muted)', margin: '2px 0 0' }}>{item.unavailable_note}</p>
                 )}
               </div>
             </div>
@@ -173,18 +199,18 @@ function CityPageContent() {
         <div className="city-sidebar">
           <div style={{
             padding: '18px 16px', borderRadius: 14,
-            background: 'rgba(232,163,61,0.08)', border: '1px solid rgba(232,163,61,0.25)', textAlign: 'center',
+            background: 'rgba(232,163,61,0.10)', border: '1px solid rgba(232,163,61,0.3)', textAlign: 'center',
           }}>
-            <p style={{ fontFamily: "'Rozha One', serif", fontSize: 16, color: '#E8A33D', margin: '0 0 6px' }}>
+            <p style={{ fontFamily: "'Rozha One', serif", fontSize: 16, color: 'var(--marigold-deep)', margin: '0 0 6px' }}>
               Are you a service provider?
             </p>
-            <p style={{ fontSize: 13, color: '#8A94A6', margin: '0 0 12px' }}>
+            <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 12px' }}>
               Already have a listing on Verilo? Find it to check your status, pay, or edit your profile.
             </p>
             <Link
               href={`/city/${encodeURIComponent(city)}/find${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
               style={{
-                display: 'inline-block', background: '#232F3E', color: '#FFFDF6', border: '1px solid rgba(255,255,255,0.15)',
+                display: 'inline-block', background: 'var(--ink)', color: 'var(--paper)', border: '1px solid var(--ink)',
                 padding: '9px 18px', borderRadius: 999, fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
               }}
             >
