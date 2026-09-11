@@ -26,7 +26,10 @@ export async function POST(req) {
     const order = await razorpay.orders.create({
       amount,
       currency: 'INR',
-      receipt: `listing_${listing_id}_${Date.now()}`,
+      // Razorpay caps `receipt` at ~40 chars. A full UUID listing_id plus a
+      // prefix and timestamp was blowing past that, so we use a short hash
+      // of the listing_id instead of the full UUID, and a shorter timestamp.
+      receipt: `l_${listing_id.replace(/-/g, '').slice(0, 20)}_${Date.now().toString(36)}`,
       notes: { listing_id, months: String(plan) },
     });
 
