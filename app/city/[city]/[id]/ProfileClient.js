@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel, initials } from '../../../../lib/categories';
+import { catLabel, initials, catColor } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 import { useAuth } from '../../../../components/AuthProvider';
 
@@ -161,8 +161,8 @@ export default function ProfileClient() {
 
       <div className="profile-banner">
         <span style={{
-          display: 'inline-flex', width: 34, height: 34, borderRadius: 10, background: 'var(--paper)',
-          alignItems: 'center', justifyContent: 'center', color: 'var(--marigold-deep)', boxShadow: 'var(--shadow)',
+          display: 'inline-flex', width: 34, height: 34, borderRadius: 10, background: catColor(listing.service),
+          alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: 'var(--shadow)',
         }}>
           <CategoryIcon name={listing.service} width={18} height={18} />
         </span>
@@ -173,7 +173,7 @@ export default function ProfileClient() {
           {listing.photo_url ? <img src={listing.photo_url} alt="" /> : initials(listing.name)}
         </div>
         <h2 className="profile-name">{listing.name}</h2>
-        <div className="profile-service">{catLabel(listing.service)}</div>
+        <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
         {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
         {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
         {listing.is_available === false && listing.unavailable_note && (

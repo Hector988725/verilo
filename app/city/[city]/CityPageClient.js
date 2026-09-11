@@ -3,7 +3,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
-import { CATEGORIES, catLabel, initials } from '../../../lib/categories';
+import { CATEGORIES, catLabel, catColor, initials } from '../../../lib/categories';
 import { CategoryIcon } from '../../../lib/categoryIcons';
 
 export default function CityPageClient() {
@@ -25,6 +25,13 @@ function Stars({ value }) {
   );
 }
 
+function greetingWord() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good Morning';
+  if (h < 17) return 'Good Afternoon';
+  return 'Good Evening';
+}
+
 function CityPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -35,6 +42,7 @@ function CityPageContent() {
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState('rating');
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -97,11 +105,14 @@ function CityPageContent() {
 
   return (
     <div className="wrap">
-      <header>
-        <div className="pin"></div>
-        <h1>Verilo</h1>
-        <p className="tagline">📍 Trusted people in {city}{cityState ? `, ${cityState}` : ''} — all in one place</p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center', marginTop: 8, flexWrap: 'wrap' }}>
+      <header style={{ textAlign: 'left', marginBottom: 6 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--marigold-deep)' }}>Verilo</span>
+          <Link href="/" className="location-pill">📍 {city}{cityState ? `, ${cityState}` : ''}</Link>
+        </div>
+        <p className="greeting-eyebrow">{greetingWord()},</p>
+        <p className="greeting-headline">Find trusted people near you</p>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
           <Link href="/" className="back-link" style={{ margin: 0 }}>Switch area</Link>
           <span style={{ color: 'var(--line)' }}>·</span>
           <Link
@@ -118,24 +129,47 @@ function CityPageContent() {
 
       <div className="city-layout">
         <div className="city-main">
-          <input className="search-bar" placeholder="Search by name, area, or pincode..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="search-row" style={{ position: 'relative', marginBottom: 14 }}>
+            <input className="search-bar" placeholder="Search by name, area, or pincode..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <button className="filter-btn" onClick={() => setShowSortMenu((s) => !s)} aria-label="Sort options">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 6h16M7 12h10M10 18h4" />
+              </svg>
+            </button>
+            {showSortMenu && (
+              <div style={{
+                position: 'absolute', top: 52, right: 0, background: 'var(--paper)', border: '1px solid var(--line)',
+                borderRadius: 12, boxShadow: 'var(--shadow)', padding: 6, zIndex: 10, minWidth: 150,
+              }}>
+                {[{ k: 'rating', l: '⭐ Top rated' }, { k: 'new', l: '🆕 Newest first' }].map((opt) => (
+                  <button
+                    key={opt.k}
+                    onClick={() => { setSortBy(opt.k); setShowSortMenu(false); }}
+                    style={{
+                      display: 'block', width: '100%', textAlign: 'left', padding: '9px 10px', borderRadius: 8,
+                      border: 'none', background: sortBy === opt.k ? 'rgba(232,163,61,0.14)' : 'transparent',
+                      color: sortBy === opt.k ? 'var(--marigold-deep)' : 'var(--ink)', fontWeight: 600, fontSize: 13.5, cursor: 'pointer',
+                    }}
+                  >
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="cat-strip">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.key}
                 className={'cat-chip' + (cat.key === activeTab ? ' active' : '')}
+                style={{ '--cat-color': catColor(cat.key) }}
                 onClick={() => setActiveTab(cat.key)}
               >
                 <span className="cat-chip-icon"><CategoryIcon name={cat.key} width={22} height={22} /></span>
                 <span className="cat-chip-label">{cat.label}</span>
               </button>
             ))}
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
-            <button className={'tab' + (sortBy === 'rating' ? ' active' : '')} onClick={() => setSortBy('rating')}>Top rated</button>
-            <button className={'tab' + (sortBy === 'new' ? ' active' : '')} onClick={() => setSortBy('new')}>Newest</button>
           </div>
 
           {loading && <p style={{ color: 'var(--muted)', textAlign: 'center' }}>Loading...</p>}
@@ -158,14 +192,14 @@ function CityPageContent() {
                 </div>
                 <span style={{
                   position: 'absolute', bottom: -5, right: -5, width: 22, height: 22, borderRadius: 7,
-                  background: 'var(--marigold)', color: '#2A1B05', display: 'flex', alignItems: 'center',
+                  background: catColor(item.service), color: '#fff', display: 'flex', alignItems: 'center',
                   justifyContent: 'center', border: '2px solid var(--paper)',
                 }}>
                   <CategoryIcon name={item.service} width={12} height={12} strokeWidth={2.2} />
                 </span>
               </div>
               <div style={{ minWidth: 0 }}>
-                <div className="card-service">{catLabel(item.service)}</div>
+                <div className="card-service" style={{ color: catColor(item.service), background: `color-mix(in srgb, ${catColor(item.service)} 15%, transparent)` }}>{catLabel(item.service)}</div>
                 <p className="card-name">
                   {item.name}
                   {item.verified && <span className="verified-badge">✓ Verified</span>}
