@@ -121,6 +121,7 @@ export default function ReportsPage() {
         <p className="tagline">Owner Dashboard — Reported Listings</p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <Link href="/admin/due" className="back-link">Go to Due List →</Link>
+          <Link href="/admin/cities" className="back-link">City Cleanup →</Link>
           <button
             type="button"
             onClick={handleLogout}

@@ -158,6 +158,7 @@ export default function DueListPage() {
         <p className="tagline">Owner Dashboard — Payment Due List</p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <Link href="/admin/reports" className="back-link">View Reports →</Link>
+          <Link href="/admin/cities" className="back-link">City Cleanup →</Link>
           <button
             type="button"
             onClick={handleLogout}

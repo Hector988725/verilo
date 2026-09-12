@@ -82,6 +82,16 @@ export default function Footer() {
             >
               🚩 Reported Listings
             </Link>
+            <Link
+              href="/admin/cities"
+              onClick={() => setShowAdminMenu(false)}
+              style={{
+                color: '#fff', background: '#2A3441', padding: '10px 14px',
+                borderRadius: 8, fontSize: 13.5, textDecoration: 'none',
+              }}
+            >
+              🏙️ City Cleanup
+            </Link>
             <p
               onClick={() => setShowAdminMenu(false)}
               style={{ color: '#6B7280', fontSize: 12, textAlign: 'center', marginTop: 6, cursor: 'pointer' }}
