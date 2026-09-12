@@ -110,14 +110,34 @@ function CityPageContent() {
   return (
     <div className="wrap">
       <header style={{ textAlign: 'left', marginBottom: 6 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--marigold-deep)' }}>Verilo</span>
-          <Link href="/" className="location-pill">📍 {city}{cityState ? `, ${cityState}` : ''}</Link>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--marigold-deep)', flexShrink: 0, lineHeight: 1.3 }}>Verilo</span>
+          <Link href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</Link>
         </div>
         <p className="greeting-eyebrow">{greetingWord()},</p>
         <p className="greeting-headline">Find trusted people near you</p>
         <Link href="/" className="back-link" style={{ margin: 0 }}>Switch area</Link>
       </header>
+
+      <div style={{
+        margin: '18px 0 22px', padding: '18px 16px', borderRadius: 16, textAlign: 'center',
+        background: 'rgba(232,163,61,0.10)', border: '1px solid rgba(232,163,61,0.3)',
+      }}>
+        <p style={{ fontFamily: "'Rozha One', serif", fontSize: 16, color: 'var(--marigold-deep)', margin: '0 0 5px' }}>
+          Are you a service provider?
+        </p>
+        <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 12px' }}>
+          List your business in {city} so customers here can find and call you directly.
+        </p>
+        <Link href={addHref} className="btn-primary" style={{ display: 'inline-block', width: 'auto', padding: '10px 22px', textDecoration: 'none', margin: 0 }}>
+          + Register as a Service Provider
+        </Link>
+        <p style={{ marginTop: 8 }}>
+          <Link href="/provider/dashboard" style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline' }}>
+            Already registered? Go to your dashboard →
+          </Link>
+        </p>
+      </div>
 
       <div className="search-row" style={{ position: 'relative', marginBottom: 14 }}>
         <input className="search-bar" placeholder="Search by name, area, or pincode..." value={search} onChange={(e) => setSearch(e.target.value)} />
@@ -217,26 +237,6 @@ function CityPageContent() {
             </div>
           </Link>
         ))}
-      </div>
-
-      <div style={{
-        marginTop: 24, padding: '20px 18px', borderRadius: 16, textAlign: 'center',
-        background: 'rgba(232,163,61,0.10)', border: '1px solid rgba(232,163,61,0.3)',
-      }}>
-        <p style={{ fontFamily: "'Rozha One', serif", fontSize: 17, color: 'var(--marigold-deep)', margin: '0 0 6px' }}>
-          Are you a service provider?
-        </p>
-        <p style={{ fontSize: 13, color: 'var(--muted)', margin: '0 0 14px' }}>
-          List your business in {city} so customers here can find and call you directly.
-        </p>
-        <Link href={addHref} className="btn-primary" style={{ display: 'inline-block', width: 'auto', padding: '11px 26px', textDecoration: 'none' }}>
-          + Register as a Service Provider
-        </Link>
-        <p style={{ marginTop: 10 }}>
-          <Link href="/provider/dashboard" style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline' }}>
-            Already registered? Go to your dashboard →
-          </Link>
-        </p>
       </div>
     </div>
   );
