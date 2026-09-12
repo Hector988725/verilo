@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { supabase } from '../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../lib/categories';
 import { saveMyToken } from '../../../../lib/ownership';
+import { useAuth } from '../../../../components/AuthProvider';
 
 const SPECIALIZATION_LABELS = {
   tuition: { label: 'Subject(s) You Teach', placeholder: 'e.g. Maths & Science, Class 9-12' },
@@ -34,6 +35,7 @@ function AddListingContent() {
   const searchParams = useSearchParams();
   const city = decodeURIComponent(params.city);
   const stateFromUrl = searchParams.get('state') || '';
+  const { user, loading: authLoading } = useAuth();
 
   const [form, setForm] = useState({
     name: '', service: 'plumber', qualification: '', experience: '',
@@ -107,6 +109,7 @@ function AddListingContent() {
         is_active: false,
         trial_ends_at: new Date().toISOString(),
         manage_token: manageToken,
+        owner_id: user.id,
       }).select('id').single();
       if (insertError) throw insertError;
 
@@ -121,6 +124,27 @@ function AddListingContent() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (authLoading) {
+    return <div className="wrap"><p style={{ textAlign: 'center', color: 'var(--muted)' }}>Loading...</p></div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="city-screen">
+        <div className="pin"></div>
+        <h1>Verilo</h1>
+        <p className="tagline">Sign in or create a free provider account to list your service</p>
+        <Link
+          href={`/provider/login?next=${encodeURIComponent(`/city/${city}/add${stateFromUrl ? '?state=' + stateFromUrl : ''}`)}`}
+          className="btn-primary"
+          style={{ maxWidth: 300, textAlign: 'center', textDecoration: 'none', display: 'block', marginTop: 18 }}
+        >
+          Sign In / Register as Provider
+        </Link>
+      </div>
+    );
   }
 
   return (

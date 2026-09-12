@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, initials, catColor } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
-import { useAuth } from '../../../../components/AuthProvider';
 
 function ClockIcon(props) {
   return (
@@ -31,14 +30,13 @@ function StarIcon(props) {
   );
 }
 
-// PUBLIC PROFILE PAGE — anyone can view this (customers browsing Verilo).
-// It NEVER shows owner controls (pay, pause, edit, availability toggle).
-// Those live only on the separate /manage page, reachable via phone verification.
+// PUBLIC PROFILE PAGE — anyone can view this, no login. It NEVER shows owner
+// controls (pay, pause, edit, availability toggle) — those live only on the
+// separate /manage page, reachable only via the provider's private link/login.
 export default function ProfileClient() {
   const params = useParams();
   const city = decodeURIComponent(params.city);
   const id = params.id;
-  const { user } = useAuth();
 
   const [listing, setListing] = useState(null);
   const [ratings, setRatings] = useState([]);
@@ -46,65 +44,20 @@ export default function ProfileClient() {
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  const [saved, setSaved] = useState(false);
-  const [savedRowId, setSavedRowId] = useState(null);
-
-  const [enquiryName, setEnquiryName] = useState('');
-  const [enquiryPhone, setEnquiryPhone] = useState('');
-  const [enquiryMsg, setEnquiryMsg] = useState('');
-  const [sendingEnquiry, setSendingEnquiry] = useState(false);
-  const [enquirySent, setEnquirySent] = useState(false);
-  const [enquiryErr, setEnquiryErr] = useState('');
-
   async function load() {
-    const { data: listingData } = await supabase.from('listings').select('*').eq('id', id).single();
+    // Explicit column list — this is a public page, so never select('*'),
+    // which would also hand back manage_token (the listing's private key).
+    const { data: listingData } = await supabase
+      .from('listings')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, verified, is_available, unavailable_note, maps_link')
+      .eq('id', id)
+      .single();
     setListing(listingData);
     const { data: ratingData } = await supabase.from('ratings').select('*').eq('listing_id', id).order('created_at', { ascending: false });
     setRatings(ratingData || []);
   }
 
   useEffect(() => { load(); }, [id]);
-
-  useEffect(() => {
-    if (!user) { setSaved(false); setSavedRowId(null); return; }
-    setEnquiryName((n) => n || user.user_metadata?.full_name || '');
-    supabase.from('saved_listings').select('id').eq('user_id', user.id).eq('listing_id', id).maybeSingle()
-      .then(({ data }) => {
-        setSaved(!!data);
-        setSavedRowId(data?.id || null);
-      });
-  }, [user, id]);
-
-  async function toggleSave() {
-    if (!user) { alert('Please sign in (Profile tab) to save listings.'); return; }
-    if (saved && savedRowId) {
-      await supabase.from('saved_listings').delete().eq('id', savedRowId);
-      setSaved(false);
-      setSavedRowId(null);
-    } else {
-      const { data } = await supabase.from('saved_listings').insert({ user_id: user.id, listing_id: id }).select().maybeSingle();
-      setSaved(true);
-      setSavedRowId(data?.id || null);
-    }
-  }
-
-  async function sendEnquiry() {
-    setEnquiryErr('');
-    if (!user) { setEnquiryErr('Please sign in (Profile tab) first to send an enquiry.'); return; }
-    if (!enquiryName.trim()) { setEnquiryErr('Please enter your name.'); return; }
-    setSendingEnquiry(true);
-    const { error } = await supabase.from('bookings').insert({
-      listing_id: id,
-      customer_id: user.id,
-      customer_name: enquiryName.trim(),
-      customer_phone: enquiryPhone.trim() || null,
-      message: enquiryMsg.trim() || null,
-    });
-    setSendingEnquiry(false);
-    if (error) { setEnquiryErr(error.message); return; }
-    setEnquirySent(true);
-    setEnquiryMsg('');
-  }
 
   const avg = ratings.length ? ratings.reduce((a, r) => a + r.stars, 0) / ratings.length : null;
 
@@ -142,22 +95,7 @@ export default function ProfileClient() {
 
   return (
     <div className="wrap">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link href={`/city/${encodeURIComponent(city)}`} className="back-link" style={{ margin: 0 }}>← Back to list</Link>
-        <button
-          onClick={toggleSave}
-          aria-label={saved ? 'Remove from saved' : 'Save listing'}
-          style={{
-            background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 999, width: 38, height: 38,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-            color: saved ? 'var(--vermillion)' : 'var(--muted)', boxShadow: 'var(--shadow)', marginBottom: 14,
-          }}
-        >
-          <svg width="19" height="19" viewBox="0 0 24 24" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 20.5s-7.5-4.6-9.7-9C.7 8 2 4.5 5.4 4c2-.3 3.8.6 4.6 2.1C10.8 4.6 12.6 3.7 14.6 4c3.4.5 4.7 4 3.1 7.5-2.2 4.4-9.7 9-9.7 9Z" />
-          </svg>
-        </button>
-      </div>
+      <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to list</Link>
 
       <div className="profile-banner">
         <span style={{
@@ -226,26 +164,6 @@ export default function ProfileClient() {
       {listing.note && (
         <div className="profile-card"><h3>Note</h3><p>{listing.note}</p></div>
       )}
-
-      <div className="profile-card">
-        <h3>Send an Enquiry</h3>
-        {enquirySent ? (
-          <p style={{ color: '#2E6B4E', fontWeight: 600 }}>✓ Sent! Track it under the Bookings tab.</p>
-        ) : (
-          <>
-            <label>Your Name</label>
-            <input value={enquiryName} onChange={(e) => setEnquiryName(e.target.value)} placeholder="Your name" />
-            <label>Your Phone (optional)</label>
-            <input value={enquiryPhone} onChange={(e) => setEnquiryPhone(e.target.value)} placeholder="10-digit number" />
-            <label>Message (optional)</label>
-            <textarea value={enquiryMsg} onChange={(e) => setEnquiryMsg(e.target.value)} placeholder="What do you need help with?" />
-            {enquiryErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{enquiryErr}</p>}
-            <button className="btn-primary" onClick={sendEnquiry} disabled={sendingEnquiry}>
-              {sendingEnquiry ? 'Sending...' : 'Send Enquiry'}
-            </button>
-          </>
-        )}
-      </div>
 
       <div className="profile-card">
         <h3>Rate this listing</h3>

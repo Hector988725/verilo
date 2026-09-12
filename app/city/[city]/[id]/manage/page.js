@@ -28,8 +28,6 @@ function ManageContent() {
   const [payingNow, setPayingNow] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [justPaid, setJustPaid] = useState(false);
-  const [bookings, setBookings] = useState([]);
-  const [respondingId, setRespondingId] = useState(null);
 
   useEffect(() => {
     checkAccess();
@@ -69,32 +67,14 @@ function ManageContent() {
   }
 
   async function load() {
-    const { data } = await supabase.from('listings').select('*').eq('id', id).single();
+    // Explicit column list (no manage_token — this page doesn't need to
+    // read it back, it's only ever verified, never displayed).
+    const { data } = await supabase
+      .from('listings')
+      .select('id, name, service, phone, area, photo_url, is_active, is_available, unavailable_note, trial_ends_at')
+      .eq('id', id)
+      .single();
     setListing(data);
-    loadBookings();
-  }
-
-  async function loadBookings() {
-    try {
-      const res = await fetch('/api/bookings/list-for-listing', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ listing_id: id, token: getMyToken(id) }),
-      });
-      const result = await res.json();
-      setBookings(result.bookings || []);
-    } catch (e) {}
-  }
-
-  async function respondToBooking(bookingId, status) {
-    setRespondingId(bookingId);
-    await fetch('/api/bookings/respond', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ listing_id: id, token: getMyToken(id), booking_id: bookingId, status }),
-    });
-    setRespondingId(null);
-    loadBookings();
   }
 
   async function toggleAvailability() {
@@ -247,63 +227,6 @@ function ManageContent() {
         >
           {listing.is_available === false ? 'Mark as Available' : 'Mark as Not Available'}
         </button>
-      </div>
-
-      <div className="profile-card">
-        <h3>Enquiries {bookings.filter((b) => b.status === 'new').length > 0 && (
-          <span style={{ background: 'var(--vermillion)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, marginLeft: 6 }}>
-            {bookings.filter((b) => b.status === 'new').length} new
-          </span>
-        )}</h3>
-        {bookings.length === 0 && <p style={{ color: 'var(--muted)', fontStyle: 'italic', margin: 0 }}>No enquiries yet.</p>}
-        {bookings.map((b) => (
-          <div key={b.id} className="review-item">
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-              <div>
-                <strong>{b.customer_name}</strong>
-                {b.customer_phone && <span style={{ color: 'var(--muted)' }}> · {b.customer_phone}</span>}
-              </div>
-              <span style={{
-                fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 999, height: 'fit-content',
-                color: b.status === 'new' ? 'var(--marigold-deep)' : b.status === 'accepted' ? '#2E6B4E' : b.status === 'rejected' ? 'var(--vermillion)' : 'var(--muted)',
-                background: b.status === 'new' ? 'rgba(232,163,61,0.15)' : b.status === 'accepted' ? 'rgba(46,107,78,0.12)' : b.status === 'rejected' ? 'rgba(193,68,46,0.12)' : 'rgba(0,0,0,0.05)',
-              }}>
-                {b.status}
-              </span>
-            </div>
-            {b.message && <p style={{ margin: '4px 0', fontSize: 13.5, fontStyle: 'italic' }}>"{b.message}"</p>}
-            <p style={{ fontSize: 11.5, color: 'var(--muted)', margin: '2px 0 6px' }}>
-              {new Date(b.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-            </p>
-            {b.status === 'new' && (
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  onClick={() => respondToBooking(b.id, 'accepted')}
-                  disabled={respondingId === b.id}
-                  style={{ flex: 1, background: '#2E6B4E', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-                >
-                  Accept
-                </button>
-                <button
-                  onClick={() => respondToBooking(b.id, 'rejected')}
-                  disabled={respondingId === b.id}
-                  style={{ flex: 1, background: 'var(--vermillion)', color: '#fff', border: 'none', borderRadius: 8, padding: '7px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-                >
-                  Decline
-                </button>
-              </div>
-            )}
-            {b.status === 'accepted' && (
-              <button
-                onClick={() => respondToBooking(b.id, 'completed')}
-                disabled={respondingId === b.id}
-                style={{ width: '100%', background: 'var(--paper-dim)', color: 'var(--ink)', border: '1px solid var(--line)', borderRadius: 8, padding: '7px 0', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
-              >
-                Mark Completed
-              </button>
-            )}
-          </div>
-        ))}
       </div>
 
       <div className="profile-card">

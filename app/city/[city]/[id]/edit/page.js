@@ -35,7 +35,7 @@ export default function EditListingPage() {
   useEffect(() => {
     setAllowed(!!getMyToken(id));
 
-    supabase.from('listings').select('*').eq('id', id).single().then(({ data }) => {
+    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',

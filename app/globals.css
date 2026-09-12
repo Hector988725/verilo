@@ -28,9 +28,9 @@ html, body {
   min-height: 100vh;
 }
 a { color: inherit; }
-.wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 110px; }
+.wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 50px; }
 @media (min-width: 768px) {
-  .wrap { max-width: 900px; padding: 36px 32px 120px; }
+  .wrap { max-width: 900px; padding: 36px 32px 60px; }
 }
 @media (min-width: 1200px) {
   .wrap { max-width: 1100px; }
@@ -70,7 +70,7 @@ h1 {
 
 .city-screen {
   min-height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; padding: 28px 20px 100px; text-align: center;
+  align-items: center; justify-content: center; padding: 28px 20px 50px; text-align: center;
 }
 .city-search {
   width: 100%; max-width: 380px; padding: 13px 18px; border-radius: 999px;
@@ -168,13 +168,6 @@ h1 {
 
 .empty { text-align: center; padding: 50px 20px; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 14px; background: rgba(255,255,255,0.5); }
 .empty-title { font-family: 'Rozha One', serif; font-size: 20px; color: var(--marigold-deep); margin-bottom: 6px; }
-
-.fab {
-  position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%);
-  background: var(--vermillion); color: #fff; border: none; border-radius: 999px;
-  padding: 14px 26px; font-size: 16px; font-weight: 700; text-decoration: none;
-  box-shadow: 0 10px 24px rgba(193,68,46,0.38); z-index: 40; display: inline-block;
-}
 
 label { display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin: 14px 0 6px; }
 input, select, textarea {

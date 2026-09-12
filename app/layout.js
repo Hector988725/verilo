@@ -1,7 +1,6 @@
 import './globals.css';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import Footer from '../components/Footer';
-import BottomNav from '../components/BottomNav';
 import { AuthProvider } from '../components/AuthProvider';
 
 export const metadata = {
@@ -32,7 +31,6 @@ export default function RootLayout({ children }) {
         <AuthProvider>
           {children}
           <Footer />
-          <BottomNav />
         </AuthProvider>
         <PwaInstallPrompt />
         <script
