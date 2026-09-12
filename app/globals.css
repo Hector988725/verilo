@@ -2,7 +2,7 @@
   /* Warm "notice-board" paper theme — replaces the old dark shell. Marigold
      and vermillion are kept from Verilo's original identity; everything else
      is rebuilt around a light, paper-like surface. */
-  --bg: #F7F1E4;
+  --bg: #FFFFFF;
   --bg-soft: #FFFFFF;
   --paper: #FFFFFF;
   --paper-dim: #F1E9D6;
@@ -13,16 +13,12 @@
   --vermillion: #C1442E;
   --thread: #8A7F6E;
   --line: rgba(36, 31, 22, 0.12);
-  --shadow: 0 10px 24px rgba(90, 68, 30, 0.10);
+  --shadow: 0 10px 24px rgba(90, 68, 30, 0.08);
 }
 * { box-sizing: border-box; }
 html, body {
   margin: 0;
   background: var(--bg);
-  background-image:
-    radial-gradient(circle at 12% 6%, rgba(232,163,61,0.14), transparent 42%),
-    radial-gradient(circle at 90% 92%, rgba(193,68,46,0.08), transparent 46%);
-  background-attachment: fixed;
   font-family: 'Mukta', sans-serif;
   color: var(--ink);
   min-height: 100vh;
