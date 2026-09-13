@@ -173,7 +173,7 @@ function AddListingContent() {
       <header>
         <div className="pin"></div>
         <h1>Verilo</h1>
-        <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to {city} listings</Link>
+        <Link href={`/city/${encodeURIComponent(city)}`} onClick={(e) => { e.preventDefault(); router.replace(`/city/${encodeURIComponent(city)}`); }} className="back-link">← Back to {city} listings</Link>
       </header>
 
       <form className="form-card" onSubmit={handleSubmit}>

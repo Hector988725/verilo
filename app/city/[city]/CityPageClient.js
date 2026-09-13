@@ -1,10 +1,11 @@
 'use client';
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 import { CATEGORIES, catLabel, catColor, catTagline, initials } from '../../../lib/categories';
 import { CategoryIcon } from '../../../lib/categoryIcons';
+import { shareApp } from '../../../lib/shareApp';
 
 export default function CityPageClient() {
   return (
@@ -35,6 +36,7 @@ function greetingWord() {
 function CityPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const city = decodeURIComponent(params.city);
   const stateFromUrl = searchParams.get('state') || '';
   const [listings, setListings] = useState([]);
@@ -111,12 +113,16 @@ function CityPageContent() {
     <div className="wrap">
       <header style={{ textAlign: 'left', marginBottom: 6 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Link href="/" style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3, textDecoration: 'none' }}>Verilo</Link>
-          <Link href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</Link>
+          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' }}>Verilo</a>
+          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</a>
         </div>
         <p className="greeting-eyebrow">{greetingWord()},</p>
         <p className="greeting-headline">Find trusted people near you</p>
-        <Link href="/" className="back-link" style={{ margin: 0 }}>Switch area</Link>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="back-link" style={{ margin: 0 }}>Switch area</a>
+          <span style={{ color: 'var(--line)' }}>·</span>
+          <span onClick={shareApp} className="back-link" style={{ margin: 0, cursor: 'pointer' }}>Share Verilo</span>
+        </div>
       </header>
 
       <div style={{

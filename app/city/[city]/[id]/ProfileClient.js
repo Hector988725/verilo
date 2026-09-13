@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, initials, catColor, catReviewPrompt } from '../../../../lib/categories';
@@ -44,6 +44,7 @@ function StarIcon(props) {
 // separate /manage page, reachable only via the provider's private link/login.
 export default function ProfileClient() {
   const params = useParams();
+  const router = useRouter();
   const city = decodeURIComponent(params.city);
   const id = params.id;
   const { user, signIn, signUp } = useAuth();
@@ -154,7 +155,7 @@ export default function ProfileClient() {
   return (
     <div className="wrap">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-        <Link href={`/city/${encodeURIComponent(city)}`} className="back-link" style={{ margin: 0 }}>← Back to list</Link>
+        <Link href={`/city/${encodeURIComponent(city)}`} onClick={(e) => { e.preventDefault(); router.replace(`/city/${encodeURIComponent(city)}`); }} className="back-link" style={{ margin: 0 }}>← Back to list</Link>
         <button
           onClick={shareListing}
           aria-label="Share this listing"

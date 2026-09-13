@@ -3,15 +3,25 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
 import { INDIAN_STATES } from '../lib/indianStates';
+import { shareApp } from '../lib/shareApp';
 
-function shareApp() {
-  const url = typeof window !== 'undefined' ? window.location.origin : 'https://verilo-seven.vercel.app';
-  const shareData = { title: 'Verilo', text: 'Verilo — find trusted local plumbers, electricians, tutors and more near you.', url };
-  if (typeof navigator !== 'undefined' && navigator.share) {
-    navigator.share(shareData).catch(() => {});
-  } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => alert('Link copied! Share it with anyone.'));
-  }
+function ShareButton() {
+  return (
+    <button
+      onClick={shareApp}
+      style={{
+        marginTop: 22, background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 999,
+        padding: '9px 18px', fontSize: 13, fontWeight: 700, color: 'var(--muted)', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 6, boxShadow: 'var(--shadow)',
+      }}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="18" cy="5" r="2.8" /><circle cx="6" cy="12" r="2.8" /><circle cx="18" cy="19" r="2.8" />
+        <path d="M8.4 10.7 15.6 6.6M8.4 13.3l7.2 4.1" />
+      </svg>
+      Share Verilo
+    </button>
+  );
 }
 
 export default function HomePage() {
@@ -110,6 +120,7 @@ export default function HomePage() {
           Start a new area for "{districtQuery}" in {selectedState} →
         </p>
       )}
+      <ShareButton />
     </div>
   );
 }

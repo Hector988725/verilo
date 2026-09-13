@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, initials } from '../../../../lib/categories';
@@ -13,6 +13,7 @@ import { getAllMyListings } from '../../../../lib/ownership';
 // only fall back to human WhatsApp verification if nothing is found locally.
 export default function FindListingPage() {
   const params = useParams();
+  const router = useRouter();
   const city = decodeURIComponent(params.city);
 
   const [myListings, setMyListings] = useState(null); // null = loading, [] = none found
@@ -43,7 +44,7 @@ export default function FindListingPage() {
       <header>
         <div className="pin"></div>
         <h1>Verilo</h1>
-        <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to {city} listings</Link>
+        <Link href={`/city/${encodeURIComponent(city)}`} onClick={(e) => { e.preventDefault(); router.replace(`/city/${encodeURIComponent(city)}`); }} className="back-link">← Back to {city} listings</Link>
       </header>
 
       {myListings === null && (

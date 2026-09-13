@@ -147,7 +147,7 @@ export default function EditListingPage() {
       <header>
         <div className="pin"></div>
         <h1>Verilo</h1>
-        <Link href={`/city/${encodeURIComponent(city)}/${id}`} className="back-link">← Back to profile</Link>
+        <Link href={`/city/${encodeURIComponent(city)}/${id}`} onClick={(e) => { e.preventDefault(); router.replace(`/city/${encodeURIComponent(city)}/${id}`); }} className="back-link">← Back to profile</Link>
       </header>
 
       <form className="form-card" onSubmit={handleSubmit}>
