@@ -132,15 +132,6 @@ export default function ProfileClient() {
 
   if (!listing) return <div className="wrap"><p style={{ textAlign: 'center', color: 'var(--muted)' }}>Loading...</p></div>;
 
-  const stats = [];
-  stats.push({ icon: <StarIcon />, label: 'Rating', value: avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New' });
-  stats.push({
-    icon: <ClockIcon />, label: 'Availability',
-    value: listing.is_available === false ? 'Not available' : 'Available now',
-  });
-  if (listing.experience) stats.push({ icon: <TagIcon />, label: 'Experience', value: `${listing.experience}` });
-  if (listing.qualification) stats.push({ icon: <TagIcon />, label: 'Speciality', value: listing.qualification });
-
   const whatsappHref = listing.phone
     ? `https://wa.me/91${listing.phone}?text=${encodeURIComponent(`Hi, I found your listing "${listing.name}" on Verilo and wanted to enquire.`)}`
     : null;
@@ -182,10 +173,12 @@ export default function ProfileClient() {
 
       <div
         className="profile-banner"
-        style={listing.banner_url ? {
-          backgroundImage: `url(${listing.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center',
-          border: 'none',
-        } : undefined}
+        style={{
+          borderRadius: 16, aspectRatio: '16 / 7', width: '100%', height: 'auto',
+          ...(listing.banner_url ? {
+            backgroundImage: `url(${listing.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center', border: 'none',
+          } : {}),
+        }}
       >
         <span style={{
           display: 'inline-flex', width: 34, height: 34, borderRadius: 10,
@@ -198,7 +191,7 @@ export default function ProfileClient() {
       </div>
 
       <div className="profile-header">
-        <div className="profile-avatar">
+        <div className="profile-avatar" style={{ width: 110, height: 138 }}>
           {listing.photo_url ? <img src={listing.photo_url} alt="" /> : initials(listing.name)}
         </div>
         <div className="profile-header-info">
@@ -206,23 +199,20 @@ export default function ProfileClient() {
           <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
           {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
           {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
+          {listing.experience && <p className="profile-meta">🏷️ {listing.experience} experience</p>}
+          <p className="profile-meta" style={{ color: 'var(--star-gold)', fontWeight: 700 }}>
+            ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
+          </p>
+          <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#2E6B4E', fontWeight: 700 }}>
+            {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
+          </p>
         </div>
       </div>
       {listing.is_available === false && listing.unavailable_note && (
         <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: -10, marginBottom: 14 }}>{listing.unavailable_note}</p>
       )}
 
-      <div className="stat-row">
-        {stats.map((s, i) => (
-          <div className="stat-pill" key={i}>
-            <div className="stat-pill-icon">{s.icon}</div>
-            <div className="stat-pill-label">{s.label}</div>
-            <div className="stat-pill-value">{s.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
         <a className="profile-call" href={`tel:${listing.phone}`} style={{ flex: 1, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
           <span style={{ fontSize: 15 }}>📞</span> Call
         </a>
@@ -320,7 +310,7 @@ export default function ProfileClient() {
               </button>
             </div>
           )
-        ) : (
+        ) : wantsToReview ? (
           <>
             <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
               {[1, 2, 3, 4, 5].map((v) => (
@@ -333,6 +323,12 @@ export default function ProfileClient() {
               {submittingReview ? 'Submitting...' : 'Submit Rating'}
             </button>
           </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '6px 0' }}>
+            <button className="btn-primary" onClick={() => setWantsToReview(true)} style={{ maxWidth: 240, margin: '0 auto' }}>
+              ⭐ Rate & Review
+            </button>
+          </div>
         )}
       </div>
 
