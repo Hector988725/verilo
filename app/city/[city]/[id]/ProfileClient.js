@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, initials, catColor, catReviewPrompt } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
+import { useAuth } from '../../../../components/AuthProvider';
 
 function WhatsAppIcon(props) {
   return (
@@ -45,12 +46,25 @@ export default function ProfileClient() {
   const params = useParams();
   const city = decodeURIComponent(params.city);
   const id = params.id;
+  const { user, signIn, signUp } = useAuth();
 
   const [listing, setListing] = useState(null);
   const [ratings, setRatings] = useState([]);
+  const [myRating, setMyRating] = useState(null); // this user's own existing review, if any
   const [starValue, setStarValue] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewErr, setReviewErr] = useState('');
+
+  const [wantsToReview, setWantsToReview] = useState(false);
+  const [authMode, setAuthMode] = useState('signin');
+  const [authName, setAuthName] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authShowPass, setAuthShowPass] = useState(false);
+  const [authErr, setAuthErr] = useState('');
+  const [authInfo, setAuthInfo] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
 
   async function load() {
     // Explicit column list — this is a public page, so never select('*'),
@@ -67,15 +81,45 @@ export default function ProfileClient() {
 
   useEffect(() => { load(); }, [id]);
 
+  useEffect(() => {
+    if (!user) { setMyRating(null); return; }
+    supabase.from('ratings').select('*').eq('listing_id', id).eq('customer_id', user.id).maybeSingle()
+      .then(({ data }) => setMyRating(data || null));
+  }, [user, id]);
+
   const avg = ratings.length ? ratings.reduce((a, r) => a + r.stars, 0) / ratings.length : null;
 
+  async function handleAuthSubmit(e) {
+    e.preventDefault();
+    setAuthErr('');
+    setAuthInfo('');
+    if (!authEmail.trim() || !authPassword) { setAuthErr('Please fill in email and password.'); return; }
+    if (authMode === 'signup' && !authName.trim()) { setAuthErr('Please enter your name.'); return; }
+
+    setAuthBusy(true);
+    if (authMode === 'signup') {
+      const { error } = await signUp(authName.trim(), authEmail.trim(), authPassword);
+      if (error) setAuthErr(error.message);
+      else setAuthInfo('Account created! Check your email to confirm, then sign in below.');
+    } else {
+      const { error } = await signIn(authEmail.trim(), authPassword);
+      if (error) setAuthErr(error.message);
+    }
+    setAuthBusy(false);
+  }
+
   async function submitRating() {
-    if (!starValue) { alert('Please select a star rating first.'); return; }
+    if (!starValue) { setReviewErr('Please select a star rating first.'); return; }
+    setReviewErr('');
     setSubmittingReview(true);
-    await supabase.from('ratings').insert({ listing_id: id, stars: starValue, review_text: reviewText.trim() || null });
+    const { error } = await supabase.from('ratings').insert({
+      listing_id: id, customer_id: user.id, stars: starValue, review_text: reviewText.trim() || null,
+    });
+    setSubmittingReview(false);
+    if (error) { setReviewErr(error.message); return; }
     setStarValue(0);
     setReviewText('');
-    setSubmittingReview(false);
+    setWantsToReview(false);
     load();
   }
 
@@ -221,15 +265,75 @@ export default function ProfileClient() {
 
       <div className="profile-card">
         <h3>Used their service? Rate it</h3>
-        <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
-          {[1, 2, 3, 4, 5].map((v) => (
-            <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star-gold)' : '#E4D9BF' }}>★</span>
-          ))}
-        </div>
-        <textarea placeholder={catReviewPrompt(listing.service)} value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
-        <button className="btn-primary" onClick={submitRating} disabled={submittingReview} style={{ marginTop: 12 }}>
-          {submittingReview ? 'Submitting...' : 'Submit Rating'}
-        </button>
+
+        {myRating ? (
+          <div>
+            <div style={{ color: 'var(--star-gold)', fontSize: 18, marginBottom: 4 }}>
+              {'★'.repeat(myRating.stars)}{'☆'.repeat(5 - myRating.stars)}
+            </div>
+            {myRating.review_text && <p style={{ margin: 0, fontStyle: 'italic' }}>"{myRating.review_text}"</p>}
+            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>You've already reviewed this listing. Thanks!</p>
+          </div>
+        ) : !user ? (
+          wantsToReview ? (
+            <div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <button type="button" className={'tab' + (authMode === 'signin' ? ' active' : '')} onClick={() => { setAuthMode('signin'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Sign In</button>
+                <button type="button" className={'tab' + (authMode === 'signup' ? ' active' : '')} onClick={() => { setAuthMode('signup'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Create Account</button>
+              </div>
+              <form onSubmit={handleAuthSubmit}>
+                {authMode === 'signup' && (
+                  <>
+                    <label>Your Name</label>
+                    <input value={authName} onChange={(e) => setAuthName(e.target.value)} placeholder="Your name" />
+                  </>
+                )}
+                <label>Email</label>
+                <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="you@example.com" />
+                <label>Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={authShowPass ? 'text' : 'password'}
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="At least 6 characters"
+                    style={{ paddingRight: 44 }}
+                  />
+                  <button type="button" onClick={() => setAuthShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
+                    {authShowPass ? '🙈' : '👁️'}
+                  </button>
+                </div>
+                {authErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{authErr}</p>}
+                {authInfo && <p style={{ color: '#2E6B4E', fontSize: 13, marginTop: 8 }}>{authInfo}</p>}
+                <button className="btn-primary" type="submit" disabled={authBusy}>
+                  {authBusy ? 'Please wait...' : authMode === 'signup' ? 'Create Account' : 'Sign In & Continue'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '6px 0' }}>
+              <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
+                Sign in to leave a rating — this keeps reviews genuine and spam-free. Browsing and calling never needs login.
+              </p>
+              <button className="btn-primary" onClick={() => setWantsToReview(true)} style={{ maxWidth: 240, margin: '0 auto' }}>
+                ⭐ Rate & Review
+              </button>
+            </div>
+          )
+        ) : (
+          <>
+            <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
+              {[1, 2, 3, 4, 5].map((v) => (
+                <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star-gold)' : '#E4D9BF' }}>★</span>
+              ))}
+            </div>
+            <textarea placeholder={catReviewPrompt(listing.service)} value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
+            {reviewErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{reviewErr}</p>}
+            <button className="btn-primary" onClick={submitRating} disabled={submittingReview} style={{ marginTop: 12 }}>
+              {submittingReview ? 'Submitting...' : 'Submit Rating'}
+            </button>
+          </>
+        )}
       </div>
 
       <div className="profile-card">
