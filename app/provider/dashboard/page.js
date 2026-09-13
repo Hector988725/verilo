@@ -67,7 +67,7 @@ export default function ProviderDashboard() {
     <div className="wrap">
       <header style={{ textAlign: 'left' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--marigold-deep)' }}>Verilo</span>
+          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)' }}>Verilo</span>
           <button onClick={signOut} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, color: 'var(--muted)', cursor: 'pointer' }}>
             Sign Out
           </button>

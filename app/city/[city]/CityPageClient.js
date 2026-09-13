@@ -3,7 +3,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
-import { CATEGORIES, catLabel, catColor, initials } from '../../../lib/categories';
+import { CATEGORIES, catLabel, catColor, catTagline, initials } from '../../../lib/categories';
 import { CategoryIcon } from '../../../lib/categoryIcons';
 
 export default function CityPageClient() {
@@ -111,7 +111,7 @@ function CityPageContent() {
     <div className="wrap">
       <header style={{ textAlign: 'left', marginBottom: 6 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--marigold-deep)', flexShrink: 0, lineHeight: 1.3 }}>Verilo</span>
+          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3 }}>Verilo</span>
           <Link href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</Link>
         </div>
         <p className="greeting-eyebrow">{greetingWord()},</p>
@@ -181,6 +181,28 @@ function CityPageContent() {
           </button>
         ))}
       </div>
+
+      {activeTab !== 'all' && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 14, padding: '18px 18px', borderRadius: 16,
+          marginBottom: 18, background: `color-mix(in srgb, ${catColor(activeTab)} 14%, white)`,
+          border: `1px solid color-mix(in srgb, ${catColor(activeTab)} 30%, transparent)`,
+        }}>
+          <span style={{
+            width: 52, height: 52, borderRadius: 14, flex: '0 0 auto', background: catColor(activeTab),
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: `0 8px 18px color-mix(in srgb, ${catColor(activeTab)} 40%, transparent)`,
+          }}>
+            <CategoryIcon name={activeTab} width={26} height={26} />
+          </span>
+          <div>
+            <p style={{ margin: 0, fontFamily: "'Rozha One', serif", fontSize: 17, color: catColor(activeTab) }}>
+              {catLabel(activeTab)} near you
+            </p>
+            <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>{catTagline(activeTab)}</p>
+          </div>
+        </div>
+      )}
 
       {loading && <p style={{ color: 'var(--muted)', textAlign: 'center' }}>Loading...</p>}
 

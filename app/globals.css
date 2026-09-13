@@ -11,6 +11,7 @@
   --marigold: #E8A33D;
   --marigold-deep: #C97F1E;
   --vermillion: #C1442E;
+  --navy: #16232E;
   --thread: #8A7F6E;
   --line: rgba(36, 31, 22, 0.12);
   --shadow: 0 10px 24px rgba(90, 68, 30, 0.08);
@@ -60,7 +61,7 @@ header { text-align: center; margin-bottom: 22px; }
 }
 h1 {
   font-family: 'Rozha One', serif;
-  font-size: 34px; margin: 0; letter-spacing: 0.5px; color: var(--marigold-deep);
+  font-size: 34px; margin: 0; letter-spacing: 0.5px; color: var(--navy);
 }
 .tagline { color: var(--muted); font-size: 14.5px; margin-top: 6px; font-weight: 500; }
 
