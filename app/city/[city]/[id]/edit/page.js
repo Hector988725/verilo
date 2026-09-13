@@ -28,6 +28,8 @@ export default function EditListingPage() {
   const [form, setForm] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [allowed, setAllowed] = useState(null);
@@ -35,7 +37,7 @@ export default function EditListingPage() {
   useEffect(() => {
     setAllowed(!!getMyToken(id));
 
-    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url').eq('id', id).single().then(({ data }) => {
+    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
@@ -43,6 +45,7 @@ export default function EditListingPage() {
           about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '', pincode: data.pincode || '',
         });
         setPhotoPreview(data.photo_url || '');
+        setBannerPreview(data.banner_url || '');
       }
     });
   }, [id]);
@@ -54,6 +57,13 @@ export default function EditListingPage() {
     if (!file) return;
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function handleBanner(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
   }
 
   async function handleSubmit(e) {
@@ -70,12 +80,22 @@ export default function EditListingPage() {
         photo_url = publicUrl.publicUrl;
       }
 
+      let banner_url;
+      if (bannerFile) {
+        const bannerFileName = `banner-${Date.now()}-${bannerFile.name}`;
+        const { error: bannerUploadError } = await supabase.storage.from('listing-photos').upload(bannerFileName, bannerFile);
+        if (bannerUploadError) throw bannerUploadError;
+        const { data: bannerPublicUrl } = supabase.storage.from('listing-photos').getPublicUrl(bannerFileName);
+        banner_url = bannerPublicUrl.publicUrl;
+      }
+
       const updatePayload = {
         name: form.name, service: form.service,
         qualification: form.qualification || null, experience: form.experience || null,
         about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null, pincode: form.pincode || null,
       };
       if (photo_url) updatePayload.photo_url = photo_url;
+      if (banner_url) updatePayload.banner_url = banner_url;
 
       const res = await fetch('/api/listing/update', {
         method: 'POST',
@@ -129,6 +149,18 @@ export default function EditListingPage() {
           </div>
           <input type="file" accept="image/*" onChange={handlePhoto} />
         </div>
+
+        <label>Cover Banner (optional)</label>
+        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '-8px 0 8px' }}>
+          A wide photo of your shop, work, or products — shown at the top of your profile.
+        </p>
+        <div style={{
+          width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
+        }}>
+          {bannerPreview ? <img src={bannerPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>}
+        </div>
+        <input type="file" accept="image/*" onChange={handleBanner} />
 
         <label>Name *</label>
         <input required value={form.name} onChange={(e) => update('name', e.target.value)} />

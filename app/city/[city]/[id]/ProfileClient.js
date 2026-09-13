@@ -57,7 +57,7 @@ export default function ProfileClient() {
     // which would also hand back manage_token (the listing's private key).
     const { data: listingData } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, verified, is_available, unavailable_note, maps_link')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, verified, is_available, unavailable_note, maps_link')
       .eq('id', id)
       .single();
     setListing(listingData);
@@ -105,10 +105,18 @@ export default function ProfileClient() {
     <div className="wrap">
       <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to list</Link>
 
-      <div className="profile-banner">
+      <div
+        className="profile-banner"
+        style={listing.banner_url ? {
+          backgroundImage: `url(${listing.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+          border: 'none',
+        } : undefined}
+      >
         <span style={{
-          display: 'inline-flex', width: 34, height: 34, borderRadius: 10, background: catColor(listing.service),
-          alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: 'var(--shadow)',
+          display: 'inline-flex', width: 34, height: 34, borderRadius: 10,
+          background: listing.banner_url ? 'rgba(255,255,255,0.9)' : catColor(listing.service),
+          alignItems: 'center', justifyContent: 'center',
+          color: listing.banner_url ? catColor(listing.service) : '#fff', boxShadow: 'var(--shadow)',
         }}>
           <CategoryIcon name={listing.service} width={18} height={18} />
         </span>

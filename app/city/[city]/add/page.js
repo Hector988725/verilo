@@ -43,6 +43,8 @@ function AddListingContent() {
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
+  const [bannerFile, setBannerFile] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -53,6 +55,13 @@ function AddListingContent() {
     if (!file) return;
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
+  }
+
+  function handleBanner(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setBannerFile(file);
+    setBannerPreview(URL.createObjectURL(file));
   }
 
   async function handleSubmit(e) {
@@ -86,6 +95,17 @@ function AddListingContent() {
         photo_url = publicUrl.publicUrl;
       }
 
+      // 2b. Upload banner image if provided
+      let banner_url = null;
+      if (bannerFile) {
+        const bannerFileName = `banner-${Date.now()}-${bannerFile.name}`;
+        const { error: bannerUploadError } = await supabase
+          .storage.from('listing-photos').upload(bannerFileName, bannerFile);
+        if (bannerUploadError) throw bannerUploadError;
+        const { data: bannerPublicUrl } = supabase.storage.from('listing-photos').getPublicUrl(bannerFileName);
+        banner_url = bannerPublicUrl.publicUrl;
+      }
+
       // 3. Generate a private, hard-to-guess access token for this listing.
       // This token — not the (public) phone number — is the real "key" to
       // managing the listing, so a stranger who sees the phone number on the
@@ -104,6 +124,7 @@ function AddListingContent() {
         area: form.area || null,
         note: form.note || null,
         photo_url,
+        banner_url,
         maps_link: form.mapsLink || null,
         pincode: form.pincode || null,
         is_active: false,
@@ -165,6 +186,18 @@ function AddListingContent() {
           </div>
           <input type="file" accept="image/*" onChange={handlePhoto} />
         </div>
+
+        <label>Cover Banner (optional)</label>
+        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '-8px 0 8px' }}>
+          A wide photo of your shop, work, or products — shown at the top of your profile.
+        </p>
+        <div style={{
+          width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
+        }}>
+          {bannerPreview ? <img src={bannerPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>}
+        </div>
+        <input type="file" accept="image/*" onChange={handleBanner} />
 
         <label>Name *</label>
         <input required value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="e.g. Ramesh Kumar" />
