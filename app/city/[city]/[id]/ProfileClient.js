@@ -6,6 +6,14 @@ import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, initials, catColor } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 
+function WhatsAppIcon(props) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M12 2.5c-5.25 0-9.5 4.25-9.5 9.5 0 1.68.44 3.26 1.2 4.63L2.5 21.5l4.99-1.17A9.44 9.44 0 0 0 12 21.5c5.25 0 9.5-4.25 9.5-9.5S17.25 2.5 12 2.5Zm0 17.2c-1.5 0-2.9-.4-4.1-1.1l-.29-.17-2.96.7.7-2.88-.19-.3A7.7 7.7 0 0 1 4.3 12c0-4.25 3.45-7.7 7.7-7.7s7.7 3.45 7.7 7.7-3.45 7.7-7.7 7.7Zm4.22-5.77c-.23-.12-1.36-.67-1.57-.75-.21-.08-.36-.12-.52.12-.15.23-.6.75-.73.9-.13.15-.27.17-.5.06-.23-.12-.96-.35-1.83-1.13-.68-.6-1.13-1.35-1.27-1.58-.13-.23-.01-.35.1-.47.11-.11.23-.27.35-.4.12-.14.15-.23.23-.39.08-.15.04-.29-.02-.4-.06-.12-.52-1.26-.72-1.72-.19-.46-.38-.4-.52-.4h-.44c-.15 0-.4.06-.6.29-.21.23-.79.77-.79 1.88s.81 2.19.92 2.34c.12.15 1.6 2.44 3.87 3.42.54.23.96.37 1.29.48.54.17 1.04.15 1.43.09.44-.07 1.36-.55 1.55-1.09.19-.54.19-1 .13-1.09-.06-.1-.21-.16-.44-.27Z" />
+    </svg>
+  );
+}
+
 function ClockIcon(props) {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -130,16 +138,21 @@ export default function ProfileClient() {
       </div>
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
-        <a className="profile-call" href={`tel:${listing.phone}`} style={{ flex: 1, marginBottom: 0 }}>📞 Call</a>
+        <a className="profile-call" href={`tel:${listing.phone}`} style={{ flex: 1, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+          <span style={{ fontSize: 15 }}>📞</span> Call
+        </a>
         {whatsappHref && (
           <a
             className="profile-call"
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ flex: 1, marginBottom: 0, background: '#2E9E52', boxShadow: '0 8px 18px rgba(46,158,82,0.3)' }}
+            style={{
+              flex: 1, marginBottom: 0, background: '#25D366', boxShadow: '0 8px 18px rgba(37,211,102,0.35)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+            }}
           >
-            💬 Chat
+            <WhatsAppIcon /> WhatsApp
           </a>
         )}
       </div>
