@@ -38,7 +38,7 @@ function AddListingContent() {
   const { user, loading: authLoading } = useAuth();
 
   const [form, setForm] = useState({
-    name: '', service: 'plumber', qualification: '', experience: '',
+    name: '', service: 'plumber', qualification: '', experienceValue: '', experienceUnit: 'Years',
     about: '', phone: '', area: '', note: '', mapsLink: '', pincode: '',
   });
   const [photoFile, setPhotoFile] = useState(null);
@@ -118,7 +118,7 @@ function AddListingContent() {
         name: form.name,
         service: form.service,
         qualification: form.qualification || null,
-        experience: form.experience || null,
+        experience: form.experienceValue ? `${form.experienceValue} ${form.experienceUnit}` : null,
         about: form.about || null,
         phone: form.phone,
         area: form.area || null,
@@ -211,7 +211,18 @@ function AddListingContent() {
         <input value={form.qualification} onChange={(e) => update('qualification', e.target.value)} placeholder={SPECIALIZATION_LABELS[form.service]?.placeholder || ''} />
 
         <label>Experience</label>
-        <input value={form.experience} onChange={(e) => update('experience', e.target.value)} placeholder="e.g. 8 years" />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="number" min="0" style={{ flex: 1 }}
+            value={form.experienceValue}
+            onChange={(e) => update('experienceValue', e.target.value)}
+            placeholder="e.g. 8"
+          />
+          <select style={{ flex: '0 0 110px' }} value={form.experienceUnit} onChange={(e) => update('experienceUnit', e.target.value)}>
+            <option value="Years">Years</option>
+            <option value="Months">Months</option>
+          </select>
+        </div>
 
         <label>About You</label>
         <textarea value={form.about} onChange={(e) => update('about', e.target.value)} placeholder="Tell people what you do and why they should trust you" />

@@ -199,6 +199,7 @@ export default function ProfileClient() {
           <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
           {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
           {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
+          {listing.about && <p className="profile-meta" style={{ fontStyle: 'italic' }}>{listing.about}</p>}
           {listing.experience && <p className="profile-meta">🏷️ {listing.experience} experience</p>}
           <p className="profile-meta" style={{ color: 'var(--star-gold)', fontWeight: 700 }}>
             ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
@@ -246,9 +247,6 @@ export default function ProfileClient() {
         </a>
       )}
 
-      {listing.about && (
-        <div className="profile-card"><h3>About</h3><p>{listing.about}</p></div>
-      )}
       {listing.note && (
         <div className="profile-card"><h3>Note</h3><p>{listing.note}</p></div>
       )}

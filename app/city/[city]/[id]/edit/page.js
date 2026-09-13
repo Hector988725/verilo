@@ -6,6 +6,17 @@ import { supabase } from '../../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../../lib/categories';
 import { getMyToken } from '../../../../../lib/ownership';
 
+// Best-effort parse of old free-text experience values ("8 years", "8", "6 months")
+// into a separate number + unit, for editing listings created before the
+// structured experience field existed.
+function parseExperience(raw) {
+  if (!raw) return { experienceValue: '', experienceUnit: 'Years' };
+  const match = String(raw).match(/(\d+)\s*(month|year)?/i);
+  if (!match) return { experienceValue: '', experienceUnit: 'Years' };
+  const unit = /month/i.test(match[2] || '') ? 'Months' : 'Years';
+  return { experienceValue: match[1], experienceUnit: unit };
+}
+
 const SPECIALIZATION_LABELS = {
   tuition: { label: 'Subject(s) You Teach', placeholder: 'e.g. Maths & Science, Class 9-12' },
   plumber: { label: 'Specialization', placeholder: 'e.g. Pipe fitting, bathroom fitting' },
@@ -41,7 +52,7 @@ export default function EditListingPage() {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
-          qualification: data.qualification || '', experience: data.experience || '',
+          qualification: data.qualification || '', ...parseExperience(data.experience),
           about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '', pincode: data.pincode || '',
         });
         setPhotoPreview(data.photo_url || '');
@@ -91,7 +102,7 @@ export default function EditListingPage() {
 
       const updatePayload = {
         name: form.name, service: form.service,
-        qualification: form.qualification || null, experience: form.experience || null,
+        qualification: form.qualification || null, experience: form.experienceValue ? `${form.experienceValue} ${form.experienceUnit}` : null,
         about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null, pincode: form.pincode || null,
       };
       if (photo_url) updatePayload.photo_url = photo_url;
@@ -174,7 +185,18 @@ export default function EditListingPage() {
         <input value={form.qualification} onChange={(e) => update('qualification', e.target.value)} placeholder={SPECIALIZATION_LABELS[form.service]?.placeholder || ''} />
 
         <label>Experience</label>
-        <input value={form.experience} onChange={(e) => update('experience', e.target.value)} placeholder="e.g. 8 years" />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            type="number" min="0" style={{ flex: 1 }}
+            value={form.experienceValue}
+            onChange={(e) => update('experienceValue', e.target.value)}
+            placeholder="e.g. 8"
+          />
+          <select style={{ flex: '0 0 110px' }} value={form.experienceUnit} onChange={(e) => update('experienceUnit', e.target.value)}>
+            <option value="Years">Years</option>
+            <option value="Months">Months</option>
+          </select>
+        </div>
 
         <label>About You</label>
         <textarea value={form.about} onChange={(e) => update('about', e.target.value)} />
