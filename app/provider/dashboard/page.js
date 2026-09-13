@@ -97,6 +97,15 @@ export default function ProviderDashboard() {
                 <p style={{ fontSize: 12.5, fontWeight: 700, marginTop: 4, color: l.is_active ? '#2E6B4E' : 'var(--vermillion)' }}>
                   {l.is_active ? '🟢 Active — visible to customers' : '🔴 Inactive — payment needed'}
                 </p>
+                {l.is_active && l.trial_ends_at && (() => {
+                  const daysLeft = Math.ceil((new Date(l.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
+                  return (
+                    <p style={{ fontSize: 12, color: daysLeft <= 3 ? 'var(--vermillion)' : 'var(--muted)', marginTop: 2 }}>
+                      {daysLeft > 0 ? `⏳ ${daysLeft} day${daysLeft === 1 ? '' : 's'} left` : '⚠️ Expiring today'}
+                      {' · Expires '}{new Date(l.trial_ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           </div>
