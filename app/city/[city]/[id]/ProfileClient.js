@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel, initials, catColor } from '../../../../lib/categories';
+import { catLabel, initials, catColor, catReviewPrompt } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 
 function WhatsAppIcon(props) {
@@ -101,9 +101,40 @@ export default function ProfileClient() {
     ? `https://wa.me/91${listing.phone}?text=${encodeURIComponent(`Hi, I found your listing "${listing.name}" on Verilo and wanted to enquire.`)}`
     : null;
 
+  async function shareListing() {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const shareData = { title: `${listing.name} — Verilo`, text: `Check out ${listing.name} (${catLabel(listing.service)}) on Verilo`, url };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied! You can now paste and share it.');
+      } catch (e) {
+        prompt('Copy this link to share:', url);
+      }
+    }
+  }
+
   return (
     <div className="wrap">
-      <Link href={`/city/${encodeURIComponent(city)}`} className="back-link">← Back to list</Link>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+        <Link href={`/city/${encodeURIComponent(city)}`} className="back-link" style={{ margin: 0 }}>← Back to list</Link>
+        <button
+          onClick={shareListing}
+          aria-label="Share this listing"
+          style={{
+            background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 999, width: 38, height: 38,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            color: 'var(--muted)', boxShadow: 'var(--shadow)', marginBottom: 14,
+          }}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="2.8" /><circle cx="6" cy="12" r="2.8" /><circle cx="18" cy="19" r="2.8" />
+            <path d="M8.4 10.7 15.6 6.6M8.4 13.3l7.2 4.1" />
+          </svg>
+        </button>
+      </div>
 
       <div
         className="profile-banner"
@@ -126,14 +157,16 @@ export default function ProfileClient() {
         <div className="profile-avatar">
           {listing.photo_url ? <img src={listing.photo_url} alt="" /> : initials(listing.name)}
         </div>
-        <h2 className="profile-name">{listing.name}</h2>
-        <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
-        {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
-        {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
-        {listing.is_available === false && listing.unavailable_note && (
-          <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4 }}>{listing.unavailable_note}</p>
-        )}
+        <div className="profile-header-info">
+          <h2 className="profile-name">{listing.name}</h2>
+          <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
+          {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
+          {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
+        </div>
       </div>
+      {listing.is_available === false && listing.unavailable_note && (
+        <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: -10, marginBottom: 14 }}>{listing.unavailable_note}</p>
+      )}
 
       <div className="stat-row">
         {stats.map((s, i) => (
@@ -190,10 +223,10 @@ export default function ProfileClient() {
         <h3>Rate this listing</h3>
         <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
           {[1, 2, 3, 4, 5].map((v) => (
-            <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--marigold-deep)' : '#E4D9BF' }}>★</span>
+            <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star-gold)' : '#E4D9BF' }}>★</span>
           ))}
         </div>
-        <textarea placeholder="Share your experience (optional)" value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
+        <textarea placeholder={catReviewPrompt(listing.service)} value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
         <button className="btn-primary" onClick={submitRating} disabled={submittingReview} style={{ marginTop: 12 }}>
           {submittingReview ? 'Submitting...' : 'Submit Rating'}
         </button>

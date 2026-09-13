@@ -17,7 +17,7 @@ export default function CityPageClient() {
 function Stars({ value }) {
   const rounded = Math.round((value || 0) * 2) / 2;
   return (
-    <span style={{ color: 'var(--marigold-deep)' }}>
+    <span style={{ color: 'var(--star-gold)' }}>
       {'★'.repeat(Math.floor(rounded))}
       {rounded % 1 !== 0 ? '½' : ''}
       {'☆'.repeat(5 - Math.ceil(rounded))}

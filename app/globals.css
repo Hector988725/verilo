@@ -12,6 +12,7 @@
   --marigold-deep: #C97F1E;
   --vermillion: #C1442E;
   --navy: #16232E;
+  --star-gold: #FFB400;
   --thread: #8A7F6E;
   --line: rgba(36, 31, 22, 0.12);
   --shadow: 0 10px 24px rgba(90, 68, 30, 0.08);
@@ -156,7 +157,7 @@ h1 {
   color: #2E6B4E; background: rgba(46,107,78,0.12); padding: 2px 8px; border-radius: 999px; margin-left: 4px;
 }
 .card-area { font-size: 13px; color: var(--muted); margin: 0 0 3px; }
-.card-rating { font-size: 12.5px; color: var(--marigold-deep); font-weight: 700; margin: 3px 0 0; }
+.card-rating { font-size: 12.5px; color: var(--star-gold); font-weight: 700; margin: 3px 0 0; }
 .call-btn {
   flex: 0 0 auto; background: #1E8449; color: #fff; border: none; border-radius: 999px;
   padding: 9px 14px; font-weight: 700; font-size: 13.5px; text-decoration: none; display: flex; align-items: center; gap: 5px;
@@ -188,25 +189,30 @@ textarea { resize: vertical; min-height: 50px; }
 
 /* ---- Profile page ---- */
 .profile-banner {
-  border-radius: 20px; padding: 30px 20px 20px; margin-bottom: -46px; text-align: center;
+  border-radius: 20px 20px 0 0; height: 150px; background-size: cover; background-position: center;
   background: linear-gradient(160deg, rgba(232,163,61,0.30), rgba(193,68,46,0.14));
-  border: 1px solid rgba(232,163,61,0.3);
+  border: 1px solid rgba(232,163,61,0.3); border-bottom: none;
+  display: flex; align-items: flex-start; justify-content: flex-end; padding: 14px;
 }
-.profile-header { text-align: center; margin-bottom: 18px; position: relative; z-index: 2; }
+.profile-header {
+  display: flex; align-items: flex-end; gap: 14px; text-align: left; margin: -40px 0 18px;
+  position: relative; z-index: 2; padding: 0 4px;
+}
 .profile-avatar {
-  width: 92px; height: 92px; border-radius: 24px; margin: 0 auto 12px; background: var(--paper-dim);
+  width: 84px; height: 84px; border-radius: 20px; flex: 0 0 auto; background: var(--paper-dim);
   display: flex; align-items: center; justify-content: center; overflow: hidden;
-  font-family: 'Rozha One', serif; font-size: 34px; color: var(--marigold-deep);
+  font-family: 'Rozha One', serif; font-size: 30px; color: var(--marigold-deep);
   border: 4px solid var(--paper); box-shadow: var(--shadow);
 }
 .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.profile-name { font-family: 'Rozha One', serif; font-size: 26px; color: var(--ink); margin: 0 0 4px; }
+.profile-header-info { padding-bottom: 4px; min-width: 0; }
+.profile-name { font-family: 'Rozha One', serif; font-size: 22px; color: var(--ink); margin: 0 0 4px; line-height: 1.15; }
 .profile-service {
   display: inline-block; font-size: 12.5px; font-weight: 700; color: #2A1B05;
-  background: var(--marigold); padding: 3px 12px; border-radius: 999px; margin-bottom: 8px;
+  background: var(--marigold); padding: 3px 12px; border-radius: 999px; margin-bottom: 6px;
 }
-.profile-meta { color: var(--muted); font-size: 13.5px; margin: 2px 0; }
-.profile-rating { color: var(--marigold-deep); font-weight: 700; font-size: 15px; margin-top: 6px; }
+.profile-meta { color: var(--muted); font-size: 13px; margin: 2px 0; }
+.profile-rating { color: var(--star-gold); font-weight: 700; font-size: 15px; margin-top: 6px; }
 
 .stat-row { display: flex; gap: 8px; margin: 18px 0; }
 .stat-pill {
@@ -229,5 +235,5 @@ textarea { resize: vertical; min-height: 50px; }
 }
 .review-item { border-top: 1px solid var(--line); padding: 10px 0; }
 .review-item:first-child { border-top: none; padding-top: 0; }
-.review-stars { color: var(--marigold-deep); font-size: 13px; margin-bottom: 2px; }
+.review-stars { color: var(--star-gold); font-size: 13px; margin-bottom: 2px; }
 .report-link { font-size: 12px; color: var(--muted); text-decoration: underline; }
