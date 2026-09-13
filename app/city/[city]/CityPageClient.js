@@ -111,7 +111,7 @@ function CityPageContent() {
     <div className="wrap">
       <header style={{ textAlign: 'left', marginBottom: 6 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3 }}>Verilo</span>
+          <Link href="/" style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3, textDecoration: 'none' }}>Verilo</Link>
           <Link href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</Link>
         </div>
         <p className="greeting-eyebrow">{greetingWord()},</p>
@@ -129,7 +129,14 @@ function CityPageContent() {
         <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 12px' }}>
           List your business in {city} so customers here can find and call you directly.
         </p>
-        <Link href={addHref} className="btn-primary" style={{ display: 'inline-block', width: 'auto', padding: '10px 22px', textDecoration: 'none', margin: 0 }}>
+        <Link
+          href={addHref}
+          className="btn-primary"
+          style={{
+            display: 'inline-block', width: 'auto', padding: '10px 22px', textDecoration: 'none', margin: 0,
+            background: 'var(--navy)', boxShadow: '0 8px 18px rgba(22,35,46,0.3)',
+          }}
+        >
           + Register as a Service Provider
         </Link>
         <p style={{ marginTop: 8 }}>
