@@ -195,11 +195,11 @@ textarea { resize: vertical; min-height: 50px; }
   display: flex; align-items: flex-start; justify-content: flex-end; padding: 14px;
 }
 .profile-header {
-  display: flex; align-items: flex-end; gap: 14px; text-align: left; margin: -40px 0 18px;
+  display: flex; align-items: flex-end; gap: 14px; text-align: left; margin: -52px 0 18px;
   position: relative; z-index: 2; padding: 0 4px;
 }
 .profile-avatar {
-  width: 84px; height: 84px; border-radius: 20px; flex: 0 0 auto; background: var(--paper-dim);
+  width: 92px; height: 116px; border-radius: 10px; flex: 0 0 auto; background: var(--paper-dim);
   display: flex; align-items: center; justify-content: center; overflow: hidden;
   font-family: 'Rozha One', serif; font-size: 30px; color: var(--marigold-deep);
   border: 4px solid var(--paper); box-shadow: var(--shadow);

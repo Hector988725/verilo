@@ -220,7 +220,7 @@ export default function ProfileClient() {
       )}
 
       <div className="profile-card">
-        <h3>Rate this listing</h3>
+        <h3>Used their service? Rate it</h3>
         <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
           {[1, 2, 3, 4, 5].map((v) => (
             <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star-gold)' : '#E4D9BF' }}>★</span>
