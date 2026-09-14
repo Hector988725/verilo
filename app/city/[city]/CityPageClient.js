@@ -259,7 +259,7 @@ function CityPageContent() {
                   <p className="card-rating">
                     {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
                     {' '}
-                    <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#2E6B4E', fontWeight: 700 }}>
+                    <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700 }}>
                       {item.is_available === false ? '· 🔴 Not available now' : '· 🟢 Available now'}
                     </span>
                   </p>

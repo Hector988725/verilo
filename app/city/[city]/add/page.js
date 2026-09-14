@@ -177,7 +177,7 @@ function AddListingContent() {
       </header>
 
       <form className="form-card" onSubmit={handleSubmit}>
-        <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Add a New Listing</h2>
+        <h2 style={{ fontFamily: "'Rozha One', serif", color: '#8C6224', marginTop: 0 }}>Add a New Listing</h2>
 
         <label>Photo</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -246,7 +246,7 @@ function AddListingContent() {
           placeholder="Paste your Google Maps or Business Profile link"
         />
 
-        {error && <p style={{ color: '#C1442E', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
+        {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 
         <button className="btn-primary" type="submit" disabled={submitting}>
           {submitting ? 'Adding...' : 'Add Listing'}

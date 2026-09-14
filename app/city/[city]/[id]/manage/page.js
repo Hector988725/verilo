@@ -130,7 +130,7 @@ function ManageContent() {
           load();
         },
         prefill: { contact: listing.phone },
-        theme: { color: '#C1442E' },
+        theme: { color: '#9C2E20' },
       });
       rzp.open();
     } catch (err) {
@@ -162,7 +162,7 @@ function ManageContent() {
           <div>
             This page can only be opened using your private management link, or from the
             device that originally added the listing.{' '}
-            <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#E8A33D' }}>
+            <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#A9782E' }}>
               Lost your link? →
             </Link>
           </div>
@@ -183,7 +183,7 @@ function ManageContent() {
       <Link href={`/city/${encodeURIComponent(city)}/${id}`} className="back-link">← View my public profile</Link>
 
       {isWelcome && !listing.is_active && (
-        <div className="profile-card" style={{ background: '#F3EEDD', border: '1.5px dashed #C97F1E' }}>
+        <div className="profile-card" style={{ background: '#F3EEDD', border: '1.5px dashed #8C6224' }}>
           <h3>👋 Almost there!</h3>
           <p style={{ margin: 0 }}>
             Your listing is saved but not visible to customers yet. Complete a payment below to
@@ -193,8 +193,8 @@ function ManageContent() {
       )}
 
       {justPaid && (
-        <div className="profile-card" style={{ background: 'rgba(46,107,78,0.12)', border: '1.5px solid #2E6B4E' }}>
-          <h3 style={{ color: '#2E6B4E' }}>✅ Payment successful — you're live!</h3>
+        <div className="profile-card" style={{ background: 'rgba(46,107,78,0.12)', border: '1.5px solid #1F6F52' }}>
+          <h3 style={{ color: '#1F6F52' }}>✅ Payment successful — you're live!</h3>
           <p style={{ margin: 0 }}>
             Your listing is now visible to customers, active until{' '}
             <strong>{new Date(listing.trial_ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
@@ -214,7 +214,7 @@ function ManageContent() {
 
       <div className="profile-card">
         <h3>Availability</h3>
-        <p style={{ fontWeight: 700, color: listing.is_available === false ? '#C1442E' : '#2E6B4E', marginBottom: 4 }}>
+        <p style={{ fontWeight: 700, color: listing.is_available === false ? '#9C2E20' : '#1F6F52', marginBottom: 4 }}>
           {listing.is_available === false ? '🔴 Marked as Not Available' : '🟢 Marked as Available'}
         </p>
         {listing.is_available === false && listing.unavailable_note && (
@@ -223,7 +223,7 @@ function ManageContent() {
         <button
           className="btn-primary"
           onClick={toggleAvailability}
-          style={{ marginTop: 8, background: listing.is_available === false ? '#2E6B4E' : '#6B7280' }}
+          style={{ marginTop: 8, background: listing.is_available === false ? '#1F6F52' : '#6B7280' }}
         >
           {listing.is_available === false ? 'Mark as Available' : 'Mark as Not Available'}
         </button>
@@ -257,7 +257,7 @@ function ManageContent() {
               disabled={payingNow}
               style={{
                 marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                background: m === 12 ? '#C97F1E' : m === 6 ? '#C1442E' : '#6B7280', textAlign: 'left', padding: '12px 16px',
+                background: m === 12 ? '#8C6224' : m === 6 ? '#9C2E20' : '#6B7280', textAlign: 'left', padding: '12px 16px',
               }}
             >
               <span>
@@ -275,7 +275,7 @@ function ManageContent() {
       <div className="profile-card" style={{ textAlign: 'center' }}>
         <Link
           href={`/city/${encodeURIComponent(city)}/${id}/edit`}
-          style={{ color: '#C97F1E', fontWeight: 700, textDecoration: 'underline', fontSize: 14.5 }}
+          style={{ color: '#8C6224', fontWeight: 700, textDecoration: 'underline', fontSize: 14.5 }}
         >
           ✏️ Edit my listing details
         </Link>
@@ -286,7 +286,7 @@ function ManageContent() {
           onClick={handleDelete}
           disabled={deleting}
           style={{
-            background: 'none', border: 'none', color: '#C1442E', fontSize: 13, textDecoration: 'underline', cursor: 'pointer',
+            background: 'none', border: 'none', color: '#9C2E20', fontSize: 13, textDecoration: 'underline', cursor: 'pointer',
           }}
         >
           {deleting ? 'Removing...' : 'Permanently delete my listing'}

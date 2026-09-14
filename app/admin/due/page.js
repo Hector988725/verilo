@@ -92,7 +92,7 @@ export default function DueListPage() {
     return (
       <div className="wrap" style={{ maxWidth: 400, paddingTop: 80 }}>
         <div className="form-card">
-          <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Owner Login</h2>
+          <h2 style={{ fontFamily: "'Rozha One', serif", color: '#8C6224', marginTop: 0 }}>Owner Login</h2>
           <form onSubmit={handleLogin}>
             <label>Passcode</label>
             <div style={{ position: 'relative' }}>
@@ -116,7 +116,7 @@ export default function DueListPage() {
                 {showPass ? '🙈' : '👁️'}
               </button>
             </div>
-            {loginError && <p style={{ color: '#C1442E', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
+            {loginError && <p style={{ color: '#9C2E20', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
             <button className="btn-primary" type="submit">Enter</button>
           </form>
         </div>
@@ -129,9 +129,9 @@ export default function DueListPage() {
     const trialEnd = new Date(l.trial_ends_at);
     const daysLeft = Math.ceil((trialEnd - now) / 86400000);
     let status, statusColor;
-    if (daysLeft < 0) { status = `Overdue by ${Math.abs(daysLeft)}d`; statusColor = '#C1442E'; }
-    else if (daysLeft <= 3) { status = `Due in ${daysLeft}d`; statusColor = '#C97F1E'; }
-    else { status = `${daysLeft}d left`; statusColor = '#2E6B4E'; }
+    if (daysLeft < 0) { status = `Overdue by ${Math.abs(daysLeft)}d`; statusColor = '#9C2E20'; }
+    else if (daysLeft <= 3) { status = `Due in ${daysLeft}d`; statusColor = '#8C6224'; }
+    else { status = `${daysLeft}d left`; statusColor = '#1F6F52'; }
     return { ...l, daysLeft, status, statusColor };
   }).sort((a, b) => a.daysLeft - b.daysLeft);
 
@@ -176,7 +176,7 @@ export default function DueListPage() {
 
       {!loading && urgent.length > 0 && (
         <>
-          <h3 style={{ color: '#E8A33D', fontFamily: "'Rozha One', serif" }}>⚠️ Needs attention ({urgent.length})</h3>
+          <h3 style={{ color: '#A9782E', fontFamily: "'Rozha One', serif" }}>⚠️ Needs attention ({urgent.length})</h3>
           {urgent.map((item) => (
             <div key={item.id} className="card" style={{ cursor: 'default' }}>
               <div className="card-top">
@@ -191,7 +191,7 @@ export default function DueListPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
                   <a
                     className="call-btn"
-                    style={{ background: '#2E6B4E' }}
+                    style={{ background: '#1F6F52' }}
                     href={whatsappLink(item)}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -207,7 +207,7 @@ export default function DueListPage() {
                   </button>
                   <button
                     className="call-btn"
-                    style={{ background: '#C97F1E', border: 'none', cursor: 'pointer' }}
+                    style={{ background: '#8C6224', border: 'none', cursor: 'pointer' }}
                     onClick={() => copyManageLink(item)}
                   >
                     🔗 Get Link
@@ -243,7 +243,7 @@ export default function DueListPage() {
                   </button>
                   <button
                     className="call-btn"
-                    style={{ background: '#C97F1E', border: 'none', cursor: 'pointer' }}
+                    style={{ background: '#8C6224', border: 'none', cursor: 'pointer' }}
                     onClick={() => copyManageLink(item)}
                   >
                     🔗 Get Link
@@ -270,7 +270,7 @@ export default function DueListPage() {
                 </div>
                 <button
                   className="call-btn"
-                  style={{ background: '#2E6B4E', border: 'none', cursor: 'pointer' }}
+                  style={{ background: '#1F6F52', border: 'none', cursor: 'pointer' }}
                   onClick={() => adminTogglePause(item)}
                 >
                   ▶️ Unpause
@@ -301,7 +301,7 @@ export default function DueListPage() {
             style={{ maxWidth: 420, width: '100%' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>
+            <h3 style={{ fontFamily: "'Rozha One', serif", color: '#8C6224', marginTop: 0 }}>
               Manage link for {linkModal.name}
             </h3>
             <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 10 }}>

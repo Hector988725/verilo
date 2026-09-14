@@ -85,7 +85,7 @@ function ProviderLoginContent() {
             </button>
           </div>
           {err && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{err}</p>}
-          {info && <p style={{ color: '#2E6B4E', fontSize: 13, marginTop: 8 }}>{info}</p>}
+          {info && <p style={{ color: '#1F6F52', fontSize: 13, marginTop: 8 }}>{info}</p>}
           <button className="btn-primary" type="submit" disabled={busy}>
             {busy ? 'Please wait...' : mode === 'signup' ? 'Create Provider Account' : 'Sign In'}
           </button>

@@ -27,7 +27,7 @@ export default function RefundPage() {
         <p>There is no recurring auto-billing — each payment covers a fixed period only. To stop paying, simply don't renew when your period ends; your listing will stop being publicly visible after that date. You may also permanently delete your listing yourself at any time from its management page.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>How to Request a Refund</h4>
-        <p>Email <a href="mailto:officialhector365@gmail.com" style={{ color: '#C97F1E' }}>officialhector365@gmail.com</a> or call <a href="tel:+918959992195" style={{ color: '#C97F1E' }}>+91 89599 92195</a> with your registered phone number and payment date. Approved refunds are processed to the original payment method within 5-7 business days via Razorpay.</p>
+        <p>Email <a href="mailto:officialhector365@gmail.com" style={{ color: '#8C6224' }}>officialhector365@gmail.com</a> or call <a href="tel:+918959992195" style={{ color: '#8C6224' }}>+91 89599 92195</a> with your registered phone number and payment date. Approved refunds are processed to the original payment method within 5-7 business days via Razorpay.</p>
       </div>
     </div>
   );

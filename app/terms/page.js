@@ -33,7 +33,7 @@ export default function TermsPage() {
         <p>Verilo is a directory only. We are not responsible for the quality, safety, legality, or outcome of any service arranged through contact information found on Verilo. Any dispute regarding a service is between the customer and the service provider directly.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Contact</h4>
-        <p>Questions about these terms can be sent to <a href="mailto:officialhector365@gmail.com" style={{ color: '#C97F1E' }}>officialhector365@gmail.com</a> or <a href="tel:+918959992195" style={{ color: '#C97F1E' }}>+91 89599 92195</a>.</p>
+        <p>Questions about these terms can be sent to <a href="mailto:officialhector365@gmail.com" style={{ color: '#8C6224' }}>officialhector365@gmail.com</a> or <a href="tel:+918959992195" style={{ color: '#8C6224' }}>+91 89599 92195</a>.</p>
       </div>
     </div>
   );

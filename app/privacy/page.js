@@ -30,7 +30,7 @@ export default function PrivacyPage() {
         <p>You can permanently delete your own listing at any time from your listing's management page. This removes your listing and associated data from public view.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Contact</h4>
-        <p>For any privacy-related questions, contact us at <a href="mailto:officialhector365@gmail.com" style={{ color: '#C97F1E' }}>officialhector365@gmail.com</a> or <a href="tel:+918959992195" style={{ color: '#C97F1E' }}>+91 89599 92195</a>.</p>
+        <p>For any privacy-related questions, contact us at <a href="mailto:officialhector365@gmail.com" style={{ color: '#8C6224' }}>officialhector365@gmail.com</a> or <a href="tel:+918959992195" style={{ color: '#8C6224' }}>+91 89599 92195</a>.</p>
       </div>
     </div>
   );

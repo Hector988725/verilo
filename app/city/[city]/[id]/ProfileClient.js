@@ -205,7 +205,7 @@ export default function ProfileClient() {
           <p className="profile-meta" style={{ color: 'var(--star-gold)', fontWeight: 700 }}>
             ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
           </p>
-          <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#2E6B4E', fontWeight: 700 }}>
+          <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700 }}>
             {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
           </p>
         </div>
@@ -248,98 +248,100 @@ export default function ProfileClient() {
         </a>
       )}
 
-      {listing.note && (
-        <div className="profile-card"><h3>Note</h3><p>{listing.note}</p></div>
-      )}
+      <div className="profile-panel">
+        {listing.note && (
+          <div className="profile-section"><h3>Note</h3><p style={{ margin: 0 }}>{listing.note}</p></div>
+        )}
 
-      <div className="profile-card">
-        <h3>Used their service? Rate it</h3>
+        <div className="profile-section">
+          <h3>Used their service? Rate it</h3>
 
-        {myRating ? (
-          <div>
-            <div style={{ color: 'var(--star-gold)', fontSize: 18, marginBottom: 4 }}>
-              {'★'.repeat(myRating.stars)}{'☆'.repeat(5 - myRating.stars)}
-            </div>
-            {myRating.review_text && <p style={{ margin: 0, fontStyle: 'italic' }}>"{myRating.review_text}"</p>}
-            <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>You've already reviewed this listing. Thanks!</p>
-          </div>
-        ) : !user ? (
-          wantsToReview ? (
+          {myRating ? (
             <div>
-              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                <button type="button" className={'tab' + (authMode === 'signin' ? ' active' : '')} onClick={() => { setAuthMode('signin'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Sign In</button>
-                <button type="button" className={'tab' + (authMode === 'signup' ? ' active' : '')} onClick={() => { setAuthMode('signup'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Create Account</button>
+              <div style={{ color: 'var(--star)', fontSize: 18, marginBottom: 4 }}>
+                {'★'.repeat(myRating.stars)}{'☆'.repeat(5 - myRating.stars)}
               </div>
-              <form onSubmit={handleAuthSubmit}>
-                {authMode === 'signup' && (
-                  <>
-                    <label>Your Name</label>
-                    <input value={authName} onChange={(e) => setAuthName(e.target.value)} placeholder="Your name" />
-                  </>
-                )}
-                <label>Email</label>
-                <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="you@example.com" />
-                <label>Password</label>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type={authShowPass ? 'text' : 'password'}
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    style={{ paddingRight: 44 }}
-                  />
-                  <button type="button" onClick={() => setAuthShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
-                    {authShowPass ? '🙈' : '👁️'}
-                  </button>
-                </div>
-                {authErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{authErr}</p>}
-                {authInfo && <p style={{ color: '#2E6B4E', fontSize: 13, marginTop: 8 }}>{authInfo}</p>}
-                <button className="btn-primary" type="submit" disabled={authBusy}>
-                  {authBusy ? 'Please wait...' : authMode === 'signup' ? 'Create Account' : 'Sign In & Continue'}
-                </button>
-              </form>
+              {myRating.review_text && <p style={{ margin: 0, fontStyle: 'italic' }}>"{myRating.review_text}"</p>}
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>You've already reviewed this listing. Thanks!</p>
             </div>
+          ) : !user ? (
+            wantsToReview ? (
+              <div>
+                <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                  <button type="button" className={'tab' + (authMode === 'signin' ? ' active' : '')} onClick={() => { setAuthMode('signin'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Sign In</button>
+                  <button type="button" className={'tab' + (authMode === 'signup' ? ' active' : '')} onClick={() => { setAuthMode('signup'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Create Account</button>
+                </div>
+                <form onSubmit={handleAuthSubmit}>
+                  {authMode === 'signup' && (
+                    <>
+                      <label>Your Name</label>
+                      <input value={authName} onChange={(e) => setAuthName(e.target.value)} placeholder="Your name" />
+                    </>
+                  )}
+                  <label>Email</label>
+                  <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} placeholder="you@example.com" />
+                  <label>Password</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={authShowPass ? 'text' : 'password'}
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      style={{ paddingRight: 44 }}
+                    />
+                    <button type="button" onClick={() => setAuthShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
+                      {authShowPass ? '🙈' : '👁️'}
+                    </button>
+                  </div>
+                  {authErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{authErr}</p>}
+                  {authInfo && <p style={{ color: 'var(--verified)', fontSize: 13, marginTop: 8 }}>{authInfo}</p>}
+                  <button className="btn-primary" type="submit" disabled={authBusy}>
+                    {authBusy ? 'Please wait...' : authMode === 'signup' ? 'Create Account' : 'Sign In & Continue'}
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '6px 0' }}>
+                <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
+                  Sign in to leave a rating — this keeps reviews genuine and spam-free. Browsing and calling never needs login.
+                </p>
+                <button className="btn-primary" onClick={() => setWantsToReview(true)} style={{ maxWidth: 240, margin: '0 auto' }}>
+                  ⭐ Rate & Review
+                </button>
+              </div>
+            )
+          ) : wantsToReview ? (
+            <>
+              <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
+                {[1, 2, 3, 4, 5].map((v) => (
+                  <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star)' : '#E4D9BF' }}>★</span>
+                ))}
+              </div>
+              <textarea placeholder={catReviewPrompt(listing.service)} value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
+              {reviewErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{reviewErr}</p>}
+              <button className="btn-primary" onClick={submitRating} disabled={submittingReview} style={{ marginTop: 12 }}>
+                {submittingReview ? 'Submitting...' : 'Submit Rating'}
+              </button>
+            </>
           ) : (
             <div style={{ textAlign: 'center', padding: '6px 0' }}>
-              <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 12 }}>
-                Sign in to leave a rating — this keeps reviews genuine and spam-free. Browsing and calling never needs login.
-              </p>
               <button className="btn-primary" onClick={() => setWantsToReview(true)} style={{ maxWidth: 240, margin: '0 auto' }}>
                 ⭐ Rate & Review
               </button>
             </div>
-          )
-        ) : wantsToReview ? (
-          <>
-            <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
-              {[1, 2, 3, 4, 5].map((v) => (
-                <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star-gold)' : '#E4D9BF' }}>★</span>
-              ))}
-            </div>
-            <textarea placeholder={catReviewPrompt(listing.service)} value={reviewText} onChange={(e) => setReviewText(e.target.value)} />
-            {reviewErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{reviewErr}</p>}
-            <button className="btn-primary" onClick={submitRating} disabled={submittingReview} style={{ marginTop: 12 }}>
-              {submittingReview ? 'Submitting...' : 'Submit Rating'}
-            </button>
-          </>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '6px 0' }}>
-            <button className="btn-primary" onClick={() => setWantsToReview(true)} style={{ maxWidth: 240, margin: '0 auto' }}>
-              ⭐ Rate & Review
-            </button>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
-      <div className="profile-card">
-        <h3>Reviews</h3>
-        {ratings.length === 0 && <p style={{ color: 'var(--muted)', fontStyle: 'italic' }}>No reviews yet.</p>}
-        {ratings.map((r) => (
-          <div key={r.id} className="review-item">
-            <div className="review-stars">{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</div>
-            {r.review_text && <div>{r.review_text}</div>}
-          </div>
-        ))}
+        <div className="profile-section">
+          <h3>Reviews</h3>
+          {ratings.length === 0 && <p style={{ color: 'var(--muted)', fontStyle: 'italic', margin: 0 }}>No reviews yet.</p>}
+          {ratings.map((r) => (
+            <div key={r.id} className="review-item">
+              <div className="review-stars">{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</div>
+              {r.review_text && <div>{r.review_text}</div>}
+            </div>
+          ))}
+        </div>
       </div>
 
       <p style={{ textAlign: 'center', marginTop: 20 }}>

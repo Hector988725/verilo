@@ -81,7 +81,7 @@ export default function ReportsPage() {
     return (
       <div className="wrap" style={{ maxWidth: 400, paddingTop: 80 }}>
         <div className="form-card">
-          <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Owner Login</h2>
+          <h2 style={{ fontFamily: "'Rozha One', serif", color: '#8C6224', marginTop: 0 }}>Owner Login</h2>
           <form onSubmit={handleLogin}>
             <label>Passcode</label>
             <div style={{ position: 'relative' }}>
@@ -105,7 +105,7 @@ export default function ReportsPage() {
                 {showPass ? '🙈' : '👁️'}
               </button>
             </div>
-            {loginError && <p style={{ color: '#C1442E', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
+            {loginError && <p style={{ color: '#9C2E20', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
             <button className="btn-primary" type="submit">Enter</button>
           </form>
         </div>
@@ -158,7 +158,7 @@ export default function ReportsPage() {
                 ) : (
                   <p className="card-name" style={{ color: '#8A94A6' }}>Listing was already deleted</p>
                 )}
-                <p style={{ fontSize: 13.5, color: '#C1442E', marginTop: 6, fontStyle: 'italic' }}>
+                <p style={{ fontSize: 13.5, color: '#9C2E20', marginTop: 6, fontStyle: 'italic' }}>
                   "{r.reason}"
                 </p>
                 <p style={{ fontSize: 11.5, color: '#8A94A6', marginTop: 2 }}>
@@ -178,7 +178,7 @@ export default function ReportsPage() {
               )}
               <button
                 className="call-btn"
-                style={{ background: '#2E6B4E', border: 'none', cursor: 'pointer' }}
+                style={{ background: '#1F6F52', border: 'none', cursor: 'pointer' }}
                 onClick={() => dismissReport(r.id)}
               >
                 ✓ Dismiss

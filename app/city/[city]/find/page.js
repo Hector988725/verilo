@@ -76,7 +76,7 @@ export default function FindListingPage() {
 
       {myListings && myListings.length === 0 && (
         <div className="form-card">
-          <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>
+          <h2 style={{ fontFamily: "'Rozha One', serif", color: '#8C6224', marginTop: 0 }}>
             Lost Access to Your Listing?
           </h2>
           <p style={{ color: '#6B7280', fontSize: 14 }}>

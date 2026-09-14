@@ -33,7 +33,7 @@ export default function PricingPage() {
           href="https://verilo-seven.vercel.app/city/anuppur/2f4cbeb2-07fe-4981-9507-d50e26761c1d"
           target="_blank"
           rel="noopener noreferrer"
-          style={{ color: '#C97F1E', fontWeight: 700 }}
+          style={{ color: '#8C6224', fontWeight: 700 }}
         >
           View a sample listing →
         </a>
@@ -58,8 +58,8 @@ export default function PricingPage() {
         </div>
         <p style={{ marginTop: 14, fontSize: 13, color: '#6B7280' }}>
           Browsing listings and calling a provider is always free for customers. See our{' '}
-          <Link href="/refund" style={{ color: '#C97F1E' }}>Refund & Cancellation Policy</Link>{' '}
-          and <Link href="/terms" style={{ color: '#C97F1E' }}>Terms & Conditions</Link> for full details.
+          <Link href="/refund" style={{ color: '#8C6224' }}>Refund & Cancellation Policy</Link>{' '}
+          and <Link href="/terms" style={{ color: '#8C6224' }}>Terms & Conditions</Link> for full details.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export default function PricingPage() {
         <h3>Business Details</h3>
         <p><strong>Operated by:</strong> Hector365</p>
         <p><strong>Address:</strong> 110/4 Chachai Abad, Ward No. 3, Amlai Road, 484116</p>
-        <p><strong>Contact:</strong> <Link href="/contact" style={{ color: '#C97F1E' }}>See Contact Us page →</Link></p>
+        <p><strong>Contact:</strong> <Link href="/contact" style={{ color: '#8C6224' }}>See Contact Us page →</Link></p>
       </div>
     </div>
   );

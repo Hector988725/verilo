@@ -133,7 +133,7 @@ export default function EditListingPage() {
           <div>
             You can only edit this listing from the device that added it, or using your
             private management link.{' '}
-            <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#E8A33D' }}>Lost your link? →</Link>
+            <Link href={`/city/${encodeURIComponent(city)}/find`} style={{ color: '#A9782E' }}>Lost your link? →</Link>
           </div>
         </div>
       </div>
@@ -151,7 +151,7 @@ export default function EditListingPage() {
       </header>
 
       <form className="form-card" onSubmit={handleSubmit}>
-        <h2 style={{ fontFamily: "'Rozha One', serif", color: '#C97F1E', marginTop: 0 }}>Edit Your Listing</h2>
+        <h2 style={{ fontFamily: "'Rozha One', serif", color: '#8C6224', marginTop: 0 }}>Edit Your Listing</h2>
 
         <label>Photo</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -216,7 +216,7 @@ export default function EditListingPage() {
         <label>Google Maps / Business Profile Link (optional)</label>
         <input value={form.mapsLink} onChange={(e) => update('mapsLink', e.target.value)} placeholder="Paste your Google Maps or Business Profile link" />
 
-        {error && <p style={{ color: '#C1442E', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
+        {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 
         <button className="btn-primary" type="submit" disabled={submitting}>
           {submitting ? 'Saving...' : 'Save Changes'}
