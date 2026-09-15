@@ -249,23 +249,15 @@ function CityPageContent() {
                     {item.name}
                     {item.verified && <span className="verified-badge">✓ Verified</span>}
                   </p>
-                  {item.qualification && <p className="card-area">🏷️ {item.qualification}</p>}
-                  {item.area && <p className="card-area">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
-                  {item.about && (
-                    <p className="card-note" style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--muted)', fontStyle: 'italic' }}>
-                      {item.about.length > 140 ? item.about.slice(0, 140) + '…' : item.about}
-                    </p>
-                  )}
-                  <p className="card-rating">
+                  <p className="card-rating" style={{ marginBottom: 2 }}>
                     {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
-                    {' '}
+                  </p>
+                  {item.area && <p className="card-area">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
+                  <p className="card-rating" style={{ margin: '3px 0 0' }}>
                     <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700 }}>
-                      {item.is_available === false ? '· 🔴 Not available now' : '· 🟢 Available now'}
+                      {item.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
                     </span>
                   </p>
-                  {item.is_available === false && item.unavailable_note && (
-                    <p style={{ fontSize: 12, color: 'var(--muted)', margin: '2px 0 0' }}>{item.unavailable_note}</p>
-                  )}
                 </div>
               </div>
               <a className="call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call</a>

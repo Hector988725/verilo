@@ -177,24 +177,28 @@ export default function ProfileClient() {
         </button>
       </div>
 
-      <div
-        className="profile-banner"
-        style={{
-          borderRadius: 16, aspectRatio: '16 / 7', width: '100%', height: 'auto',
-          ...(listing.banner_url ? {
-            backgroundImage: `url(${listing.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center', border: 'none',
-          } : {}),
-        }}
-      >
-        <span style={{
-          display: 'inline-flex', width: 34, height: 34, borderRadius: 10,
-          background: listing.banner_url ? 'rgba(255,255,255,0.9)' : catColor(listing.service),
-          alignItems: 'center', justifyContent: 'center',
-          color: listing.banner_url ? catColor(listing.service) : '#fff', boxShadow: 'var(--shadow)',
-        }}>
-          <CategoryIcon name={listing.service} width={18} height={18} />
-        </span>
-      </div>
+      {listing.banner_url && (
+        <div
+          className="profile-banner"
+          style={{
+            borderRadius: 16, aspectRatio: '16 / 7', width: '100%', height: 'auto',
+            position: 'relative', overflow: 'hidden', border: 'none',
+          }}
+        >
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `url(${listing.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+          }} />
+          <span style={{
+            position: 'absolute', top: 14, right: 14,
+            display: 'inline-flex', width: 34, height: 34, borderRadius: 10,
+            background: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center',
+            color: catColor(listing.service), boxShadow: 'var(--shadow)',
+          }}>
+            <CategoryIcon name={listing.service} width={18} height={18} />
+          </span>
+        </div>
+      )}
 
       <div className="profile-header">
         <div className="profile-avatar" style={{ width: 110, height: 138 }}>

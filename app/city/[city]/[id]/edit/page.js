@@ -161,9 +161,11 @@ export default function EditListingPage() {
           <input type="file" accept="image/*" onChange={handlePhoto} />
         </div>
 
-        <label>Cover Banner (optional)</label>
+        <label>Cover Banner (optional, but recommended)</label>
         <p style={{ fontSize: 12, color: 'var(--muted)', margin: '-8px 0 8px' }}>
-          A wide photo of your shop, work, or products — shown at the top of your profile.
+          Use a WIDE, landscape photo (not the same as your profile photo above) — your shopfront,
+          you at work, tools, or finished jobs. This is the first thing customers see, so a clear,
+          well-lit photo makes a big difference.
         </p>
         <div style={{
           width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
