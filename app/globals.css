@@ -19,7 +19,9 @@
   --verified: #1F6F52;
   --star: #B8860B;
   --star-gold: var(--star);
-  --navy: #141F29;
+  --navy: #14342A;
+  --brand-green: #14342A;
+  --brand-green-soft: #E3EFE7;
   --line: rgba(20, 31, 41, 0.10);
   --line-strong: rgba(20, 31, 41, 0.16);
   --shadow: 0 8px 22px rgba(20, 31, 41, 0.08);
@@ -37,7 +39,7 @@ html, body {
 a { color: inherit; }
 html, body { overflow-x: hidden; }
 
-.wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 50px; }
+.wrap { max-width: 620px; margin: 0 auto; padding: 20px 16px 40px; }
 @media (min-width: 768px) {
   .wrap { max-width: 900px; padding: 36px 32px 60px; }
 }
@@ -95,7 +97,7 @@ h1 {
 }
 
 /* ---- Category icon strip ---- */
-.cat-strip { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; margin: 20px 0 6px; scrollbar-width: none; }
+.cat-strip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; margin: 14px 0 4px; scrollbar-width: none; }
 .cat-strip::-webkit-scrollbar { display: none; }
 .cat-chip {
   flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -137,7 +139,7 @@ h1 {
 }
 
 .greeting-eyebrow { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0; }
-.greeting-headline { font-size: 21px; font-weight: 700; color: var(--ink); margin: 2px 0 16px; line-height: 1.3; }
+.greeting-headline { font-size: 20px; font-weight: 700; color: var(--ink); margin: 2px 0 12px; line-height: 1.3; }
 .location-pill {
   display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700;
   color: var(--ink); background: var(--paper); border: 1.5px solid var(--line);
@@ -147,7 +149,7 @@ h1 {
 /* ---- Listing card ---- */
 .card {
   position: relative; background: var(--paper); color: var(--ink); border-radius: 12px;
-  padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--line);
+  padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow); border: 1px solid var(--line);
   text-decoration: none; display: block; transition: box-shadow 0.15s ease;
 }
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
@@ -171,7 +173,7 @@ h1 {
 .card-area { font-size: 13px; color: var(--muted); margin: 0 0 3px; }
 .card-rating { font-size: 12.5px; color: var(--star); font-weight: 700; margin: 3px 0 0; }
 .call-btn {
-  flex: 0 0 auto; background: #1B6E3D; color: #fff; border: none; border-radius: 8px;
+  flex: 0 0 auto; background: var(--brand-green); color: #fff; border: none; border-radius: 8px;
   padding: 9px 14px; font-weight: 700; font-size: 13.5px; text-decoration: none; display: flex; align-items: center; gap: 5px;
   box-shadow: 0 6px 14px rgba(27,110,61,0.28);
 }
@@ -186,7 +188,7 @@ input, select, textarea {
   font-family: 'Mukta', sans-serif; font-size: 15px; background: #fff; color: var(--ink);
 }
 textarea { resize: vertical; min-height: 50px; }
-.form-card { background: var(--paper); color: var(--ink); border-radius: 12px; padding: 22px; max-width: 480px; margin: 0 auto; box-shadow: var(--shadow); border: 1px solid var(--line); }
+.form-card { background: var(--paper); color: var(--ink); border-radius: 12px; padding: 18px; max-width: 480px; margin: 0 auto; box-shadow: var(--shadow); border: 1px solid var(--line); }
 @media (min-width: 768px) {
   .form-card { max-width: 560px; }
 }
@@ -208,7 +210,7 @@ textarea { resize: vertical; min-height: 50px; }
   display: flex; align-items: flex-start; justify-content: flex-end; padding: 14px;
 }
 .profile-header {
-  display: flex; align-items: flex-start; gap: 16px; text-align: left; margin: 16px 0 20px;
+  display: flex; align-items: flex-start; gap: 12px; text-align: left; margin: 12px 0 14px;
   padding: 0 4px;
 }
 .profile-avatar {
@@ -227,7 +229,7 @@ textarea { resize: vertical; min-height: 50px; }
 .profile-meta { color: var(--muted); font-size: 13.5px; margin: 3px 0; }
 .profile-rating { color: var(--star); font-weight: 700; font-size: 15px; margin-top: 6px; }
 
-.stat-row { display: flex; gap: 8px; margin: 18px 0; }
+.stat-row { display: flex; gap: 6px; margin: 12px 0; }
 .stat-pill {
   flex: 1; min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
   padding: 12px 6px; text-align: center; box-shadow: var(--shadow);
@@ -241,21 +243,38 @@ textarea { resize: vertical; min-height: 50px; }
 
 .profile-panel {
   background: var(--paper); border: 1px solid var(--line); border-radius: 12px;
-  box-shadow: var(--shadow); overflow: hidden; margin-bottom: 16px;
+  box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px;
 }
-.profile-section { padding: 20px; }
+.profile-section { padding: 15px; }
 .profile-section + .profile-section { border-top: 1px solid var(--line); }
 .profile-section h3 {
   font-family: 'Rozha One', serif; font-weight: 400; font-size: 17px; margin: 0 0 10px; color: var(--ink);
 }
-.profile-card { background: var(--paper); color: var(--ink); border-radius: 12px; padding: 18px; margin-bottom: 14px; border: 1px solid var(--line); box-shadow: var(--shadow); }
+.profile-card { background: var(--paper); color: var(--ink); border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--line); box-shadow: var(--shadow); }
 .profile-card h3 { font-family: 'Rozha One', serif; font-weight: 400; font-size: 17px; margin: 0 0 10px; color: var(--ink); }
 .profile-call {
-  display: block; text-align: center; background: #1B6E3D; color: #fff; text-decoration: none;
-  padding: 14px; border-radius: 8px; font-weight: 700; font-size: 16px; margin-bottom: 16px;
+  display: block; text-align: center; background: var(--brand-green); color: #fff; text-decoration: none;
+  padding: 14px; border-radius: 8px; font-weight: 700; font-size: 16px; margin-bottom: 12px;
   box-shadow: 0 8px 18px rgba(27,110,61,0.26);
 }
 .review-item { border-top: 1px solid var(--line); padding: 12px 0; }
 .review-item:first-child { border-top: none; padding-top: 0; }
 .review-stars { color: var(--star); font-size: 13px; margin-bottom: 3px; }
 .report-link { font-size: 12px; color: var(--muted); text-decoration: underline; }
+
+/* ---- Services pills (split from the specialization field) ---- */
+.service-pill {
+  display: inline-block; font-size: 12.5px; font-weight: 600; color: var(--ink);
+  background: var(--brand-green-soft); padding: 5px 12px; border-radius: 999px;
+  margin: 0 6px 6px 0;
+}
+
+/* ---- Reviewer identity on a review ---- */
+.reviewer-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.reviewer-avatar {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--brand-green-soft);
+  color: var(--brand-green); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex: 0 0 auto;
+}
+.reviewer-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+.reviewer-date { font-size: 11.5px; color: var(--muted); margin-left: auto; }

@@ -54,6 +54,8 @@ export default function ProfileClient() {
   const [myRating, setMyRating] = useState(null); // this user's own existing review, if any
   const [starValue, setStarValue] = useState(0);
   const [reviewText, setReviewText] = useState('');
+  const [reviewerName, setReviewerName] = useState('');
+  const [aboutExpanded, setAboutExpanded] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewErr, setReviewErr] = useState('');
 
@@ -84,6 +86,7 @@ export default function ProfileClient() {
 
   useEffect(() => {
     if (!user) { setMyRating(null); return; }
+    setReviewerName((n) => n || user.user_metadata?.full_name || '');
     supabase.from('ratings').select('*').eq('listing_id', id).eq('customer_id', user.id).maybeSingle()
       .then(({ data }) => setMyRating(data || null));
   }, [user, id]);
@@ -111,10 +114,12 @@ export default function ProfileClient() {
 
   async function submitRating() {
     if (!starValue) { setReviewErr('Please select a star rating first.'); return; }
+    if (!reviewerName.trim()) { setReviewErr('Please enter your name.'); return; }
     setReviewErr('');
     setSubmittingReview(true);
     const { error } = await supabase.from('ratings').insert({
       listing_id: id, customer_id: user.id, stars: starValue, review_text: reviewText.trim() || null,
+      reviewer_name: reviewerName.trim(),
     });
     setSubmittingReview(false);
     if (error) { setReviewErr(error.message); return; }
@@ -200,7 +205,16 @@ export default function ProfileClient() {
           <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
           {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
           {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
-          {listing.about && <p className="profile-meta" style={{ fontStyle: 'italic' }}>{listing.about}</p>}
+          {listing.about && (
+            <p className="profile-meta" style={{ fontStyle: 'italic' }}>
+              {listing.about.length > 90 && !aboutExpanded ? listing.about.slice(0, 90) + '… ' : listing.about + ' '}
+              {listing.about.length > 90 && (
+                <span onClick={() => setAboutExpanded((e) => !e)} style={{ color: 'var(--brand-green)', fontWeight: 700, fontStyle: 'normal', cursor: 'pointer' }}>
+                  {aboutExpanded ? 'Show less' : 'Read more'}
+                </span>
+              )}
+            </p>
+          )}
           {listing.experience && <p className="profile-meta">🏷️ {listing.experience} experience</p>}
           <p className="profile-meta" style={{ color: 'var(--star-gold)', fontWeight: 700 }}>
             ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
@@ -233,6 +247,14 @@ export default function ProfileClient() {
           </a>
         )}
       </div>
+
+      {listing.qualification && (
+        <div style={{ marginBottom: 14 }}>
+          {listing.qualification.split(',').map((s, i) => s.trim() && (
+            <span key={i} className="service-pill">{s.trim()}</span>
+          ))}
+        </div>
+      )}
 
       {listing.maps_link && (
         <a
@@ -312,6 +334,8 @@ export default function ProfileClient() {
             )
           ) : wantsToReview ? (
             <>
+              <label>Your Name</label>
+              <input value={reviewerName} onChange={(e) => setReviewerName(e.target.value)} placeholder="Shown with your review" />
               <div style={{ display: 'flex', gap: 4, fontSize: 26, margin: '8px 0' }}>
                 {[1, 2, 3, 4, 5].map((v) => (
                   <span key={v} onClick={() => setStarValue(v)} style={{ cursor: 'pointer', color: v <= starValue ? 'var(--star)' : '#E4D9BF' }}>★</span>
@@ -337,6 +361,15 @@ export default function ProfileClient() {
           {ratings.length === 0 && <p style={{ color: 'var(--muted)', fontStyle: 'italic', margin: 0 }}>No reviews yet.</p>}
           {ratings.map((r) => (
             <div key={r.id} className="review-item">
+              {r.reviewer_name && (
+                <div className="reviewer-row">
+                  <span className="reviewer-avatar">{r.reviewer_name[0].toUpperCase()}</span>
+                  <span className="reviewer-name">{r.reviewer_name}</span>
+                  {r.created_at && (
+                    <span className="reviewer-date">{new Date(r.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                  )}
+                </div>
+              )}
               <div className="review-stars">{'★'.repeat(r.stars)}{'☆'.repeat(5 - r.stars)}</div>
               {r.review_text && <div>{r.review_text}</div>}
             </div>
