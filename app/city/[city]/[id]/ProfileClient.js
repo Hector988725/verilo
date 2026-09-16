@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel, initials, catColor, catReviewPrompt } from '../../../../lib/categories';
+import { catLabel, catColor, catReviewPrompt } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 import { useAuth } from '../../../../components/AuthProvider';
 
@@ -177,17 +177,17 @@ export default function ProfileClient() {
         </button>
       </div>
 
-      {listing.banner_url && (
+      {(listing.banner_url || listing.photo_url) && (
         <div
           className="profile-banner"
           style={{
-            borderRadius: 16, aspectRatio: '16 / 7', width: '100%', height: 'auto',
+            borderRadius: 16, aspectRatio: '16 / 9', width: '100%', height: 'auto',
             position: 'relative', overflow: 'hidden', border: 'none',
           }}
         >
           <div style={{
             position: 'absolute', inset: 0,
-            backgroundImage: `url(${listing.banner_url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+            backgroundImage: `url(${listing.banner_url || listing.photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center',
           }} />
           <span style={{
             position: 'absolute', top: 14, right: 14,
@@ -197,36 +197,39 @@ export default function ProfileClient() {
           }}>
             <CategoryIcon name={listing.service} width={18} height={18} />
           </span>
+          {listing.verified && (
+            <span style={{
+              position: 'absolute', top: 14, left: 14, display: 'inline-flex', alignItems: 'center', gap: 4,
+              background: 'rgba(255,255,255,0.94)', color: 'var(--verified)', fontSize: 12, fontWeight: 700,
+              padding: '4px 10px', borderRadius: 999, boxShadow: 'var(--shadow)',
+            }}>
+              ✓ Verified
+            </span>
+          )}
         </div>
       )}
 
-      <div className="profile-header">
-        <div className="profile-avatar" style={{ width: 110, height: 138 }}>
-          {listing.photo_url ? <img src={listing.photo_url} alt="" /> : initials(listing.name)}
-        </div>
-        <div className="profile-header-info">
-          <h2 className="profile-name">{listing.name}</h2>
-          <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
-          {listing.verified && <p className="profile-meta">✓ Verified by Verilo</p>}
-          {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
-          {listing.about && (
-            <p className="profile-meta" style={{ fontStyle: 'italic' }}>
-              {listing.about.length > 90 && !aboutExpanded ? listing.about.slice(0, 90) + '… ' : listing.about + ' '}
-              {listing.about.length > 90 && (
-                <span onClick={() => setAboutExpanded((e) => !e)} style={{ color: 'var(--brand-green)', fontWeight: 700, fontStyle: 'normal', cursor: 'pointer' }}>
-                  {aboutExpanded ? 'Show less' : 'Read more'}
-                </span>
-              )}
-            </p>
-          )}
-          {listing.experience && <p className="profile-meta">🏷️ {listing.experience} experience</p>}
-          <p className="profile-meta" style={{ color: 'var(--star-gold)', fontWeight: 700 }}>
-            ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
+      <div style={{ marginTop: 14, marginBottom: 6 }}>
+        <h2 className="profile-name">{listing.name}</h2>
+        <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
+        <p className="profile-meta" style={{ color: 'var(--star)', fontWeight: 700, display: 'inline-block', marginRight: 12 }}>
+          ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
+        </p>
+        <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700, display: 'inline-block' }}>
+          {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
+        </p>
+        {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
+        {listing.experience && <p className="profile-meta">🏷️ {listing.experience} experience</p>}
+        {listing.about && (
+          <p className="profile-meta" style={{ fontStyle: 'italic' }}>
+            {listing.about.length > 90 && !aboutExpanded ? listing.about.slice(0, 90) + '… ' : listing.about + ' '}
+            {listing.about.length > 90 && (
+              <span onClick={() => setAboutExpanded((e) => !e)} style={{ color: 'var(--brand-green)', fontWeight: 700, fontStyle: 'normal', cursor: 'pointer' }}>
+                {aboutExpanded ? 'Show less' : 'Read more'}
+              </span>
+            )}
           </p>
-          <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700 }}>
-            {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
-          </p>
-        </div>
+        )}
       </div>
       {listing.is_available === false && listing.unavailable_note && (
         <p style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: -10, marginBottom: 14 }}>{listing.unavailable_note}</p>
