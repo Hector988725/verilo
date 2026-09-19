@@ -13,7 +13,7 @@ export async function POST(req) {
 
     const { data, error } = await admin
       .from('listings')
-      .select('id, name, service, phone, is_active, manage_token, trial_ends_at, city_id, cities(name, state)')
+      .select('id, name, service, phone, is_active, manage_token, trial_ends_at, is_autopay, city_id, cities(name, state)')
       .eq('owner_id', userData.user.id)
       .order('name');
 

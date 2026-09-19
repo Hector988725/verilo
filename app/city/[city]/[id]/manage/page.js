@@ -28,6 +28,7 @@ function ManageContent() {
   const [payingNow, setPayingNow] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [justPaid, setJustPaid] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     checkAccess();
@@ -71,7 +72,7 @@ function ManageContent() {
     // read it back, it's only ever verified, never displayed).
     const { data } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, photo_url, is_active, is_available, unavailable_note, trial_ends_at')
+      .select('id, name, service, phone, area, photo_url, is_active, is_available, unavailable_note, trial_ends_at, is_autopay, subscription_status')
       .eq('id', id)
       .single();
     setListing(data);
@@ -97,12 +98,14 @@ function ManageContent() {
   }
 
   const PLAN_LABELS = {
-    1: { title: '1 Month', price: '₹30', note: null },
+    1: { title: '1 Month', price: '₹30', note: 'AutoPay — renews automatically every month' },
     6: { title: '6 Months', price: '₹150', note: 'Save ₹30 — 1 month free' },
     12: { title: '12 Months', price: '₹300', note: 'Save ₹60 — 2 months free' },
   };
 
   async function handlePayNow(months) {
+    if (months === 1) return handleStartAutopay();
+
     setPayingNow(true);
     try {
       const res = await fetch('/api/razorpay/create-order', {
@@ -137,6 +140,64 @@ function ManageContent() {
       alert(err.message);
     } finally {
       setPayingNow(false);
+    }
+  }
+
+  // ₹30/month plan — sets up Razorpay AutoPay (recurring) instead of a
+  // one-time order, so the provider doesn't have to remember to renew.
+  async function handleStartAutopay() {
+    setPayingNow(true);
+    try {
+      const res = await fetch('/api/razorpay/create-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: id }),
+      });
+      const subscription = await res.json();
+      if (!subscription.id) throw new Error(subscription.error || 'Could not start AutoPay');
+
+      const rzp = new window.Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        subscription_id: subscription.id,
+        name: 'Verilo',
+        description: 'Monthly listing fee — AutoPay',
+        handler: async function (response) {
+          await fetch('/api/razorpay/verify-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...response, listing_id: id }),
+          });
+          setJustPaid(true);
+          load();
+        },
+        prefill: { contact: listing.phone },
+        theme: { color: '#9C2E20' },
+      });
+      rzp.open();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setPayingNow(false);
+    }
+  }
+
+  async function handleCancelAutopay() {
+    const sure = confirm('This will stop future monthly AutoPay charges. Your listing will stay active until the current paid period ends. Continue?');
+    if (!sure) return;
+    setCancelling(true);
+    try {
+      const res = await fetch('/api/razorpay/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: id, token: getMyToken(id) }),
+      });
+      const result = await res.json();
+      if (!result.success) throw new Error(result.error || 'Could not cancel AutoPay');
+      load();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setCancelling(false);
     }
   }
 
@@ -248,28 +309,47 @@ function ManageContent() {
           <li>Only ₹1/day — less than a cup of tea</li>
         </ul>
 
-        <div style={{ display: 'grid', gap: 10 }}>
-          {[1, 6, 12].map((m) => (
+        {listing.is_autopay && listing.subscription_status !== 'cancelled' ? (
+          <div style={{ background: 'rgba(46,107,78,0.12)', border: '1.5px solid #1F6F52', borderRadius: 10, padding: '12px 14px', marginBottom: 10 }}>
+            <strong style={{ color: '#1F6F52' }}>
+              🔁 AutoPay is ON — ₹30 renews automatically every month
+              {listing.subscription_status === 'pending' && ' (last charge retrying…)'}
+            </strong>
+            <p style={{ margin: '6px 0 10px', fontSize: 13, color: '#6B7280' }}>
+              No action needed. You can cancel anytime — you'll keep access until the current paid period ends.
+            </p>
             <button
-              key={m}
-              className="btn-primary"
-              onClick={() => handlePayNow(m)}
-              disabled={payingNow}
-              style={{
-                marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                background: m === 12 ? '#8C6224' : m === 6 ? '#9C2E20' : '#6B7280', textAlign: 'left', padding: '12px 16px',
-              }}
+              onClick={handleCancelAutopay}
+              disabled={cancelling}
+              style={{ background: 'none', border: 'none', color: '#9C2E20', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
             >
-              <span>
-                <strong>{PLAN_LABELS[m].title}</strong> — {PLAN_LABELS[m].price}
-                {PLAN_LABELS[m].note && (
-                  <span style={{ display: 'block', fontSize: 11.5, fontWeight: 500, opacity: 0.9 }}>{PLAN_LABELS[m].note}</span>
-                )}
-              </span>
-              <span>{payingNow ? '...' : '→'}</span>
+              {cancelling ? 'Cancelling...' : 'Cancel AutoPay'}
             </button>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gap: 10 }}>
+            {[1, 6, 12].map((m) => (
+              <button
+                key={m}
+                className="btn-primary"
+                onClick={() => handlePayNow(m)}
+                disabled={payingNow}
+                style={{
+                  marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  background: m === 12 ? '#8C6224' : m === 6 ? '#9C2E20' : '#6B7280', textAlign: 'left', padding: '12px 16px',
+                }}
+              >
+                <span>
+                  <strong>{PLAN_LABELS[m].title}</strong> — {PLAN_LABELS[m].price}
+                  {PLAN_LABELS[m].note && (
+                    <span style={{ display: 'block', fontSize: 11.5, fontWeight: 500, opacity: 0.9 }}>{PLAN_LABELS[m].note}</span>
+                  )}
+                </span>
+                <span>{payingNow ? '...' : '→'}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="profile-card" style={{ textAlign: 'center' }}>

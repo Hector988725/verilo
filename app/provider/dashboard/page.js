@@ -96,6 +96,7 @@ export default function ProviderDashboard() {
                 <p className="card-area">📍 {l.cities?.name}{l.cities?.state ? `, ${l.cities.state}` : ''}</p>
                 <p style={{ fontSize: 12.5, fontWeight: 700, marginTop: 4, color: l.is_active ? '#1F6F52' : 'var(--vermillion)' }}>
                   {l.is_active ? '🟢 Active — visible to customers' : '🔴 Inactive — payment needed'}
+                  {l.is_active && l.is_autopay && ' · 🔁 AutoPay ON'}
                 </p>
                 {l.is_active && l.trial_ends_at && (() => {
                   const daysLeft = Math.ceil((new Date(l.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));

@@ -16,6 +16,7 @@ export async function GET(req) {
     .from('listings')
     .update({ is_active: false })
     .eq('is_active', true)
+    .eq('is_autopay', false) // AutoPay listings are deactivated by the subscription webhook, not this cron
     .lt('trial_ends_at', now)
     .select('id, name');
 
