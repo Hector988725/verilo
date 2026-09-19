@@ -226,41 +226,28 @@ function CityPageContent() {
         </div>
       )}
 
-      <div className="listings-grid">
+      <div className="listings-grid-v2">
         {filtered.map((item) => (
-          <Link key={item.id} className="card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
-            <div className="card-top">
-              <div className="card-left">
-                <div style={{ position: 'relative', flex: '0 0 auto' }}>
-                  <div className="avatar">
-                    {item.photo_url ? <img src={item.photo_url} alt="" /> : initials(item.name)}
-                  </div>
-                  <span style={{
-                    position: 'absolute', bottom: -5, right: -5, width: 22, height: 22, borderRadius: 7,
-                    background: catColor(item.service), color: '#fff', display: 'flex', alignItems: 'center',
-                    justifyContent: 'center', border: '2px solid var(--paper)',
-                  }}>
-                    <CategoryIcon name={item.service} width={12} height={12} strokeWidth={2.2} />
-                  </span>
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div className="card-service" style={{ color: catColor(item.service), background: `color-mix(in srgb, ${catColor(item.service)} 15%, transparent)` }}>{catLabel(item.service)}</div>
-                  <p className="card-name">
-                    {item.name}
-                    {item.verified && <span className="verified-badge">✓ Verified</span>}
-                  </p>
-                  <p className="card-rating" style={{ marginBottom: 2 }}>
-                    {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
-                  </p>
-                  {item.area && <p className="card-area">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
-                  <p className="card-rating" style={{ margin: '3px 0 0' }}>
-                    <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700 }}>
-                      {item.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
-                    </span>
-                  </p>
-                </div>
-              </div>
-              <a className="call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call</a>
+          <Link key={item.id} className="listing-card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
+            <div className="listing-photo">
+              {item.photo_url ? <img src={item.photo_url} alt="" /> : <span className="listing-photo-fallback">{initials(item.name)}</span>}
+              <span className="listing-photo-tag" style={{ background: catColor(item.service) }}>
+                <CategoryIcon name={item.service} width={11} height={11} /> {catLabel(item.service)}
+              </span>
+              {item.verified && <span className="listing-photo-verified">✓ Verified</span>}
+            </div>
+            <div className="listing-body">
+              <p className="listing-name">{item.name}</p>
+              <p className="listing-rating">
+                {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
+              </p>
+              {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
+              <p className="listing-avail">
+                <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52' }}>
+                  {item.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
+                </span>
+              </p>
+              <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call Now</a>
             </div>
           </Link>
         ))}
