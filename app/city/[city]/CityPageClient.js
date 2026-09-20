@@ -126,30 +126,35 @@ function CityPageContent() {
       </header>
 
       <div style={{
-        margin: '18px 0 22px', padding: '18px 16px', borderRadius: 16, textAlign: 'center',
+        margin: '14px 0 18px', padding: '10px 14px', borderRadius: 12,
         background: 'rgba(232,163,61,0.10)', border: '1px solid rgba(232,163,61,0.3)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
       }}>
-        <p style={{ fontFamily: "'Rozha One', serif", fontSize: 16, color: 'var(--marigold-deep)', margin: '0 0 5px' }}>
-          Are you a service provider?
+        <p style={{ fontSize: 12.5, color: 'var(--marigold-deep)', fontWeight: 700, margin: 0, flex: '1 1 160px' }}>
+          Are you a service provider? List your business here.
         </p>
-        <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: '0 0 12px' }}>
-          List your business in {city} so customers here can find and call you directly.
-        </p>
-        <Link
-          href={addHref}
-          className="btn-primary"
-          style={{
-            display: 'inline-block', width: 'auto', padding: '10px 22px', textDecoration: 'none', margin: 0,
-            background: 'var(--navy)', boxShadow: '0 8px 18px rgba(22,35,46,0.3)',
-          }}
-        >
-          + Register as a Service Provider
-        </Link>
-        <p style={{ marginTop: 8 }}>
-          <Link href="/provider/dashboard" style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline' }}>
-            Already registered? Go to your dashboard →
+        <div style={{ display: 'flex', gap: 8, flex: '0 0 auto' }}>
+          <Link
+            href={addHref}
+            className="btn-primary"
+            style={{
+              display: 'inline-block', width: 'auto', padding: '7px 14px', textDecoration: 'none', margin: 0,
+              background: 'var(--navy)', boxShadow: '0 6px 14px rgba(22,35,46,0.28)', fontSize: 12.5, borderRadius: 8,
+            }}
+          >
+            + Register
           </Link>
-        </p>
+          <Link
+            href="/provider/dashboard"
+            style={{
+              display: 'inline-flex', alignItems: 'center', padding: '7px 14px', fontSize: 12.5, fontWeight: 700,
+              color: 'var(--marigold-deep)', border: '1px solid rgba(232,163,61,0.5)', borderRadius: 8, textDecoration: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            My Dashboard
+          </Link>
+        </div>
       </div>
 
       <div className="search-row" style={{ position: 'relative', marginBottom: 14 }}>
