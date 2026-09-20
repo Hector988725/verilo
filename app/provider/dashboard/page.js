@@ -89,7 +89,7 @@ export default function ProviderDashboard() {
         <div key={l.id} className="card" style={{ cursor: 'default' }}>
           <div className="card-top">
             <div className="card-left">
-              <div className="avatar">{initials(l.name)}</div>
+              <div className="avatar">{l.photo_url ? <img src={l.photo_url} alt="" /> : initials(l.name)}</div>
               <div>
                 <div className="card-service">{catLabel(l.service)}</div>
                 <p className="card-name">{l.name}</p>
@@ -113,7 +113,11 @@ export default function ProviderDashboard() {
           <Link
             href={`/city/${encodeURIComponent(l.cities?.name || '')}/${l.id}/manage`}
             className="btn-primary"
-            style={{ display: 'block', textAlign: 'center', textDecoration: 'none', marginTop: 12 }}
+            style={{
+              display: 'block', textAlign: 'center', textDecoration: 'none', marginTop: 12,
+              background: l.is_active ? 'var(--navy)' : 'var(--vermillion)',
+              boxShadow: l.is_active ? '0 8px 18px rgba(22,35,46,0.28)' : '0 8px 18px rgba(156,46,32,0.24)',
+            }}
           >
             {l.is_active ? 'Manage / Renew' : 'Manage / Pay Now'}
           </Link>

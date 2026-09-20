@@ -218,10 +218,10 @@ export default function ProfileClient() {
         <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700, display: 'inline-block' }}>
           {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
         </p>
-        {listing.area && <p className="profile-meta">📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
-        {listing.experience && <p className="profile-meta">🏷️ {listing.experience} experience</p>}
+        {listing.area && <p className="profile-meta" style={{ color: 'var(--ink)', fontWeight: 500 }}>📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
+        {listing.experience && <p className="profile-meta" style={{ color: 'var(--ink)', fontWeight: 500 }}>🏷️ {listing.experience} experience</p>}
         {listing.about && (
-          <p className="profile-meta" style={{ fontStyle: 'italic' }}>
+          <p className="profile-meta" style={{ fontStyle: 'italic', color: 'var(--ink)', fontWeight: 500, lineHeight: 1.5 }}>
             {listing.about.length > 90 && !aboutExpanded ? listing.about.slice(0, 90) + '… ' : listing.about + ' '}
             {listing.about.length > 90 && (
               <span onClick={() => setAboutExpanded((e) => !e)} style={{ color: 'var(--brand-green)', fontWeight: 700, fontStyle: 'normal', cursor: 'pointer' }}>
