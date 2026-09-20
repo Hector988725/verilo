@@ -74,7 +74,7 @@ export default function ProfileClient() {
     // which would also hand back manage_token (the listing's private key).
     const { data: listingData } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, verified, is_available, unavailable_note, maps_link')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url')
       .eq('id', id)
       .single();
     setListing(listingData);
@@ -275,6 +275,23 @@ export default function ProfileClient() {
         >
           📍 View on Google Maps
         </a>
+      )}
+
+      {(listing.fb_url || listing.instagram_url || listing.youtube_url || listing.gmb_url) && (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, margin: '10px 0 16px' }}>
+          {listing.fb_url && (
+            <a href={listing.fb_url} target="_blank" rel="noopener noreferrer" title="Facebook" style={{ width: 38, height: 38, borderRadius: '50%', background: '#1877F2', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700 }}>f</a>
+          )}
+          {listing.instagram_url && (
+            <a href={listing.instagram_url} target="_blank" rel="noopener noreferrer" title="Instagram" style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>📷</a>
+          )}
+          {listing.youtube_url && (
+            <a href={listing.youtube_url} target="_blank" rel="noopener noreferrer" title="YouTube" style={{ width: 38, height: 38, borderRadius: '50%', background: '#FF0000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15 }}>▶</a>
+          )}
+          {listing.gmb_url && (
+            <a href={listing.gmb_url} target="_blank" rel="noopener noreferrer" title="Google Business Profile" style={{ width: 38, height: 38, borderRadius: '50%', background: '#4285F4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700 }}>G</a>
+          )}
+        </div>
       )}
 
       <div className="profile-panel">

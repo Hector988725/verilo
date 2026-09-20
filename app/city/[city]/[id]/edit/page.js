@@ -48,12 +48,13 @@ export default function EditListingPage() {
   useEffect(() => {
     setAllowed(!!getMyToken(id));
 
-    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url').eq('id', id).single().then(({ data }) => {
+    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, fb_url, instagram_url, youtube_url, gmb_url').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
           qualification: data.qualification || '', ...parseExperience(data.experience),
           about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '', pincode: data.pincode || '',
+          fbUrl: data.fb_url || '', instagramUrl: data.instagram_url || '', youtubeUrl: data.youtube_url || '', gmbUrl: data.gmb_url || '',
         });
         setPhotoPreview(data.photo_url || '');
         setBannerPreview(data.banner_url || '');
@@ -104,6 +105,7 @@ export default function EditListingPage() {
         name: form.name, service: form.service,
         qualification: form.qualification || null, experience: form.experienceValue ? `${form.experienceValue} ${form.experienceUnit}` : null,
         about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null, pincode: form.pincode || null,
+        fb_url: form.fbUrl || null, instagram_url: form.instagramUrl || null, youtube_url: form.youtubeUrl || null, gmb_url: form.gmbUrl || null,
       };
       if (photo_url) updatePayload.photo_url = photo_url;
       if (banner_url) updatePayload.banner_url = banner_url;
@@ -217,6 +219,12 @@ export default function EditListingPage() {
 
         <label>Google Maps / Business Profile Link (optional)</label>
         <input value={form.mapsLink} onChange={(e) => update('mapsLink', e.target.value)} placeholder="Paste your Google Maps or Business Profile link" />
+
+        <label>Social & Business Links (optional)</label>
+        <input value={form.fbUrl} onChange={(e) => update('fbUrl', e.target.value)} placeholder="Facebook page link" style={{ marginBottom: 8 }} />
+        <input value={form.instagramUrl} onChange={(e) => update('instagramUrl', e.target.value)} placeholder="Instagram profile link" style={{ marginBottom: 8 }} />
+        <input value={form.youtubeUrl} onChange={(e) => update('youtubeUrl', e.target.value)} placeholder="YouTube channel link" style={{ marginBottom: 8 }} />
+        <input value={form.gmbUrl} onChange={(e) => update('gmbUrl', e.target.value)} placeholder="Google Business Profile link" />
 
         {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 

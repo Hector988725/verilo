@@ -232,11 +232,12 @@ function CityPageContent() {
             <div className="listing-photo">
               {item.photo_url ? <img src={item.photo_url} alt="" /> : <span className="listing-photo-fallback">{initials(item.name)}</span>}
               <span className="listing-photo-tag" style={{ background: catColor(item.service) }}>
-                <CategoryIcon name={item.service} width={11} height={11} /> {catLabel(item.service)}
+                <CategoryIcon name={item.service} width={10} height={10} />
               </span>
-              {item.verified && <span className="listing-photo-verified">✓ Verified</span>}
+              {item.verified && <span className="listing-photo-verified">✓</span>}
             </div>
             <div className="listing-body">
+              <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>
               <p className="listing-name">{item.name}</p>
               <p className="listing-rating">
                 {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
@@ -244,11 +245,11 @@ function CityPageContent() {
               {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
               <p className="listing-avail">
                 <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52' }}>
-                  {item.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
+                  {item.is_available === false ? '🔴 Not available' : '🟢 Available now'}
                 </span>
               </p>
-              <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call Now</a>
             </div>
+            <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call</a>
           </Link>
         ))}
       </div>
