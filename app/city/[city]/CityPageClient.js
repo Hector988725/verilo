@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import { CATEGORIES, catLabel, catColor, catTagline, initials } from '../../../lib/categories';
 import { CategoryIcon } from '../../../lib/categoryIcons';
 import { shareApp } from '../../../lib/shareApp';
+import { trackEvent } from '../../../lib/track';
 
 export default function CityPageClient() {
   return (
@@ -254,7 +255,7 @@ function CityPageContent() {
                 </span>
               </p>
             </div>
-            <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => e.stopPropagation()}>📞 Call</a>
+            <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => { e.stopPropagation(); trackEvent(item.id, 'call'); }}>📞 Call</a>
           </Link>
         ))}
       </div>

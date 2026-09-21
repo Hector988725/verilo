@@ -108,6 +108,13 @@ export default function ProviderDashboard() {
                     </p>
                   );
                 })()}
+                {l.stats && (
+                  <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>👁️ {l.stats.view} views</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>📞 {l.stats.call} calls</span>
+                    <span style={{ fontSize: 12, color: 'var(--muted)' }}>💬 {l.stats.whatsapp} WhatsApp</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

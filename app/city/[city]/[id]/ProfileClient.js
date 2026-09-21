@@ -6,6 +6,7 @@ import { supabase } from '../../../../lib/supabaseClient';
 import { catLabel, catColor, catReviewPrompt } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 import { useAuth } from '../../../../components/AuthProvider';
+import { trackEvent } from '../../../../lib/track';
 
 function WhatsAppIcon(props) {
   return (
@@ -83,6 +84,7 @@ export default function ProfileClient() {
   }
 
   useEffect(() => { load(); }, [id]);
+  useEffect(() => { if (id) trackEvent(id, 'view'); }, [id]);
 
   useEffect(() => {
     if (!user) { setMyRating(null); return; }
@@ -240,7 +242,7 @@ export default function ProfileClient() {
       )}
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
-        <a className="profile-call" href={`tel:${listing.phone}`} style={{ flex: 1, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+        <a className="profile-call" href={`tel:${listing.phone}`} onClick={() => trackEvent(id, 'call')} style={{ flex: 1, marginBottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
           <span style={{ fontSize: 15 }}>📞</span> Call
         </a>
         {whatsappHref && (
@@ -249,6 +251,7 @@ export default function ProfileClient() {
             href={whatsappHref}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackEvent(id, 'whatsapp')}
             style={{
               flex: 1, marginBottom: 0, background: '#25D366', boxShadow: '0 8px 18px rgba(37,211,102,0.35)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,

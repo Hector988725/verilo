@@ -18,7 +18,22 @@ export async function POST(req) {
       .order('name');
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ listings: data || [] });
+    const listings = data || [];
+
+    // Attach lightweight analytics — total views, call clicks, and WhatsApp
+    // clicks per listing — so the provider can see the value of staying active.
+    const ids = listings.map((l) => l.id);
+    if (ids.length) {
+      const { data: events } = await admin.from('listing_events').select('listing_id, event_type').in('listing_id', ids);
+      const counts = {};
+      (events || []).forEach((e) => {
+        counts[e.listing_id] = counts[e.listing_id] || { view: 0, call: 0, whatsapp: 0 };
+        counts[e.listing_id][e.event_type] = (counts[e.listing_id][e.event_type] || 0) + 1;
+      });
+      listings.forEach((l) => { l.stats = counts[l.id] || { view: 0, call: 0, whatsapp: 0 }; });
+    }
+
+    return NextResponse.json({ listings });
   } catch (err) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
