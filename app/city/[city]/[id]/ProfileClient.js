@@ -219,7 +219,11 @@ export default function ProfileClient() {
           {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
         </p>
         {listing.area && <p className="profile-meta" style={{ color: 'var(--ink)', fontWeight: 500 }}>📍 {listing.area}{listing.pincode ? ` - ${listing.pincode}` : ''}</p>}
-        {listing.experience && <p className="profile-meta" style={{ color: 'var(--ink)', fontWeight: 500 }}>🏷️ {listing.experience} experience</p>}
+        {listing.experience && (
+          <p className="profile-meta" style={{ color: 'var(--ink)', fontWeight: 500 }}>
+            🏷️ {listing.experience}{/^\d+\s+(years?|months?|days?)$/i.test(listing.experience.trim()) ? ' experience' : ''}
+          </p>
+        )}
         {listing.about && (
           <p className="profile-meta" style={{ fontStyle: 'italic', color: 'var(--ink)', fontWeight: 500, lineHeight: 1.5 }}>
             {listing.about.length > 90 && !aboutExpanded ? listing.about.slice(0, 90) + '… ' : listing.about + ' '}

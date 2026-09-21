@@ -5,6 +5,7 @@ import { useAuth } from '../../../components/AuthProvider';
 import { supabase } from '../../../lib/supabaseClient';
 import { saveMyToken, getAllMyListings } from '../../../lib/ownership';
 import { catLabel, initials } from '../../../lib/categories';
+import { shareListing } from '../../../lib/shareApp';
 
 export default function ProviderDashboard() {
   const { user, loading, signOut } = useAuth();
@@ -121,6 +122,19 @@ export default function ProviderDashboard() {
           >
             {l.is_active ? 'Manage / Renew' : 'Manage / Pay Now'}
           </Link>
+          {l.is_active && (
+            <button
+              type="button"
+              onClick={() => shareListing({ cityName: l.cities?.name || '', id: l.id, name: l.name })}
+              style={{
+                display: 'block', width: '100%', textAlign: 'center', marginTop: 8, padding: '9px 14px',
+                background: 'none', border: '1.5px solid var(--brand-green)', color: 'var(--brand-green)',
+                borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: 'pointer',
+              }}
+            >
+              📤 Share My Listing
+            </button>
+          )}
         </div>
       ))}
 

@@ -31,6 +31,42 @@ export default function HomePage() {
   const [selectedState, setSelectedState] = useState('');
   const [districtQuery, setDistrictQuery] = useState('');
   const [existingDistricts, setExistingDistricts] = useState([]);
+  const [locating, setLocating] = useState(false);
+  const [locateErr, setLocateErr] = useState('');
+
+  function detectLocation() {
+    if (!navigator.geolocation) { setLocateErr('Location is not supported on this browser.'); return; }
+    setLocating(true);
+    setLocateErr('');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+            { headers: { Accept: 'application/json' } }
+          );
+          const data = await res.json();
+          const addr = data?.address || {};
+          const detectedState = INDIAN_STATES.find((s) => s.toLowerCase() === (addr.state || '').toLowerCase());
+          const detectedDistrict = addr.state_district || addr.county || addr.city_district || addr.city || addr.town;
+          if (detectedState && detectedDistrict) {
+            router.push('/city/' + encodeURIComponent(detectedDistrict.replace(/\s*District$/i, '').trim()) + '?state=' + encodeURIComponent(detectedState));
+          } else if (detectedState) {
+            pickState(detectedState);
+          } else {
+            setLocateErr("Couldn't detect your area. Please pick your state manually.");
+          }
+        } catch (e) {
+          setLocateErr("Couldn't detect your area. Please pick your state manually.");
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => { setLocating(false); setLocateErr('Location permission denied. Please pick your state manually.'); },
+      { timeout: 10000 }
+    );
+  }
 
   const filteredStates = INDIAN_STATES.filter((s) =>
     s.toLowerCase().includes(stateQuery.trim().toLowerCase())
@@ -59,12 +95,24 @@ export default function HomePage() {
         <div className="pin"></div>
         <h1>Verilo</h1>
         <p className="tagline">Trusted people in your area — all in one place</p>
+        <button
+          onClick={detectLocation}
+          disabled={locating}
+          style={{
+            marginTop: 14, background: 'var(--brand-green)', border: 'none', borderRadius: 999, color: '#fff',
+            padding: '10px 20px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 8px 18px rgba(27,110,61,0.28)',
+          }}
+        >
+          📍 {locating ? 'Detecting your location...' : 'Use my current location'}
+        </button>
+        {locateErr && <p style={{ color: 'var(--vermillion)', fontSize: 12.5, marginTop: 6, textAlign: 'center', maxWidth: 300 }}>{locateErr}</p>}
+        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '14px 0 4px' }}>— or pick manually —</p>
         <input
           className="city-search"
           placeholder="Search your state..."
           value={stateQuery}
           onChange={(e) => setStateQuery(e.target.value)}
-          autoFocus
         />
         <div className="city-list">
           {filteredStates.map((s) => (

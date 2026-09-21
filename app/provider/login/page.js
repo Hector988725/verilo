@@ -12,7 +12,7 @@ export default function ProviderLoginPage() {
 }
 
 function ProviderLoginContent() {
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, resetPassword } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/provider/dashboard';
@@ -30,6 +30,17 @@ function ProviderLoginContent() {
     e.preventDefault();
     setErr('');
     setInfo('');
+
+    if (mode === 'forgot') {
+      if (!email.trim()) { setErr('Please enter your email.'); return; }
+      setBusy(true);
+      const { error } = await resetPassword(email.trim());
+      setBusy(false);
+      if (error) setErr(error.message);
+      else setInfo('If an account exists for that email, a reset link has been sent. Check your inbox.');
+      return;
+    }
+
     if (!email.trim() || !password) { setErr('Please fill in email and password.'); return; }
     if (mode === 'signup' && !name.trim()) { setErr('Please enter your name.'); return; }
 
@@ -57,10 +68,17 @@ function ProviderLoginContent() {
       </p>
 
       <div className="form-card" style={{ width: '100%', maxWidth: 360, marginTop: 20, textAlign: 'left' }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-          <button type="button" className={'tab' + (mode === 'signin' ? ' active' : '')} onClick={() => { setMode('signin'); setErr(''); setInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Sign In</button>
-          <button type="button" className={'tab' + (mode === 'signup' ? ' active' : '')} onClick={() => { setMode('signup'); setErr(''); setInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Register as Provider</button>
-        </div>
+        {mode !== 'forgot' && (
+          <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+            <button type="button" className={'tab' + (mode === 'signin' ? ' active' : '')} onClick={() => { setMode('signin'); setErr(''); setInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Sign In</button>
+            <button type="button" className={'tab' + (mode === 'signup' ? ' active' : '')} onClick={() => { setMode('signup'); setErr(''); setInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Register as Provider</button>
+          </div>
+        )}
+        {mode === 'forgot' && (
+          <p style={{ fontSize: 13.5, color: 'var(--muted)', marginBottom: 4 }}>
+            Enter the email on your provider account — we'll send you a link to reset your password.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
           {mode === 'signup' && (
@@ -71,24 +89,42 @@ function ProviderLoginContent() {
           )}
           <label>Email</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
-          <label>Password</label>
-          <div style={{ position: 'relative' }}>
-            <input
-              type={showPass ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
-              style={{ paddingRight: 44 }}
-            />
-            <button type="button" onClick={() => setShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
-              {showPass ? '🙈' : '👁️'}
-            </button>
-          </div>
+          {mode !== 'forgot' && (
+            <>
+              <label>Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPass ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                  style={{ paddingRight: 44 }}
+                />
+                <button type="button" onClick={() => setShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
+                  {showPass ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </>
+          )}
+          {mode === 'signin' && (
+            <p style={{ textAlign: 'right', marginTop: 6 }}>
+              <span onClick={() => { setMode('forgot'); setErr(''); setInfo(''); }} style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline', cursor: 'pointer' }}>
+                Forgot password?
+              </span>
+            </p>
+          )}
           {err && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{err}</p>}
           {info && <p style={{ color: '#1F6F52', fontSize: 13, marginTop: 8 }}>{info}</p>}
           <button className="btn-primary" type="submit" disabled={busy}>
-            {busy ? 'Please wait...' : mode === 'signup' ? 'Create Provider Account' : 'Sign In'}
+            {busy ? 'Please wait...' : mode === 'forgot' ? 'Send Reset Link' : mode === 'signup' ? 'Create Provider Account' : 'Sign In'}
           </button>
+          {mode === 'forgot' && (
+            <p style={{ textAlign: 'center', marginTop: 10 }}>
+              <span onClick={() => { setMode('signin'); setErr(''); setInfo(''); }} style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline', cursor: 'pointer' }}>
+                ← Back to Sign In
+              </span>
+            </p>
+          )}
         </form>
       </div>
     </div>
