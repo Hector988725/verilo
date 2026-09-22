@@ -2,6 +2,7 @@ import './globals.css';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import Footer from '../components/Footer';
 import { AuthProvider } from '../components/AuthProvider';
+import { LanguageProvider } from '../components/LanguageProvider';
 
 export const metadata = {
   title: 'Verilo — Trusted local professionals',
@@ -29,8 +30,10 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <AuthProvider>
-          {children}
-          <Footer />
+          <LanguageProvider>
+            {children}
+            <Footer />
+          </LanguageProvider>
         </AuthProvider>
         <PwaInstallPrompt />
         <script

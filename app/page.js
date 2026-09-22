@@ -4,6 +4,17 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
 import { INDIAN_STATES } from '../lib/indianStates';
 import { shareApp } from '../lib/shareApp';
+import { useLanguage } from '../components/LanguageProvider';
+
+function LangToggle() {
+  const { lang, setLang } = useLanguage();
+  return (
+    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', border: '1.5px solid var(--line-strong)', borderRadius: 999, overflow: 'hidden' }}>
+      <button onClick={() => setLang('en')} style={{ padding: '5px 11px', fontSize: 11.5, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'en' ? 'var(--navy)' : 'transparent', color: lang === 'en' ? '#fff' : 'var(--muted)' }}>EN</button>
+      <button onClick={() => setLang('hi')} style={{ padding: '5px 11px', fontSize: 11.5, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'hi' ? 'var(--navy)' : 'transparent', color: lang === 'hi' ? '#fff' : 'var(--muted)' }}>हिं</button>
+    </div>
+  );
+}
 
 function ShareButton() {
   return (
@@ -26,6 +37,7 @@ function ShareButton() {
 
 export default function HomePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [step, setStep] = useState('state'); // 'state' | 'district'
   const [stateQuery, setStateQuery] = useState('');
   const [selectedState, setSelectedState] = useState('');
@@ -91,10 +103,11 @@ export default function HomePage() {
 
   if (step === 'state') {
     return (
-      <div className="city-screen">
+      <div className="city-screen" style={{ position: 'relative' }}>
+        <LangToggle />
         <div className="pin"></div>
         <h1>Verilo</h1>
-        <p className="tagline">Trusted people in your area — all in one place</p>
+        <p className="tagline">{t('tagline_home')}</p>
         <button
           onClick={detectLocation}
           disabled={locating}
@@ -104,13 +117,13 @@ export default function HomePage() {
             display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 8px 18px rgba(27,110,61,0.28)',
           }}
         >
-          📍 {locating ? 'Detecting your location...' : 'Use my current location'}
+          📍 {locating ? t('detecting_location') : t('use_my_location')}
         </button>
         {locateErr && <p style={{ color: 'var(--vermillion)', fontSize: 12.5, marginTop: 6, textAlign: 'center', maxWidth: 300 }}>{locateErr}</p>}
-        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '14px 0 4px' }}>— or pick manually —</p>
+        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '14px 0 4px' }}>{t('or_pick_manually')}</p>
         <input
           className="city-search"
-          placeholder="Search your state..."
+          placeholder={t('search_state')}
           value={stateQuery}
           onChange={(e) => setStateQuery(e.target.value)}
         />
@@ -119,7 +132,7 @@ export default function HomePage() {
             <a key={s} className="city-item" onClick={() => pickState(s)} href="#">{s}</a>
           ))}
           {filteredStates.length === 0 && (
-            <p style={{ color: 'var(--muted)', fontSize: 13.5, textAlign: 'center' }}>No matching state found.</p>
+            <p style={{ color: 'var(--muted)', fontSize: 13.5, textAlign: 'center' }}>{t('no_matching_state')}</p>
           )}
         </div>
         <button
@@ -134,14 +147,15 @@ export default function HomePage() {
             <circle cx="18" cy="5" r="2.8" /><circle cx="6" cy="12" r="2.8" /><circle cx="18" cy="19" r="2.8" />
             <path d="M8.4 10.7 15.6 6.6M8.4 13.3l7.2 4.1" />
           </svg>
-          Share Verilo
+          {t('share_verilo')}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="city-screen">
+    <div className="city-screen" style={{ position: 'relative' }}>
+      <LangToggle />
       <div className="pin"></div>
       <h1>Verilo</h1>
       <p className="tagline">📍 {selectedState}</p>
@@ -149,11 +163,11 @@ export default function HomePage() {
         style={{ fontSize: 12.5, color: 'var(--muted)', cursor: 'pointer', marginBottom: 6, textDecoration: 'underline' }}
         onClick={() => { setStep('state'); setDistrictQuery(''); }}
       >
-        ← Change state
+        {t('change_state')}
       </p>
       <input
         className="city-search"
-        placeholder="Search your district/town..."
+        placeholder={t('search_district')}
         value={districtQuery}
         onChange={(e) => setDistrictQuery(e.target.value)}
         autoFocus
@@ -165,7 +179,7 @@ export default function HomePage() {
       </div>
       {districtQuery.trim() && !exactMatch && (
         <p style={{ marginTop: 16, fontSize: 13.5, color: 'var(--marigold-deep)', cursor: 'pointer', fontWeight: 600 }} onClick={() => goToDistrict(districtQuery)}>
-          Start a new area for "{districtQuery}" in {selectedState} →
+          {t('start_new_area')} "{districtQuery}" {selectedState} →
         </p>
       )}
       <ShareButton />

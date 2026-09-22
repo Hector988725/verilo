@@ -7,6 +7,7 @@ import { CATEGORIES, catLabel, catColor, catTagline, initials } from '../../../l
 import { CategoryIcon } from '../../../lib/categoryIcons';
 import { shareApp } from '../../../lib/shareApp';
 import { trackEvent } from '../../../lib/track';
+import { useLanguage } from '../../../components/LanguageProvider';
 
 export default function CityPageClient() {
   return (
@@ -27,17 +28,18 @@ function Stars({ value }) {
   );
 }
 
-function greetingWord() {
+function greetingWord(t) {
   const h = new Date().getHours();
-  if (h < 12) return 'Good Morning';
-  if (h < 17) return 'Good Afternoon';
-  return 'Good Evening';
+  if (h < 12) return t('good_morning');
+  if (h < 17) return t('good_afternoon');
+  return t('good_evening');
 }
 
 function CityPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { t, lang, setLang } = useLanguage();
   const city = decodeURIComponent(params.city);
   const stateFromUrl = searchParams.get('state') || '';
   const [listings, setListings] = useState([]);
@@ -112,17 +114,21 @@ function CityPageContent() {
 
   return (
     <div className="wrap">
-      <header style={{ textAlign: 'left', marginBottom: 6 }}>
+      <header style={{ textAlign: 'left', marginBottom: 6, position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', border: '1.5px solid var(--line-strong)', borderRadius: 999, overflow: 'hidden' }}>
+          <button onClick={() => setLang('en')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'en' ? 'var(--navy)' : 'transparent', color: lang === 'en' ? '#fff' : 'var(--muted)' }}>EN</button>
+          <button onClick={() => setLang('hi')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'hi' ? 'var(--navy)' : 'transparent', color: lang === 'hi' ? '#fff' : 'var(--muted)' }}>हिं</button>
+        </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' }}>Verilo</a>
           <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</a>
         </div>
-        <p className="greeting-eyebrow">{greetingWord()},</p>
-        <p className="greeting-headline">Find trusted people near you</p>
+        <p className="greeting-eyebrow">{greetingWord(t)},</p>
+        <p className="greeting-headline">{t('find_trusted_people')}</p>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="back-link" style={{ margin: 0 }}>Switch area</a>
+          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="back-link" style={{ margin: 0 }}>{t('switch_area')}</a>
           <span style={{ color: 'var(--line)' }}>·</span>
-          <span onClick={shareApp} className="back-link" style={{ margin: 0, cursor: 'pointer' }}>Share Verilo</span>
+          <span onClick={shareApp} className="back-link" style={{ margin: 0, cursor: 'pointer' }}>{t('share_verilo')}</span>
         </div>
       </header>
 
@@ -132,7 +138,7 @@ function CityPageContent() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap',
       }}>
         <p style={{ fontSize: 12.5, color: 'var(--marigold-deep)', fontWeight: 700, margin: 0, flex: '1 1 160px' }}>
-          Are you a service provider? List your business here.
+          {t('are_you_provider')}
         </p>
         <div style={{ display: 'flex', gap: 8, flex: '0 0 auto' }}>
           <Link
@@ -143,7 +149,7 @@ function CityPageContent() {
               background: 'var(--navy)', boxShadow: '0 6px 14px rgba(22,35,46,0.28)', fontSize: 12.5, borderRadius: 8,
             }}
           >
-            + Register
+            {t('register')}
           </Link>
           <Link
             href="/provider/dashboard"
@@ -159,7 +165,7 @@ function CityPageContent() {
       </div>
 
       <div className="search-row" style={{ position: 'relative', marginBottom: 14 }}>
-        <input className="search-bar" placeholder="Search by name, area, or pincode..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input className="search-bar" placeholder={t('search_placeholder')} value={search} onChange={(e) => setSearch(e.target.value)} />
         <button className="filter-btn" onClick={() => setShowSortMenu((s) => !s)} aria-label="Sort options">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 6h16M7 12h10M10 18h4" />
@@ -246,16 +252,16 @@ function CityPageContent() {
               <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>
               <p className="listing-name">{item.name}</p>
               <p className="listing-rating">
-                {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : 'No ratings yet'}
+                {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : t('no_ratings_yet')}
               </p>
               {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
               <p className="listing-avail">
                 <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52' }}>
-                  {item.is_available === false ? '🔴 Not available' : '🟢 Available now'}
+                  {item.is_available === false ? t('not_available') : t('available_now')}
                 </span>
               </p>
             </div>
-            <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => { e.stopPropagation(); trackEvent(item.id, 'call'); }}>📞 Call</a>
+            <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => { e.stopPropagation(); trackEvent(item.id, 'call'); }}>📞 {t('call')}</a>
           </Link>
         ))}
       </div>
