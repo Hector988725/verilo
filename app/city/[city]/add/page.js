@@ -3,6 +3,7 @@ import { Suspense, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
+import BannerPositionPicker from '../../../../components/BannerPositionPicker';
 import { supabase } from '../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../lib/categories';
 import { saveMyToken } from '../../../../lib/ownership';
@@ -45,6 +46,7 @@ function AddListingContent() {
   const [photoPreview, setPhotoPreview] = useState('');
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState('');
+  const [bannerPositionV, setBannerPositionV] = useState(50);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -62,6 +64,7 @@ function AddListingContent() {
     if (!file) return;
     setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
+    setBannerPositionV(50);
   }
 
   async function handleSubmit(e) {
@@ -125,6 +128,7 @@ function AddListingContent() {
         note: form.note || null,
         photo_url,
         banner_url,
+        banner_position: bannerFile ? `center ${bannerPositionV}%` : 'center',
         maps_link: form.mapsLink || null,
         pincode: form.pincode || null,
         is_active: false,
@@ -193,12 +197,16 @@ function AddListingContent() {
           you at work, tools, or finished jobs. This is the first thing customers see, so a clear,
           well-lit photo makes a big difference.
         </p>
-        <div style={{
-          width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
-        }}>
-          {bannerPreview ? <img src={bannerPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>}
-        </div>
+        {bannerPreview ? (
+          <BannerPositionPicker src={bannerPreview} value={bannerPositionV} onChange={setBannerPositionV} />
+        ) : (
+          <div style={{
+            width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
+          }}>
+            <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>
+          </div>
+        )}
         <input type="file" accept="image/*" onChange={handleBanner} />
 
         <label>Name *</label>

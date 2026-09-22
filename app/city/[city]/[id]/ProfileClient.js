@@ -75,7 +75,7 @@ export default function ProfileClient() {
     // which would also hand back manage_token (the listing's private key).
     const { data: listingData } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url')
       .eq('id', id)
       .single();
     setListing(listingData);
@@ -189,7 +189,7 @@ export default function ProfileClient() {
         >
           <div style={{
             position: 'absolute', inset: 0,
-            backgroundImage: `url(${listing.banner_url || listing.photo_url})`, backgroundSize: 'cover', backgroundPosition: 'center',
+            backgroundImage: `url(${listing.banner_url || listing.photo_url})`, backgroundSize: 'cover', backgroundPosition: listing.banner_position || 'center',
           }} />
           <span style={{
             position: 'absolute', top: 14, right: 14,

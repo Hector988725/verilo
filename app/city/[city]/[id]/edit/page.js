@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabase } from '../../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../../lib/categories';
 import { getMyToken } from '../../../../../lib/ownership';
+import BannerPositionPicker from '../../../../../components/BannerPositionPicker';
 
 // Best-effort parse of old free-text experience values ("8 years", "8", "6 months")
 // into a separate number + unit, for editing listings created before the
@@ -41,6 +42,7 @@ export default function EditListingPage() {
   const [photoPreview, setPhotoPreview] = useState('');
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState('');
+  const [bannerPositionV, setBannerPositionV] = useState(50);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [allowed, setAllowed] = useState(null);
@@ -48,7 +50,7 @@ export default function EditListingPage() {
   useEffect(() => {
     setAllowed(!!getMyToken(id));
 
-    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, fb_url, instagram_url, youtube_url, gmb_url').eq('id', id).single().then(({ data }) => {
+    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, banner_position, fb_url, instagram_url, youtube_url, gmb_url').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
@@ -58,6 +60,8 @@ export default function EditListingPage() {
         });
         setPhotoPreview(data.photo_url || '');
         setBannerPreview(data.banner_url || '');
+        const match = /(\d+)%/.exec(data.banner_position || '');
+        setBannerPositionV(match ? Number(match[1]) : 50);
       }
     });
   }, [id]);
@@ -76,6 +80,7 @@ export default function EditListingPage() {
     if (!file) return;
     setBannerFile(file);
     setBannerPreview(URL.createObjectURL(file));
+    setBannerPositionV(50);
   }
 
   async function handleSubmit(e) {
@@ -109,6 +114,7 @@ export default function EditListingPage() {
       };
       if (photo_url) updatePayload.photo_url = photo_url;
       if (banner_url) updatePayload.banner_url = banner_url;
+      if (bannerFile || bannerPreview) updatePayload.banner_position = `center ${bannerPositionV}%`;
 
       const res = await fetch('/api/listing/update', {
         method: 'POST',
@@ -169,12 +175,16 @@ export default function EditListingPage() {
           you at work, tools, or finished jobs. This is the first thing customers see, so a clear,
           well-lit photo makes a big difference.
         </p>
-        <div style={{
-          width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
-        }}>
-          {bannerPreview ? <img src={bannerPreview} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>}
-        </div>
+        {bannerPreview ? (
+          <BannerPositionPicker src={bannerPreview} value={bannerPositionV} onChange={setBannerPositionV} />
+        ) : (
+          <div style={{
+            width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
+          }}>
+            <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>
+          </div>
+        )}
         <input type="file" accept="image/*" onChange={handleBanner} />
 
         <label>Name *</label>
