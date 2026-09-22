@@ -114,14 +114,16 @@ function CityPageContent() {
 
   return (
     <div className="wrap">
-      <header style={{ textAlign: 'left', marginBottom: 6, position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 0, right: 0, display: 'flex', border: '1.5px solid var(--line-strong)', borderRadius: 999, overflow: 'hidden' }}>
-          <button onClick={() => setLang('en')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'en' ? 'var(--navy)' : 'transparent', color: lang === 'en' ? '#fff' : 'var(--muted)' }}>EN</button>
-          <button onClick={() => setLang('hi')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'hi' ? 'var(--navy)' : 'transparent', color: lang === 'hi' ? '#fff' : 'var(--muted)' }}>हिं</button>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+      <header style={{ textAlign: 'left', marginBottom: 6 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
           <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' }}>Verilo</a>
-          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="location-pill" style={{ flexShrink: 0 }}>📍 {city}{cityState ? `, ${cityState}` : ''}</a>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+            <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="location-pill">📍 {city}{cityState ? `, ${cityState}` : ''}</a>
+            <div style={{ display: 'flex', border: '1.5px solid var(--line-strong)', borderRadius: 999, overflow: 'hidden' }}>
+              <button onClick={() => setLang('en')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'en' ? 'var(--navy)' : 'transparent', color: lang === 'en' ? '#fff' : 'var(--muted)' }}>EN</button>
+              <button onClick={() => setLang('hi')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'hi' ? 'var(--navy)' : 'transparent', color: lang === 'hi' ? '#fff' : 'var(--muted)' }}>हिं</button>
+            </div>
+          </div>
         </div>
         <p className="greeting-eyebrow">{greetingWord(t)},</p>
         <p className="greeting-headline">{t('find_trusted_people')}</p>
