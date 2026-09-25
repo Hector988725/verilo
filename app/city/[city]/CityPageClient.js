@@ -74,7 +74,7 @@ function CityPageContent() {
       // that would also hand back manage_token (each listing's private key).
       const { data: listingRows } = await supabase
         .from('listings')
-        .select('id, name, service, phone, area, pincode, qualification, about, photo_url, verified, is_available, unavailable_note, joined_at, ratings(stars)')
+        .select('id, name, service, phone, area, pincode, qualification, about, photo_url, verified, phone_verified, is_available, unavailable_note, joined_at, ratings(stars)')
         .eq('city_id', cityRow.id)
         .eq('is_active', true);
 
@@ -248,7 +248,7 @@ function CityPageContent() {
               <span className="listing-photo-tag" style={{ background: catColor(item.service) }}>
                 <CategoryIcon name={item.service} width={10} height={10} />
               </span>
-              {item.verified && <span className="listing-photo-verified">✓</span>}
+              {(item.verified || item.phone_verified) && <span className="listing-photo-verified">✓</span>}
             </div>
             <div className="listing-body">
               <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>

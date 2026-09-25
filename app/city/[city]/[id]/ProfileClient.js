@@ -75,7 +75,7 @@ export default function ProfileClient() {
     // which would also hand back manage_token (the listing's private key).
     const { data: listingData } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, phone_verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url')
       .eq('id', id)
       .single();
     setListing(listingData);
@@ -199,7 +199,7 @@ export default function ProfileClient() {
           }}>
             <CategoryIcon name={listing.service} width={18} height={18} />
           </span>
-          {listing.verified && (
+          {(listing.verified || listing.phone_verified) && (
             <span style={{
               position: 'absolute', top: 14, left: 14, display: 'inline-flex', alignItems: 'center', gap: 4,
               background: 'rgba(255,255,255,0.94)', color: 'var(--verified)', fontSize: 12, fontWeight: 700,

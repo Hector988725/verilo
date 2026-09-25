@@ -4,6 +4,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
 import BannerPositionPicker from '../../../../components/BannerPositionPicker';
+import PhoneOtpVerify from '../../../../components/PhoneOtpVerify';
 import { supabase } from '../../../../lib/supabaseClient';
 import { CATEGORIES } from '../../../../lib/categories';
 import { saveMyToken } from '../../../../lib/ownership';
@@ -47,10 +48,14 @@ function AddListingContent() {
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState('');
   const [bannerPositionV, setBannerPositionV] = useState(50);
+  const [phoneVerified, setPhoneVerified] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  function update(field, value) { setForm((f) => ({ ...f, [field]: value })); }
+  function update(field, value) {
+    setForm((f) => ({ ...f, [field]: value }));
+    if (field === 'phone') setPhoneVerified(false);
+  }
 
   function handlePhoto(e) {
     const file = e.target.files[0];
@@ -69,6 +74,7 @@ function AddListingContent() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!phoneVerified) { setError('Please verify your phone number before submitting.'); return; }
     setSubmitting(true);
     setError('');
     try {
@@ -129,6 +135,7 @@ function AddListingContent() {
         photo_url,
         banner_url,
         banner_position: bannerFile ? `center ${bannerPositionV}%` : 'center',
+        phone_verified: true,
         maps_link: form.mapsLink || null,
         pincode: form.pincode || null,
         is_active: false,
@@ -239,6 +246,7 @@ function AddListingContent() {
 
         <label>Phone Number *</label>
         <input required type="tel" pattern="[0-9]{10}" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="10-digit number" />
+        <PhoneOtpVerify phone={form.phone} verified={phoneVerified} onVerified={() => setPhoneVerified(true)} />
 
         <label>Area / Locality</label>
         <input value={form.area} onChange={(e) => update('area', e.target.value)} placeholder="e.g. Gandhi Nagar" />
@@ -258,8 +266,8 @@ function AddListingContent() {
 
         {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 
-        <button className="btn-primary" type="submit" disabled={submitting}>
-          {submitting ? 'Adding...' : 'Add Listing'}
+        <button className="btn-primary" type="submit" disabled={submitting || !phoneVerified}>
+          {submitting ? 'Adding...' : !phoneVerified ? 'Verify phone to continue' : 'Add Listing'}
         </button>
         <p className="status-note">Your listing goes live as soon as you complete payment (starts at ₹30/month)</p>
       </form>

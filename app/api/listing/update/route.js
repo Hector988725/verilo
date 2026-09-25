@@ -17,6 +17,15 @@ export async function POST(req) {
       if (key in updates) safeUpdates[key] = updates[key];
     }
 
+    // If the phone number is changing, the OTP verification no longer
+    // applies to the new number — reset it so the Verified badge stays honest.
+    if ('phone' in safeUpdates) {
+      const { data: current } = await admin.from('listings').select('phone').eq('id', listing_id).single();
+      if (current && current.phone !== safeUpdates.phone) {
+        safeUpdates.phone_verified = false;
+      }
+    }
+
     await admin.from('listings').update(safeUpdates).eq('id', listing_id);
     return NextResponse.json({ success: true });
   } catch (err) {
