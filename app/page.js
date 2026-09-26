@@ -39,6 +39,13 @@ export default function HomePage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [step, setStep] = useState('state'); // 'state' | 'district'
+  const [addIntent, setAddIntent] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setAddIntent(new URLSearchParams(window.location.search).get('next') === 'add');
+    }
+  }, []);
   const [stateQuery, setStateQuery] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [districtQuery, setDistrictQuery] = useState('');
@@ -63,7 +70,10 @@ export default function HomePage() {
           const detectedState = INDIAN_STATES.find((s) => s.toLowerCase() === (addr.state || '').toLowerCase());
           const detectedDistrict = addr.state_district || addr.county || addr.city_district || addr.city || addr.town;
           if (detectedState && detectedDistrict) {
-            router.push('/city/' + encodeURIComponent(detectedDistrict.replace(/\s*District$/i, '').trim()) + '?state=' + encodeURIComponent(detectedState));
+            const cleanDistrict = detectedDistrict.replace(/\s*District$/i, '').trim();
+            const base = '/city/' + encodeURIComponent(cleanDistrict);
+            const qs = '?state=' + encodeURIComponent(detectedState);
+            router.push(addIntent ? `${base}/add${qs}` : `${base}${qs}`);
           } else if (detectedState) {
             pickState(detectedState);
           } else {
@@ -98,7 +108,9 @@ export default function HomePage() {
   const exactMatch = existingDistricts.some((d) => d.toLowerCase() === districtQuery.trim().toLowerCase());
 
   function goToDistrict(district) {
-    router.push('/city/' + encodeURIComponent(district.trim()) + '?state=' + encodeURIComponent(selectedState));
+    const base = '/city/' + encodeURIComponent(district.trim());
+    const qs = '?state=' + encodeURIComponent(selectedState);
+    router.push(addIntent ? `${base}/add${qs}` : `${base}${qs}`);
   }
 
   if (step === 'state') {

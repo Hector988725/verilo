@@ -145,7 +145,7 @@ export default function ProviderDashboard() {
         </div>
       ))}
 
-      <Link href="/" className="btn-primary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', background: 'var(--ink)', boxShadow: 'none', marginTop: 8 }}>
+      <Link href="/?next=add" className="btn-primary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', background: 'var(--ink)', boxShadow: 'none', marginTop: 8 }}>
         + List a New Service
       </Link>
     </div>

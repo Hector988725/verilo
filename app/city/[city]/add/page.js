@@ -42,6 +42,7 @@ function AddListingContent() {
   const [form, setForm] = useState({
     name: '', service: 'plumber', qualification: '', experienceValue: '', experienceUnit: 'Years',
     about: '', phone: '', area: '', note: '', mapsLink: '', pincode: '',
+    fbUrl: '', instagramUrl: '', youtubeUrl: '', gmbUrl: '',
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -137,6 +138,7 @@ function AddListingContent() {
         banner_position: bannerFile ? `center ${bannerPositionV}%` : 'center',
         phone_verified: true,
         maps_link: form.mapsLink || null,
+        fb_url: form.fbUrl || null, instagram_url: form.instagramUrl || null, youtube_url: form.youtubeUrl || null, gmb_url: form.gmbUrl || null,
         pincode: form.pincode || null,
         is_active: false,
         trial_ends_at: new Date().toISOString(),
@@ -263,6 +265,12 @@ function AddListingContent() {
           onChange={(e) => update('mapsLink', e.target.value)}
           placeholder="Paste your Google Maps or Business Profile link"
         />
+
+        <label>Social & Business Links (optional)</label>
+        <input value={form.fbUrl} onChange={(e) => update('fbUrl', e.target.value)} placeholder="Facebook page link" style={{ marginBottom: 8 }} />
+        <input value={form.instagramUrl} onChange={(e) => update('instagramUrl', e.target.value)} placeholder="Instagram profile link" style={{ marginBottom: 8 }} />
+        <input value={form.youtubeUrl} onChange={(e) => update('youtubeUrl', e.target.value)} placeholder="YouTube channel link" style={{ marginBottom: 8 }} />
+        <input value={form.gmbUrl} onChange={(e) => update('gmbUrl', e.target.value)} placeholder="Google Business Profile link" />
 
         {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 
