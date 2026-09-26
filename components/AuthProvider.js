@@ -29,7 +29,14 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        data: { full_name: name },
+        // The current page (this login screen) already carries the right
+        // ?next=... destination the user was heading to (e.g. the
+        // add-listing page for the district they'd already picked) — send
+        // the confirmation link back here instead of the bare homepage.
+        emailRedirectTo: typeof window !== 'undefined' ? window.location.href : undefined,
+      },
     });
     return { data, error };
   }

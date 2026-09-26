@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../components/AuthProvider';
 
@@ -12,10 +12,18 @@ export default function ProviderLoginPage() {
 }
 
 function ProviderLoginContent() {
-  const { signUp, signIn, resetPassword } = useAuth();
+  const { user, signUp, signIn, resetPassword } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') || '/provider/dashboard';
+
+  // If Supabase already established a session on this page load — e.g. the
+  // user just clicked their email confirmation link, which lands back here
+  // with ?next= preserved — skip straight to where they were heading
+  // instead of making them sign in again.
+  useEffect(() => {
+    if (user) router.replace(next);
+  }, [user, next]);
 
   const [mode, setMode] = useState('signin');
   const [name, setName] = useState('');
@@ -34,10 +42,15 @@ function ProviderLoginContent() {
     if (mode === 'forgot') {
       if (!email.trim()) { setErr('Please enter your email.'); return; }
       setBusy(true);
-      const { error } = await resetPassword(email.trim());
-      setBusy(false);
-      if (error) setErr(error.message);
-      else setInfo('If an account exists for that email, a reset link has been sent. Check your inbox.');
+      try {
+        const { error } = await resetPassword(email.trim());
+        if (error) setErr(error.message);
+        else setInfo('If an account exists for that email, a reset link has been sent. Check your inbox.');
+      } catch (err2) {
+        setErr(err2?.message || 'Something went wrong. Please try again.');
+      } finally {
+        setBusy(false);
+      }
       return;
     }
 
@@ -45,17 +58,22 @@ function ProviderLoginContent() {
     if (mode === 'signup' && !name.trim()) { setErr('Please enter your name.'); return; }
 
     setBusy(true);
-    if (mode === 'signup') {
-      const { error } = await signUp(name.trim(), email.trim(), password);
-      if (error) setErr(error.message);
-      else setInfo('Account created! Check your email to confirm, then sign in.');
-    } else {
-      const { error } = await signIn(email.trim(), password);
-      if (error) { setErr(error.message); setBusy(false); return; }
-      router.push(next);
-      return;
+    try {
+      if (mode === 'signup') {
+        const { error } = await signUp(name.trim(), email.trim(), password);
+        if (error) setErr(error.message);
+        else setInfo('✅ Account created! Check your email inbox (and Spam/Promotions folder) for a confirmation link. Once confirmed, come back here and Sign In.');
+      } else {
+        const { error } = await signIn(email.trim(), password);
+        if (error) { setErr(error.message); return; }
+        router.push(next);
+        return;
+      }
+    } catch (err2) {
+      setErr(err2?.message || 'Something went wrong. Please check your connection and try again.');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   return (
@@ -114,7 +132,11 @@ function ProviderLoginContent() {
             </p>
           )}
           {err && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{err}</p>}
-          {info && <p style={{ color: '#1F6F52', fontSize: 13, marginTop: 8 }}>{info}</p>}
+          {info && (
+            <div style={{ background: 'rgba(31,111,82,0.1)', border: '1.5px solid #1F6F52', borderRadius: 10, padding: '10px 12px', marginTop: 10 }}>
+              <p style={{ color: '#1F6F52', fontSize: 13, fontWeight: 600, margin: 0 }}>{info}</p>
+            </div>
+          )}
           <button className="btn-primary" type="submit" disabled={busy}>
             {busy ? 'Please wait...' : mode === 'forgot' ? 'Send Reset Link' : mode === 'signup' ? 'Create Provider Account' : 'Sign In'}
           </button>
