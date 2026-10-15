@@ -87,3 +87,13 @@ You can run this for months at ₹0 hosting cost while it grows.
 Take a screenshot of exactly where you're stuck and bring it back to this
 conversation — describe which step number and what error/screen you're
 seeing, and I'll walk you through it.
+
+---
+
+## Security setup (zaroori — naye Supabase project par bhi)
+
+After `schema.sql` and migrations 15–26, run in this order:
+1. `supabase/migration_27_hide_secrets.sql`  (ek hi baar — dobara chalane par sab manage_token badal jaate hain)
+2. `supabase/migration_28_rate_limits.sql`
+3. Vercel env var `OTP_PROOF_SECRET` (lambi random string) jodo, phir deploy karo
+4. Add Listing test karo, tab `supabase/migration_29_close_direct_inserts.sql`

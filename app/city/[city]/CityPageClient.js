@@ -59,13 +59,15 @@ function CityPageContent() {
       let { data: cityRow } = await query.maybeSingle();
 
       if (!cityRow) {
-        // create city on first visit, tagged with its state so it's properly grouped
-        const { data: created } = await supabase
-          .from('cities')
-          .insert({ name: city, state: stateFromUrl || null })
-          .select()
-          .maybeSingle();
-        cityRow = created;
+        // city pehli baar khulne par server banata hai (browser seedha cities mein insert nahi karta)
+        try {
+          const res = await fetch('/api/city/ensure', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: city, state: stateFromUrl || null }),
+          });
+          if (res.ok) cityRow = await res.json();
+        } catch (e) {}
       }
       if (!cityRow) { setLoading(false); return; }
       setCityState(cityRow.state || stateFromUrl);

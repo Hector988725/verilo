@@ -42,7 +42,6 @@ function AddListingContent() {
   const [form, setForm] = useState({
     name: '', service: 'plumber', qualification: '', experienceValue: '', experienceUnit: 'Years',
     about: '', phone: '', area: '', note: '', mapsLink: '', pincode: '',
-    fbUrl: '', instagramUrl: '', youtubeUrl: '', gmbUrl: '',
   });
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
@@ -50,12 +49,13 @@ function AddListingContent() {
   const [bannerPreview, setBannerPreview] = useState('');
   const [bannerPositionV, setBannerPositionV] = useState(50);
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [phoneProof, setPhoneProof] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
-    if (field === 'phone') setPhoneVerified(false);
+    if (field === 'phone') { setPhoneVerified(false); setPhoneProof(''); }
   }
 
   function handlePhoto(e) {
@@ -75,25 +75,10 @@ function AddListingContent() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!phoneVerified) { setError('Please verify your phone number before submitting.'); return; }
+    if (!phoneVerified || !phoneProof) { setError('Please verify your phone number before submitting.'); return; }
     setSubmitting(true);
     setError('');
     try {
-      // 1. Ensure city exists (case-insensitive lookup, scoped to state), get id
-      let cityQuery = supabase.from('cities').select('id').ilike('name', city);
-      if (stateFromUrl) cityQuery = cityQuery.eq('state', stateFromUrl);
-      let { data: cityRow } = await cityQuery.maybeSingle();
-      if (!cityRow) {
-        const { data: newCity, error: cityInsertError } = await supabase
-          .from('cities')
-          .insert({ name: city, state: stateFromUrl || null })
-          .select('id')
-          .single();
-        if (cityInsertError) throw new Error('Could not create area: ' + cityInsertError.message);
-        cityRow = newCity;
-      }
-      if (!cityRow) throw new Error('Could not find or create this area. Please try again.');
-
       // 2. Upload photo if provided
       let photo_url = null;
       if (photoFile) {
@@ -116,37 +101,38 @@ function AddListingContent() {
         banner_url = bannerPublicUrl.publicUrl;
       }
 
-      // 3. Generate a private, hard-to-guess access token for this listing.
-      // This token — not the (public) phone number — is the real "key" to
-      // managing the listing, so a stranger who sees the phone number on the
-      // public profile cannot claim ownership just by typing it in.
-      const manageToken = crypto.randomUUID();
+      // 3. Listing server banata hai (/api/listing/create) — is_active, verified, trial, manage_token aur
+      // owner server khud set karta hai; browser inhe set nahi kar sakta. Phone verify ka signed proof bhejte hain.
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      const res = await fetch('/api/listing/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        body: JSON.stringify({
+          city,
+          state: stateFromUrl || null,
+          name: form.name,
+          service: form.service,
+          qualification: form.qualification || null,
+          experience: form.experienceValue ? `${form.experienceValue} ${form.experienceUnit}` : null,
+          about: form.about || null,
+          phone: form.phone,
+          area: form.area || null,
+          note: form.note || null,
+          photo_url,
+          banner_url,
+          banner_position: bannerFile ? `center ${bannerPositionV}%` : 'center',
+          mapsLink: form.mapsLink || null,
+          pincode: form.pincode || null,
+          proof: phoneProof,
+        }),
+      });
+      const created = await res.json();
+      if (!res.ok) throw new Error(created.error || 'Could not create listing');
+      const listing = { id: created.id };
+      const manageToken = created.manage_token;
 
-      // 4. Insert listing — inactive until payment (no free trial, pay from day 1)
-      const { data: listing, error: insertError } = await supabase.from('listings').insert({
-        city_id: cityRow.id,
-        name: form.name,
-        service: form.service,
-        qualification: form.qualification || null,
-        experience: form.experienceValue ? `${form.experienceValue} ${form.experienceUnit}` : null,
-        about: form.about || null,
-        phone: form.phone,
-        area: form.area || null,
-        note: form.note || null,
-        photo_url,
-        banner_url,
-        banner_position: bannerFile ? `center ${bannerPositionV}%` : 'center',
-        phone_verified: true,
-        maps_link: form.mapsLink || null,
-        fb_url: form.fbUrl || null, instagram_url: form.instagramUrl || null, youtube_url: form.youtubeUrl || null, gmb_url: form.gmbUrl || null,
-        pincode: form.pincode || null,
-        is_active: false,
-        trial_ends_at: new Date().toISOString(),
-        manage_token: manageToken,
-        owner_id: user.id,
-      }).select('id').single();
-      if (insertError) throw insertError;
-
+      // 4. Is device par token yaad rakho taaki agli baar URL mein na chahiye ho.
       // 5. Redirect to their manage page (with their secret token) to complete
       // payment and go live. Remember the token on this device too, so future
       // visits on this same browser don't need the token in the URL.
@@ -248,7 +234,7 @@ function AddListingContent() {
 
         <label>Phone Number *</label>
         <input required type="tel" pattern="[0-9]{10}" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="10-digit number" />
-        <PhoneOtpVerify phone={form.phone} verified={phoneVerified} onVerified={() => setPhoneVerified(true)} />
+        <PhoneOtpVerify phone={form.phone} verified={phoneVerified} onVerified={(proof) => { setPhoneProof(proof || ''); setPhoneVerified(true); }} />
 
         <label>Area / Locality</label>
         <input value={form.area} onChange={(e) => update('area', e.target.value)} placeholder="e.g. Gandhi Nagar" />
@@ -265,12 +251,6 @@ function AddListingContent() {
           onChange={(e) => update('mapsLink', e.target.value)}
           placeholder="Paste your Google Maps or Business Profile link"
         />
-
-        <label>Social & Business Links (optional)</label>
-        <input value={form.fbUrl} onChange={(e) => update('fbUrl', e.target.value)} placeholder="Facebook page link" style={{ marginBottom: 8 }} />
-        <input value={form.instagramUrl} onChange={(e) => update('instagramUrl', e.target.value)} placeholder="Instagram profile link" style={{ marginBottom: 8 }} />
-        <input value={form.youtubeUrl} onChange={(e) => update('youtubeUrl', e.target.value)} placeholder="YouTube channel link" style={{ marginBottom: 8 }} />
-        <input value={form.gmbUrl} onChange={(e) => update('gmbUrl', e.target.value)} placeholder="Google Business Profile link" />
 
         {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 

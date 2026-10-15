@@ -1,133 +1,53 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
-// Loads the MSG91 OTP Widget once per page and exposes window.sendOtp /
-// window.verifyOtp / window.retryOtp (exposeMethods: true keeps MSG91's own
-// popup UI hidden so we can keep our existing Send/Enter-OTP/Verify UI).
-let widgetLoadPromise = null;
-function loadMsg91Widget() {
-  if (typeof window === 'undefined') return Promise.resolve();
-  if (window.sendOtp) return Promise.resolve();
-  if (widgetLoadPromise) return widgetLoadPromise;
-
-  widgetLoadPromise = fetch('/api/otp/widget-config')
-    .then((r) => r.json())
-    .then(({ widgetId, tokenAuth, error }) => {
-      if (error || !widgetId || !tokenAuth) throw new Error(error || 'Widget config missing');
-
-      return new Promise((resolve) => {
-        const configuration = {
-          widgetId,
-          tokenAuth,
-          exposeMethods: true,
-          success: () => {},
-          failure: () => {},
-        };
-        const urls = ['https://verify.msg91.com/otp-provider.js', 'https://verify.phone91.com/otp-provider.js'];
-        let i = 0;
-        function attempt() {
-          const s = document.createElement('script');
-          s.src = urls[i];
-          s.async = true;
-          s.onload = () => {
-            if (typeof window.initSendOTP === 'function') window.initSendOTP(configuration);
-            resolve();
-          };
-          s.onerror = () => {
-            i++;
-            if (i < urls.length) attempt();
-            else resolve();
-          };
-          document.head.appendChild(s);
-        }
-        attempt();
-      });
-    })
-    .catch(() => {
-      // Leave window.sendOtp undefined — the UI already handles "OTP
-      // service is still loading" / disabled-button states gracefully.
-    });
-  return widgetLoadPromise;
+// Logged-in user ka access token — server OTP routes ko login chahiye.
+async function authHeaders() {
+  const { data } = await supabase.auth.getSession();
+  const token = data?.session?.access_token;
+  return { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
 }
 
 // Renders inline under a phone number field. Calls onVerified() once the
-// OTP is confirmed for `phone` — verification happens via MSG91's widget in
-// the browser, then the resulting access-token is checked server-side
-// before onVerified() fires (so a tampered client can't fake it).
+// entered OTP is confirmed for `phone`; onVerified(proof) ko server ka signed proof milta hai. If `phone` changes after
+// verification, the parent should treat verified as stale (pass a fresh
+// key or reset), since this component doesn't watch for that itself.
 export default function PhoneOtpVerify({ phone, verified, onVerified }) {
-  const [ready, setReady] = useState(false);
-  const [stage, setStage] = useState('idle'); // idle | sent
+  const [stage, setStage] = useState('idle'); // idle | sent | verifying
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const reqIdRef = useRef(null);
-
-  useEffect(() => {
-    loadMsg91Widget().then(() => setReady(true));
-  }, []);
 
   const validPhone = phone && String(phone).replace(/\D/g, '').length === 10;
 
-  function handleSend() {
-    if (!window.sendOtp) { setError('OTP service is still loading, try again in a moment.'); return; }
+  async function handleSend() {
     setError('');
     setBusy(true);
-    window.sendOtp(
-      `91${String(phone).replace(/\D/g, '')}`,
-      (data) => {
-        setBusy(false);
-        reqIdRef.current = data?.reqId || data?.message?.reqId || null;
-        setStage('sent');
-      },
-      (err) => {
-        setBusy(false);
-        setError(err?.message || 'Could not send OTP');
-      }
-    );
-  }
-
-  async function confirmWithServer(accessToken) {
-    const res = await fetch('/api/otp/verify', {
+    const res = await fetch('/api/otp/send', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ access_token: accessToken }),
+      headers: await authHeaders(),
+      body: JSON.stringify({ phone }),
     });
     const data = await res.json();
-    if (!data.success) { setError(data.error || 'Could not confirm OTP'); return; }
-    onVerified();
+    setBusy(false);
+    if (!data.success) { setError(data.error || 'Could not send OTP'); return; }
+    setStage('sent');
   }
 
-  function handleVerify() {
+  async function handleVerify() {
     if (!otp.trim()) { setError('Enter the OTP you received'); return; }
-    if (!window.verifyOtp) { setError('OTP service is still loading, try again in a moment.'); return; }
     setError('');
     setBusy(true);
-    window.verifyOtp(
-      otp.trim(),
-      (data) => {
-        setBusy(false);
-        const accessToken = data?.['access-token'] || data?.message || (typeof data === 'string' ? data : null);
-        if (!accessToken) { setError('Verification failed — no token received.'); return; }
-        confirmWithServer(accessToken);
-      },
-      (err) => {
-        setBusy(false);
-        setError(err?.message || 'Invalid OTP');
-      },
-      reqIdRef.current
-    );
-  }
-
-  function handleResend() {
-    if (!window.retryOtp) return;
-    setError('');
-    setBusy(true);
-    window.retryOtp(
-      null,
-      () => setBusy(false),
-      (err) => { setBusy(false); setError(err?.message || 'Could not resend OTP'); },
-      reqIdRef.current
-    );
+    const res = await fetch('/api/otp/verify', {
+      method: 'POST',
+      headers: await authHeaders(),
+      body: JSON.stringify({ phone, otp: otp.trim() }),
+    });
+    const data = await res.json();
+    setBusy(false);
+    if (!data.success) { setError(data.error || 'Invalid OTP'); return; }
+    onVerified(data.proof);
   }
 
   if (verified) {
@@ -140,13 +60,13 @@ export default function PhoneOtpVerify({ phone, verified, onVerified }) {
         <button
           type="button"
           onClick={handleSend}
-          disabled={!validPhone || !ready || busy}
+          disabled={!validPhone || busy}
           style={{
-            background: validPhone && ready ? 'var(--navy)' : '#ccc', color: '#fff', border: 'none', borderRadius: 8,
-            padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: validPhone && ready ? 'pointer' : 'not-allowed',
+            background: validPhone ? 'var(--navy)' : '#ccc', color: '#fff', border: 'none', borderRadius: 8,
+            padding: '7px 14px', fontSize: 12.5, fontWeight: 700, cursor: validPhone ? 'pointer' : 'not-allowed',
           }}
         >
-          {busy ? 'Sending...' : !ready ? 'Loading OTP service...' : 'Verify Phone Number'}
+          {busy ? 'Sending...' : 'Verify Phone Number'}
         </button>
         {error && <p style={{ color: 'var(--vermillion)', fontSize: 12, marginTop: 4 }}>{error}</p>}
       </div>
@@ -172,7 +92,7 @@ export default function PhoneOtpVerify({ phone, verified, onVerified }) {
       </button>
       <button
         type="button"
-        onClick={handleResend}
+        onClick={handleSend}
         disabled={busy}
         style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 12, textDecoration: 'underline', cursor: 'pointer' }}
       >
