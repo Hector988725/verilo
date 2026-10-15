@@ -65,6 +65,13 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Invalid experience' }, { status: 400 });
     }
 
+    const social = {};
+    for (const k of ['fb_url', 'instagram_url', 'youtube_url', 'gmb_url']) {
+      const v = str(b[k], 300);
+      if (v === undefined || (v && !/^https?:\/\//i.test(v))) return NextResponse.json({ error: 'Invalid social/business link' }, { status: 400 });
+      social[k] = v;
+    }
+
     const bannerPosition = b.banner_position ? String(b.banner_position) : 'center';
     if (!/^center( \d{1,3}%)?$/.test(bannerPosition)) return NextResponse.json({ error: 'Invalid banner position' }, { status: 400 });
     if (!storageUrlOk(b.photo_url) || !storageUrlOk(b.banner_url)) {
@@ -92,6 +99,7 @@ export async function POST(req) {
         banner_position: bannerPosition,
         maps_link: mapsLink,
         pincode,
+        ...social,
         // Server ki apni values — client ki nahi:
         phone_verified: true,
         verified: false,
