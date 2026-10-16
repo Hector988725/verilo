@@ -35,6 +35,59 @@ function greetingWord(t) {
   return t('good_evening');
 }
 
+function productHits(shop, q) {
+  if (!q) return [];
+  return (shop.products || []).filter((p) =>
+    `${p.n} ${p.c} ${p.b}`.toLowerCase().includes(q)
+  );
+}
+
+function money(p) {
+  return p == null ? '' : ` ₹${Number(p) % 1 === 0 ? Number(p) : Number(p).toFixed(2)}+`;
+}
+
+function ShopCard({ shop, q, t }) {
+  const hits = productHits(shop, q).slice(0, 3);
+  const typeLabel = shop.business_type ? shop.business_type.charAt(0).toUpperCase() + shop.business_type.slice(1) : '';
+  return (
+    <div className="listing-card shop-card">
+      <div className="listing-photo">
+        {shop.logo_url ? <img src={shop.logo_url} alt="" /> : <span className="listing-photo-fallback">{initials(shop.name)}</span>}
+        <span className="listing-photo-tag" style={{ background: catColor('shops') }}>
+          <CategoryIcon name="shops" width={10} height={10} />
+        </span>
+      </div>
+      <div className="listing-body">
+        <p className="listing-service" style={{ color: catColor('shops') }}>
+          {t('shop_word')}{typeLabel ? ` · ${typeLabel}` : ''}
+        </p>
+        <p className="listing-name">{shop.name}</p>
+        {shop.tagline && <p className="listing-meta">{shop.tagline}</p>}
+        {(shop.address || shop.pincode) && (
+          <p className="listing-meta">📍 {shop.address || shop.city}{shop.pincode ? ` - ${shop.pincode}` : ''}</p>
+        )}
+        {hits.length > 0 ? (
+          <p className="shop-match">
+            {hits.map((p, i) => <span key={i}>{i ? ' · ' : ''}{p.n}{money(p.p)}</span>)}
+          </p>
+        ) : shop.categories.length > 0 ? (
+          <p className="shop-sells"><b>{t('sells_here')}:</b> {shop.categories.map((c) => c.name).join(', ')}</p>
+        ) : null}
+        {shop.timings && <p className="listing-meta">🕐 {shop.timings}</p>}
+      </div>
+      <div className="shop-actions">
+        <a className="listing-call-btn shop-order-btn" href={shop.order_url} target="_blank" rel="noopener noreferrer">{t('order_online')}</a>
+        {shop.whatsapp && (
+          <a className="listing-call-btn shop-wa-btn" href={`https://wa.me/${shop.whatsapp}`} target="_blank" rel="noopener noreferrer">💬 {t('whatsapp_word')}</a>
+        )}
+        {shop.maps_url && (
+          <a className="listing-call-btn shop-maps-btn" href={shop.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Directions">📍</a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CityPageContent() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -43,6 +96,7 @@ function CityPageContent() {
   const city = decodeURIComponent(params.city);
   const stateFromUrl = searchParams.get('state') || '';
   const [listings, setListings] = useState([]);
+  const [shops, setShops] = useState([]);
   const [cityState, setCityState] = useState(stateFromUrl);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
@@ -82,6 +136,18 @@ function CityPageContent() {
 
       setListings(listingRows || []);
       setLoading(false);
+
+      // Dukaan Order System ki opt-in shops (alag fetch: fail ho to baaki page par asar nahi)
+      try {
+        const sp = new URLSearchParams({ city });
+        const st = cityRow.state || stateFromUrl;
+        if (st) sp.set('state', st);
+        const res = await fetch('/api/shops?' + sp.toString());
+        if (res.ok) {
+          const j = await res.json();
+          setShops(Array.isArray(j.shops) ? j.shops : []);
+        }
+      } catch (e) {}
     }
     load();
   }, [city, stateFromUrl]);
@@ -112,7 +178,71 @@ function CityPageContent() {
     return list;
   }, [withRating, activeTab, search, sortBy]);
 
+  // Dukaan shops: search me naam, address, pincode, shop type AUR unke products (naam/category/brand) match hote hain.
+  const q = search.trim().toLowerCase();
+  const shopMatches = (shop) => {
+    const text = [shop.name, shop.tagline, shop.address, shop.business_type, shop.pincode, shop.city]
+      .filter(Boolean).join(' ').toLowerCase();
+    return text.includes(q) || shop.pincode.includes(q) || productHits(shop, q).length > 0;
+  };
+  const visibleShops = useMemo(() => {
+    if (activeTab !== 'all' && activeTab !== 'shops') return [];
+    let list = shops;
+    if (q) list = list.filter(shopMatches);
+    // search me jin shops me product mila wo upar
+    if (q) list = [...list].sort((a, b) => productHits(b, q).length - productHits(a, q).length);
+    return list;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shops, activeTab, q]);
+
+  // "All" me providers aur shops mix: har 3 providers ke baad 1 shop (search me matching shops sabse upar)
+  const mixed = useMemo(() => {
+    if (activeTab === 'shops') return visibleShops.map((s) => ({ kind: 'shop', s }));
+    const ps = filtered.map((l) => ({ kind: 'provider', l }));
+    const ss = visibleShops.map((s) => ({ kind: 'shop', s }));
+    if (!ss.length) return ps;
+    if (q) {
+      const hit = ss.filter((x) => productHits(x.s, q).length > 0);
+      const rest = ss.filter((x) => productHits(x.s, q).length === 0);
+      return [...hit, ...ps, ...rest];
+    }
+    const out = [];
+    let si = 0;
+    ps.forEach((p, i) => {
+      out.push(p);
+      if ((i + 1) % 3 === 0 && si < ss.length) out.push(ss[si++]);
+    });
+    while (si < ss.length) out.push(ss[si++]);
+    return out;
+  }, [filtered, visibleShops, activeTab, q]);
+
   const addHref = `/city/${encodeURIComponent(city)}/add${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`;
+
+  const providerCard = (item) => (
+    <Link key={item.id} className="listing-card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
+      <div className="listing-photo">
+        {item.photo_url ? <img src={item.photo_url} alt="" /> : <span className="listing-photo-fallback">{initials(item.name)}</span>}
+        <span className="listing-photo-tag" style={{ background: catColor(item.service) }}>
+          <CategoryIcon name={item.service} width={10} height={10} />
+        </span>
+        {(item.verified || item.phone_verified) && <span className="listing-photo-verified">✓</span>}
+      </div>
+      <div className="listing-body">
+        <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>
+        <p className="listing-name">{item.name}</p>
+        <p className="listing-rating">
+          {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : t('no_ratings_yet')}
+        </p>
+        {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
+        <p className="listing-avail">
+          <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52' }}>
+            {item.is_available === false ? t('not_available') : t('available_now')}
+          </span>
+        </p>
+      </div>
+      <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => { e.stopPropagation(); trackEvent(item.id, 'call'); }}>📞 {t('call')}</a>
+    </Link>
+  );
 
   return (
     <div className="wrap">
@@ -209,6 +339,16 @@ function CityPageContent() {
             <span className="cat-chip-label">{cat.label}</span>
           </button>
         ))}
+        {shops.length > 0 && (
+          <button
+            className={'cat-chip' + (activeTab === 'shops' ? ' active' : '')}
+            style={{ '--cat-color': catColor('shops') }}
+            onClick={() => setActiveTab('shops')}
+          >
+            <span className="cat-chip-icon"><CategoryIcon name="shops" width={22} height={22} /></span>
+            <span className="cat-chip-label">{t('shops_label')}</span>
+          </button>
+        )}
       </div>
 
       {activeTab !== 'all' && (
@@ -226,16 +366,16 @@ function CityPageContent() {
           </span>
           <div>
             <p style={{ margin: 0, fontFamily: "'Rozha One', serif", fontSize: 17, color: catColor(activeTab) }}>
-              {catLabel(activeTab)} near you
+              {activeTab === 'shops' ? t('shops_near_you') : `${catLabel(activeTab)} near you`}
             </p>
-            <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>{catTagline(activeTab)}</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12.5, color: 'var(--muted)' }}>{activeTab === 'shops' ? t('shops_tagline') : catTagline(activeTab)}</p>
           </div>
         </div>
       )}
 
       {loading && <p style={{ color: 'var(--muted)', textAlign: 'center' }}>Loading...</p>}
 
-      {!loading && filtered.length === 0 && (
+      {!loading && mixed.length === 0 && (
         <div className="empty">
           <div className="empty-title">No listings yet</div>
           <div>Be the first service provider listed here</div>
@@ -243,31 +383,9 @@ function CityPageContent() {
       )}
 
       <div className="listings-grid-v2">
-        {filtered.map((item) => (
-          <Link key={item.id} className="listing-card" href={`/city/${encodeURIComponent(city)}/${item.id}`}>
-            <div className="listing-photo">
-              {item.photo_url ? <img src={item.photo_url} alt="" /> : <span className="listing-photo-fallback">{initials(item.name)}</span>}
-              <span className="listing-photo-tag" style={{ background: catColor(item.service) }}>
-                <CategoryIcon name={item.service} width={10} height={10} />
-              </span>
-              {(item.verified || item.phone_verified) && <span className="listing-photo-verified">✓</span>}
-            </div>
-            <div className="listing-body">
-              <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>
-              <p className="listing-name">{item.name}</p>
-              <p className="listing-rating">
-                {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : t('no_ratings_yet')}
-              </p>
-              {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
-              <p className="listing-avail">
-                <span style={{ color: item.is_available === false ? 'var(--vermillion)' : '#1F6F52' }}>
-                  {item.is_available === false ? t('not_available') : t('available_now')}
-                </span>
-              </p>
-            </div>
-            <a className="listing-call-btn" href={`tel:${item.phone}`} onClick={(e) => { e.stopPropagation(); trackEvent(item.id, 'call'); }}>📞 {t('call')}</a>
-          </Link>
-        ))}
+        {mixed.map((m) => m.kind === 'shop' ? (
+          <ShopCard key={'shop-' + m.s.store_id} shop={m.s} q={q} t={t} />
+        ) : providerCard(m.l))}
       </div>
     </div>
   );
