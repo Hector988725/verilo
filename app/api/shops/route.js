@@ -12,7 +12,7 @@ export async function GET(req) {
     state: searchParams.get('state') || '',
   });
   return NextResponse.json(
-    { shops: result.shops },
+    { shops: result.shops, ...(result.ok ? {} : { problem: result.reason }) },
     { headers: { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' } }
   );
 }
