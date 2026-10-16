@@ -100,6 +100,7 @@ function CityPageContent() {
   const [cityState, setCityState] = useState(stateFromUrl);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
+  const [areaFilter, setAreaFilter] = useState('');
   const [sortBy, setSortBy] = useState('rating');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -159,8 +160,28 @@ function CityPageContent() {
     return { ...l, avgRating: avg, ratingCount: stars.length };
   });
 
+  // Town/area ki list listings ke "Area / Locality" se apne aap banti hai (koi fixed list nahi, poore desh me chalega).
+  // Spelling/capital ka fark ek hi maana jaata hai; sabse zyada likha gaya roop dikhta hai.
+  const areaOptions = useMemo(() => {
+    const m = new Map();
+    for (const l of listings) {
+      const raw = String(l.area || '').trim().replace(/\s+/g, ' ');
+      if (raw.length < 2) continue;
+      const key = raw.toLowerCase();
+      const e = m.get(key) || { key, count: 0, forms: new Map() };
+      e.count += 1;
+      e.forms.set(raw, (e.forms.get(raw) || 0) + 1);
+      m.set(key, e);
+    }
+    return [...m.values()]
+      .map((e) => ({ key: e.key, count: e.count, label: [...e.forms.entries()].sort((a, b) => b[1] - a[1])[0][0] }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  }, [listings]);
+  const areaKey = areaOptions.some((o) => o.key === areaFilter) ? areaFilter : '';
+
   const filtered = useMemo(() => {
     let list = withRating;
+    if (areaKey) list = list.filter((l) => String(l.area || '').toLowerCase().includes(areaKey));
     if (activeTab !== 'all') list = list.filter((l) => l.service === activeTab);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
@@ -176,7 +197,7 @@ function CityPageContent() {
       list = [...list].sort((a, b) => new Date(b.joined_at) - new Date(a.joined_at));
     }
     return list;
-  }, [withRating, activeTab, search, sortBy]);
+  }, [withRating, activeTab, search, sortBy, areaKey]);
 
   // Dukaan shops: search me naam, address, pincode, shop type AUR unke products (naam/category/brand) match hote hain.
   const q = search.trim().toLowerCase();
@@ -188,12 +209,13 @@ function CityPageContent() {
   const visibleShops = useMemo(() => {
     if (activeTab !== 'all' && activeTab !== 'shops') return [];
     let list = shops;
+    if (areaKey) list = list.filter((s) => String(s.address || '').toLowerCase().includes(areaKey));
     if (q) list = list.filter(shopMatches);
     // search me jin shops me product mila wo upar
     if (q) list = [...list].sort((a, b) => productHits(b, q).length - productHits(a, q).length);
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shops, activeTab, q]);
+  }, [shops, activeTab, q, areaKey]);
 
   // "All" me providers aur shops mix: har 3 providers ke baad 1 shop (search me matching shops sabse upar)
   const mixed = useMemo(() => {
@@ -326,6 +348,22 @@ function CityPageContent() {
           </div>
         )}
       </div>
+
+      {areaOptions.length >= 2 && (
+        <div style={{ marginBottom: 12 }}>
+          <select
+            value={areaKey}
+            onChange={(e) => setAreaFilter(e.target.value)}
+            aria-label={lang === 'hi' ? 'इलाका चुनें' : 'Choose area / town'}
+            style={{ width: '100%', padding: '10px 12px', borderRadius: 12, border: '1.5px solid var(--line-strong)', background: 'var(--paper)', color: 'var(--ink)', fontSize: 14, fontWeight: 600 }}
+          >
+            <option value="">{lang === 'hi' ? '📍 सभी इलाके / कस्बे' : '📍 All areas / towns'}</option>
+            {areaOptions.map((o) => (
+              <option key={o.key} value={o.key}>{o.label} ({o.count})</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="cat-strip">
         {CATEGORIES.map((cat) => (
