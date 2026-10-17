@@ -39,7 +39,16 @@ export async function POST(req) {
     const b = await req.json();
     const phone = digits10(b.phone);
     if (!/^\d{10}$/.test(phone)) return NextResponse.json({ error: 'Enter a valid 10-digit phone number' }, { status: 400 });
+    // Is account ne yahi number pehle OTP se verify kiya hai (uski verified listing hai) to dobara OTP nahi chahiye.
+    let trusted = false;
     if (!checkProof(b.proof, phone, user.id)) {
+      const { data: prior } = await admin
+        .from('listings').select('id').eq('owner_id', user.id).eq('phone', phone).eq('phone_verified', true).limit(1);
+      trusted = !!(prior && prior.length);
+    } else {
+      trusted = true;
+    }
+    if (!trusted) {
       return NextResponse.json({ error: 'Phone verification expired. Please verify your phone number again.' }, { status: 403 });
     }
 
