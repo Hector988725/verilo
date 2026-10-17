@@ -54,6 +54,31 @@ function AddListingContent() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [areaSuggestions, setAreaSuggestions] = useState([]);
+  // Isi account se pehle verify ho chuke numbers: inpar dobara OTP nahi (server bhi yahi check karta hai)
+  const [trustedPhones, setTrustedPhones] = useState([]);
+  const phoneTrusted = trustedPhones.includes(String(form.phone || '').replace(/\D/g, '').slice(-10)) && String(form.phone || '').replace(/\D/g, '').length === 10;
+  const phoneOk = phoneTrusted || (phoneVerified && !!phoneProof);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: sd } = await supabase.auth.getSession();
+        const token = sd?.session?.access_token;
+        if (!token) return;
+        const res = await fetch('/api/provider/my-listings', { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) return;
+        const j = await res.json();
+        const phones = [...new Set((j.listings || []).filter((l) => l.phone_verified && /^\d{10}$/.test(String(l.phone))).map((l) => String(l.phone)))];
+        if (cancelled || !phones.length) return;
+        setTrustedPhones(phones);
+        // pehli baar khali ho to wahi number bhar do
+        setForm((f) => (f.phone ? f : { ...f, phone: phones[0] }));
+      } catch (e) {}
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   // Is district me pehle se likhe gaye town/area ke naam suggest karo, taaki spelling ek jaisi rahe (Chachai / chachai).
   useEffect(() => {
@@ -105,7 +130,7 @@ function AddListingContent() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!phoneVerified || !phoneProof) { setError('Please verify your phone number before submitting.'); return; }
+    if (!phoneOk) { setError('Please verify your phone number before submitting.'); return; }
     setSubmitting(true);
     setError('');
     try {
@@ -158,7 +183,7 @@ function AddListingContent() {
           instagram_url: form.instagramUrl || null,
           youtube_url: form.youtubeUrl || null,
           gmb_url: form.gmbUrl || null,
-          proof: phoneProof,
+          proof: phoneTrusted ? '' : phoneProof,
         }),
       });
       const created = await res.json();
@@ -220,23 +245,6 @@ function AddListingContent() {
           <input type="file" accept="image/*" onChange={handlePhoto} />
         </div>
 
-        <label>Cover Banner (optional, but recommended)</label>
-        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '-8px 0 8px' }}>
-          Use a WIDE, landscape photo (not the same as your profile photo above) — your shopfront,
-          you at work, tools, or finished jobs. This is the first thing customers see, so a clear,
-          well-lit photo makes a big difference.
-        </p>
-        {bannerPreview ? (
-          <BannerPositionPicker src={bannerPreview} value={bannerPositionV} onChange={setBannerPositionV} />
-        ) : (
-          <div style={{
-            width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
-          }}>
-            <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>
-          </div>
-        )}
-        <input type="file" accept="image/*" onChange={handleBanner} />
 
         <label>Name *</label>
         <input required value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="e.g. Ramesh Kumar" />
@@ -268,7 +276,11 @@ function AddListingContent() {
 
         <label>Phone Number *</label>
         <input required type="tel" pattern="[0-9]{10}" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="10-digit number" />
-        <PhoneOtpVerify phone={form.phone} verified={phoneVerified} onVerified={(proof) => { setPhoneProof(proof || ''); setPhoneVerified(true); }} />
+        {phoneTrusted ? (
+          <p style={{ color: '#1F6F52', fontSize: 13, fontWeight: 600, margin: '6px 0 0' }}>✅ Ye number aapke account se pehle hi verify ho chuka hai — dobara OTP ki zaroorat nahi.</p>
+        ) : (
+          <PhoneOtpVerify phone={form.phone} verified={phoneVerified} onVerified={(proof) => { setPhoneProof(proof || ''); setPhoneVerified(true); }} />
+        )}
 
         <label>Area / Town *</label>
         <input
@@ -295,6 +307,27 @@ function AddListingContent() {
         <label>Note (optional)</label>
         <textarea value={form.note} onChange={(e) => update('note', e.target.value)} placeholder="e.g. Available 9 AM - 1 PM" />
 
+        <details style={{ marginTop: 14, border: '1.5px solid var(--line)', borderRadius: 12, padding: '10px 12px' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 14 }}>➕ More details (optional) — banner, map, social links</summary>
+          <div style={{ marginTop: 10 }}>
+        <label>Cover Banner (optional, but recommended)</label>
+        <p style={{ fontSize: 12, color: 'var(--muted)', margin: '-8px 0 8px' }}>
+          Use a WIDE, landscape photo (not the same as your profile photo above) — your shopfront,
+          you at work, tools, or finished jobs. This is the first thing customers see, so a clear,
+          well-lit photo makes a big difference.
+        </p>
+        {bannerPreview ? (
+          <BannerPositionPicker src={bannerPreview} value={bannerPositionV} onChange={setBannerPositionV} />
+        ) : (
+          <div style={{
+            width: '100%', height: 90, borderRadius: 12, background: '#F3EEDD', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', overflow: 'hidden', border: '2px dashed #ddd6c4', marginBottom: 8,
+          }}>
+            <span style={{ color: 'var(--muted)', fontSize: 13 }}>🖼️ No banner selected</span>
+          </div>
+        )}
+        <input type="file" accept="image/*" onChange={handleBanner} />
+
         <label>Google Maps / Business Profile Link (optional)</label>
         <input
           value={form.mapsLink}
@@ -308,10 +341,13 @@ function AddListingContent() {
         <input value={form.youtubeUrl} onChange={(e) => update('youtubeUrl', e.target.value)} placeholder="YouTube channel link" style={{ marginBottom: 8 }} />
         <input value={form.gmbUrl} onChange={(e) => update('gmbUrl', e.target.value)} placeholder="Google Business Profile link" />
 
+          </div>
+        </details>
+
         {error && <p style={{ color: '#9C2E20', fontSize: 13.5, marginTop: 10 }}>{error}</p>}
 
-        <button className="btn-primary" type="submit" disabled={submitting || !phoneVerified}>
-          {submitting ? 'Adding...' : !phoneVerified ? 'Verify phone to continue' : 'Add Listing'}
+        <button className="btn-primary" type="submit" disabled={submitting || !phoneOk}>
+          {submitting ? 'Adding...' : !phoneOk ? 'Verify phone to continue' : 'Add Listing'}
         </button>
         <p className="status-note">Your listing goes live as soon as you complete payment (starts at ₹30/month)</p>
       </form>
