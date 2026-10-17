@@ -33,6 +33,8 @@ function ProviderLoginContent() {
   const [err, setErr] = useState('');
   const [info, setInfo] = useState('');
   const [busy, setBusy] = useState(false);
+  // 'signup' / 'forgot' = mail bhej di gayi: tab form chhupakar sirf "mail check karo" sandesh dikhao
+  const [sent, setSent] = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -45,7 +47,7 @@ function ProviderLoginContent() {
       try {
         const { error } = await resetPassword(email.trim());
         if (error) setErr(error.message);
-        else setInfo('If an account exists for that email, a reset link has been sent. Check your inbox.');
+        else setSent('forgot');
       } catch (err2) {
         setErr(err2?.message || 'Something went wrong. Please try again.');
       } finally {
@@ -62,7 +64,7 @@ function ProviderLoginContent() {
       if (mode === 'signup') {
         const { error } = await signUp(name.trim(), email.trim(), password);
         if (error) setErr(error.message);
-        else setInfo('✅ Account created! Check your email inbox (and Spam/Promotions folder) for a confirmation link. Once confirmed, come back here and Sign In.');
+        else setSent('signup');
       } else {
         const { error } = await signIn(email.trim(), password);
         if (error) { setErr(error.message); return; }
@@ -85,6 +87,30 @@ function ProviderLoginContent() {
         List your business, manage it anytime, and pay to stay visible — all from one account.
       </p>
 
+      {sent ? (
+        <div className="form-card" style={{ width: '100%', maxWidth: 360, marginTop: 20, textAlign: 'left' }}>
+          <div style={{ background: 'rgba(31,111,82,0.1)', border: '1.5px solid #1F6F52', borderRadius: 10, padding: '14px 14px' }}>
+            <p style={{ color: '#1F6F52', fontSize: 15, fontWeight: 700, margin: 0 }}>
+              {sent === 'signup' ? '✅ Account created! Ab apna email check karo' : '✅ Reset link bhej diya gaya hai'}
+            </p>
+            <p style={{ color: 'var(--ink)', fontSize: 13.5, margin: '8px 0 0', lineHeight: 1.5 }}>
+              {sent === 'signup'
+                ? <>Humne <b>{email.trim()}</b> par confirmation link bheja hai. Inbox ke saath <b>Spam / Promotions</b> folder bhi dekho. Link par click karte hi aap seedha andar aa jaoge.</>
+                : <>Agar <b>{email.trim()}</b> par account hai to reset link bhej diya gaya hai. Inbox aur <b>Spam</b> folder dekho.</>}
+            </p>
+          </div>
+          {sent === 'signup' && (
+            <button className="btn-primary" type="button" onClick={() => { setSent(''); setMode('signin'); setPassword(''); setErr(''); setInfo(''); }} style={{ marginTop: 14 }}>
+              Maine confirm kar liya — Sign In
+            </button>
+          )}
+          <p style={{ textAlign: 'center', marginTop: 12 }}>
+            <span onClick={() => { setSent(''); setPassword(''); setErr(''); setInfo(''); if (sent === 'forgot') setMode('signin'); }} style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline', cursor: 'pointer' }}>
+              {sent === 'signup' ? 'Galat email? Dobara bharo' : '← Back to Sign In'}
+            </span>
+          </p>
+        </div>
+      ) : (
       <div className="form-card" style={{ width: '100%', maxWidth: 360, marginTop: 20, textAlign: 'left' }}>
         {mode !== 'forgot' && (
           <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
@@ -149,6 +175,7 @@ function ProviderLoginContent() {
           )}
         </form>
       </div>
+      )}
     </div>
   );
 }

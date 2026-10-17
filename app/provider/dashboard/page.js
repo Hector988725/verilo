@@ -145,9 +145,25 @@ export default function ProviderDashboard() {
         </div>
       ))}
 
-      <Link href="/?next=add" className="btn-primary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', background: 'var(--ink)', boxShadow: 'none', marginTop: 8 }}>
-        + List a New Service
-      </Link>
+      {/* Pehle se listing hai to usi district me seedha form khule (dobara state/district nahi puchna). Doosri jagah ke liye alag link. */}
+      {(() => {
+        const c = (listings || []).find((l) => l.cities?.name)?.cities;
+        const addHref = c ? `/city/${encodeURIComponent(c.name)}/add${c.state ? '?state=' + encodeURIComponent(c.state) : ''}` : '/?next=add';
+        return (
+          <>
+            <Link href={addHref} className="btn-primary" style={{ display: 'block', textAlign: 'center', textDecoration: 'none', background: 'var(--ink)', boxShadow: 'none', marginTop: 8 }}>
+              + List a New Service{c ? ` in ${c.name}` : ''}
+            </Link>
+            {c && (
+              <p style={{ textAlign: 'center', marginTop: 10 }}>
+                <Link href="/?next=add" style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline' }}>
+                  Different district? Choose another location
+                </Link>
+              </p>
+            )}
+          </>
+        );
+      })()}
     </div>
   );
 }
