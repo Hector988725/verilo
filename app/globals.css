@@ -216,16 +216,16 @@ h1 {
   box-shadow: 0 6px 14px rgba(27,110,61,0.28);
 }
 /* ---- Shop card (Dukaan Order System shops, shown mixed with providers) ---- */
-.shop-card { align-items: flex-start; flex-wrap: wrap; }
+.shop-card { align-items: flex-start; flex-wrap: wrap; position: relative; cursor: pointer; }
 .shop-card .listing-body { flex: 1 1 150px; }
-.shop-sells, .shop-match { font-size: 11.5px; margin: 3px 0 0; color: var(--ink); line-height: 1.35; }
-.shop-sells b, .shop-match b { color: var(--muted); font-weight: 700; }
-.shop-match { color: var(--marigold-deep); font-weight: 600; }
+.shop-link { display: block; color: inherit; text-decoration: none; }
+.shop-link::after { content: ''; position: absolute; inset: 0; z-index: 0; border-radius: inherit; }
+.shop-sells, .shop-match { font-size: 12.5px; margin: 3px 0 0; color: var(--ink); line-height: 1.35; font-weight: 600; }
+.shop-match { color: var(--marigold-deep); }
 .shop-actions { flex: 1 1 100%; display: flex; gap: 8px; margin-top: 4px; }
-.shop-actions .listing-call-btn { flex: 1 1 auto; }
-.shop-order-btn { background: var(--navy); box-shadow: 0 6px 14px rgba(22,35,46,0.28); }
-.shop-wa-btn { flex: 0 0 auto; }
-.shop-maps-btn { flex: 0 0 auto; background: var(--paper-dim); color: var(--ink); box-shadow: none; border: 1px solid var(--line); }
+.shop-actions .listing-call-btn { flex: 1 1 auto; text-align: center; }
+.shop-order-btn { background: var(--navy); box-shadow: 0 6px 14px rgba(22,35,46,0.28); pointer-events: none; }
+.shop-maps-btn { flex: 0 0 auto !important; position: relative; z-index: 1; background: var(--paper-dim); color: var(--ink); box-shadow: none; border: 1px solid var(--line); }
 .listings-grid-v2 { display: block; }
 @media (min-width: 640px) {
   .listings-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
