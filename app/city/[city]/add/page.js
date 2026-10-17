@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -53,6 +53,35 @@ function AddListingContent() {
   const [phoneProof, setPhoneProof] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [areaSuggestions, setAreaSuggestions] = useState([]);
+
+  // Is district me pehle se likhe gaye town/area ke naam suggest karo, taaki spelling ek jaisi rahe (Chachai / chachai).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        let cq = supabase.from('cities').select('id').ilike('name', city);
+        if (stateFromUrl) cq = cq.eq('state', stateFromUrl);
+        const { data: c } = await cq.maybeSingle();
+        if (!c || cancelled) return;
+        const { data: rows } = await supabase.from('listings').select('area').eq('city_id', c.id).eq('is_active', true).limit(500);
+        const counts = new Map();
+        for (const r of rows || []) {
+          const a = String(r.area || '').trim().replace(/\s+/g, ' ');
+          if (a.length >= 2) counts.set(a, (counts.get(a) || 0) + 1);
+        }
+        // ek hi naam ke alag-alag roop ho to sabse zyada likha gaya rakho
+        const byKey = new Map();
+        for (const [a, n] of counts) {
+          const k = a.toLowerCase();
+          const cur = byKey.get(k);
+          if (!cur || n > cur.n) byKey.set(k, { a, n });
+        }
+        if (!cancelled) setAreaSuggestions([...byKey.values()].sort((x, y) => y.n - x.n).map((x) => x.a));
+      } catch (e) {}
+    })();
+    return () => { cancelled = true; };
+  }, [city, stateFromUrl]);
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -241,8 +270,24 @@ function AddListingContent() {
         <input required type="tel" pattern="[0-9]{10}" value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="10-digit number" />
         <PhoneOtpVerify phone={form.phone} verified={phoneVerified} onVerified={(proof) => { setPhoneProof(proof || ''); setPhoneVerified(true); }} />
 
-        <label>Area / Locality</label>
-        <input value={form.area} onChange={(e) => update('area', e.target.value)} placeholder="e.g. Gandhi Nagar" />
+        <label>Area / Town *</label>
+        <input
+          required
+          list="area-suggestions"
+          value={form.area}
+          onChange={(e) => update('area', e.target.value)}
+          onBlur={() => {
+            // pehle se likhe naam se match ho to uski spelling use karo
+            const hit = areaSuggestions.find((a) => a.toLowerCase() === form.area.trim().replace(/\s+/g, ' ').toLowerCase());
+            if (hit && hit !== form.area) update('area', hit);
+          }}
+          placeholder="e.g. Chachai, Kotma, Gandhi Nagar"
+          maxLength={60}
+          autoComplete="off"
+        />
+        <datalist id="area-suggestions">
+          {areaSuggestions.map((a) => <option key={a} value={a} />)}
+        </datalist>
 
         <label>Pincode (optional)</label>
         <input value={form.pincode} onChange={(e) => update('pincode', e.target.value)} placeholder="e.g. 484116" maxLength={6} />
