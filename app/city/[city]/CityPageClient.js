@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import { CATEGORIES, catLabel, catColor, catTagline, initials } from '../../../lib/categories';
 import { CategoryIcon } from '../../../lib/categoryIcons';
 import { shareApp } from '../../../lib/shareApp';
+import { MIN_RATINGS_FOR_AVG, ratingLabel } from '../../../lib/ratings';
 import { trackEvent } from '../../../lib/track';
 import { useLanguage } from '../../../components/LanguageProvider';
 
@@ -155,7 +156,8 @@ function CityPageContent() {
   const withRating = listings.map((l) => {
     const stars = (l.ratings || []).map((r) => r.stars);
     const avg = stars.length ? stars.reduce((a, b) => a + b, 0) / stars.length : null;
-    return { ...l, avgRating: avg, ratingCount: stars.length };
+    // 3 se kam reviews par average/star nahi dikhate (aur ranking me bhi nahi gintey)
+    return { ...l, avgRating: stars.length >= MIN_RATINGS_FOR_AVG ? avg : null, ratingCount: stars.length };
   });
 
   // Town/area ki list listings ke "Area / Locality" se apne aap banti hai (koi fixed list nahi, poore desh me chalega).
@@ -251,7 +253,7 @@ function CityPageContent() {
         <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>
         <p className="listing-name">{item.name}</p>
         <p className="listing-rating">
-          {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : t('no_ratings_yet')}
+          {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : item.ratingCount > 0 ? ratingLabel(item.ratingCount) : t('no_ratings_yet')}
         </p>
         {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
         <p className="listing-avail">

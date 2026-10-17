@@ -69,6 +69,7 @@ export default function ProfileClient() {
   const [authErr, setAuthErr] = useState('');
   const [authInfo, setAuthInfo] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
+  const [authSent, setAuthSent] = useState(false); // confirmation mail bhej di: form chhupao
 
   async function load() {
     // Explicit column list — this is a public page, so never select('*'),
@@ -79,7 +80,8 @@ export default function ProfileClient() {
       .eq('id', id)
       .single();
     setListing(listingData);
-    const { data: ratingData } = await supabase.from('ratings').select('*').eq('listing_id', id).order('created_at', { ascending: false });
+    // customer_id (account ID) public page par nahi bhejte
+    const { data: ratingData } = await supabase.from('ratings').select('id, listing_id, stars, review_text, reviewer_name, created_at').eq('listing_id', id).order('created_at', { ascending: false });
     setRatings(ratingData || []);
   }
 
@@ -89,11 +91,11 @@ export default function ProfileClient() {
   useEffect(() => {
     if (!user) { setMyRating(null); return; }
     setReviewerName((n) => n || user.user_metadata?.full_name || '');
-    supabase.from('ratings').select('*').eq('listing_id', id).eq('customer_id', user.id).maybeSingle()
+    supabase.from('ratings').select('id, stars, review_text').eq('listing_id', id).eq('customer_id', user.id).maybeSingle()
       .then(({ data }) => setMyRating(data || null));
   }, [user, id]);
 
-  const avg = ratings.length ? ratings.reduce((a, r) => a + r.stars, 0) / ratings.length : null;
+  const avg = ratings.length >= MIN_RATINGS_FOR_AVG ? ratings.reduce((a, r) => a + r.stars, 0) / ratings.length : null;
 
   async function handleAuthSubmit(e) {
     e.preventDefault();
@@ -106,7 +108,7 @@ export default function ProfileClient() {
     if (authMode === 'signup') {
       const { error } = await signUp(authName.trim(), authEmail.trim(), authPassword);
       if (error) setAuthErr(error.message);
-      else setAuthInfo('Account created! Check your email to confirm, then sign in below.');
+      else setAuthSent(true);
     } else {
       const { error } = await signIn(authEmail.trim(), authPassword);
       if (error) setAuthErr(error.message);
@@ -119,12 +121,18 @@ export default function ProfileClient() {
     if (!reviewerName.trim()) { setReviewErr('Please enter your name.'); return; }
     setReviewErr('');
     setSubmittingReview(true);
-    const { error } = await supabase.from('ratings').insert({
-      listing_id: id, customer_id: user.id, stars: starValue, review_text: reviewText.trim() || null,
-      reviewer_name: reviewerName.trim(),
-    });
+    let errMsg = '';
+    try {
+      const { data: sd } = await supabase.auth.getSession();
+      const res = await fetch('/api/rating/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sd?.session?.access_token || ''}` },
+        body: JSON.stringify({ listing_id: id, stars: starValue, review_text: reviewText.trim() || null, reviewer_name: reviewerName.trim() }),
+      });
+      if (!res.ok) { const j = await res.json().catch(() => ({})); errMsg = j.error || 'Could not save your rating. Please try again.'; }
+    } catch (e) { errMsg = 'Network problem. Please try again.'; }
     setSubmittingReview(false);
-    if (error) { setReviewErr(error.message); return; }
+    if (errMsg) { setReviewErr(errMsg); return; }
     setStarValue(0);
     setReviewText('');
     setWantsToReview(false);
@@ -134,8 +142,18 @@ export default function ProfileClient() {
   async function reportListing() {
     const reason = prompt('Briefly describe the issue with this listing:');
     if (!reason) return;
-    await supabase.from('reports').insert({ listing_id: id, reason });
-    alert('Thanks — we will review this listing.');
+    try {
+      const res = await fetch('/api/report/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listing_id: id, reason }),
+      });
+      if (res.ok) { alert('Thanks — we will review this listing.'); return; }
+      const j = await res.json().catch(() => ({}));
+      alert(j.error || 'Could not send your report. Please try again.');
+    } catch (e) {
+      alert('Network problem. Please try again.');
+    }
   }
 
   if (!listing) return <div className="wrap"><p style={{ textAlign: 'center', color: 'var(--muted)' }}>Loading...</p></div>;
@@ -215,7 +233,7 @@ export default function ProfileClient() {
         <h2 className="profile-name">{listing.name}</h2>
         <div className="profile-service" style={{ background: catColor(listing.service), color: '#fff' }}>{catLabel(listing.service)}</div>
         <p className="profile-meta" style={{ color: 'var(--star)', fontWeight: 700, display: 'inline-block', marginRight: 12 }}>
-          ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : 'New — no ratings yet'}
+          ★ {avg ? `${avg.toFixed(1)} (${ratings.length})` : ratings.length > 0 ? ratingLabel(ratings.length) : 'New — no ratings yet'}
         </p>
         <p className="profile-meta" style={{ color: listing.is_available === false ? 'var(--vermillion)' : '#1F6F52', fontWeight: 700, display: 'inline-block' }}>
           {listing.is_available === false ? '🔴 Not available now' : '🟢 Available now'}
@@ -318,7 +336,20 @@ export default function ProfileClient() {
               <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 6 }}>You've already reviewed this listing. Thanks!</p>
             </div>
           ) : !user ? (
-            wantsToReview ? (
+            wantsToReview && authSent ? (
+              <div style={{ background: 'rgba(31,111,82,0.1)', border: '1.5px solid #1F6F52', borderRadius: 10, padding: 14 }}>
+                <p style={{ color: '#1F6F52', fontWeight: 700, margin: 0 }}>✅ Account created! Ab apna email check karo</p>
+                <p style={{ fontSize: 13.5, margin: '8px 0 0', lineHeight: 1.5 }}>
+                  <b>{authEmail.trim()}</b> par confirmation link bheja hai (Spam/Promotions bhi dekho). Confirm karne ke baad yahan wapas aakar Sign In karo.
+                </p>
+                <button className="btn-primary" type="button" onClick={() => { setAuthSent(false); setAuthMode('signin'); setAuthPassword(''); setAuthErr(''); setAuthInfo(''); }} style={{ marginTop: 12 }}>
+                  Maine confirm kar liya — Sign In
+                </button>
+                <p style={{ textAlign: 'center', marginTop: 10 }}>
+                  <span onClick={() => { setAuthSent(false); setAuthPassword(''); }} style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline', cursor: 'pointer' }}>Galat email? Dobara bharo</span>
+                </p>
+              </div>
+            ) : wantsToReview ? (
               <div>
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                   <button type="button" className={'tab' + (authMode === 'signin' ? ' active' : '')} onClick={() => { setAuthMode('signin'); setAuthErr(''); setAuthInfo(''); }} style={{ flex: 1, textAlign: 'center' }}>Sign In</button>
