@@ -49,7 +49,7 @@ export default function ProfileClient() {
   const router = useRouter();
   const city = decodeURIComponent(params.city);
   const id = params.id;
-  const { user, signIn, signUp } = useAuth();
+  const { user, signIn, signUp, signOut } = useAuth();
 
   const [listing, setListing] = useState(null);
   const [ratings, setRatings] = useState([]);
@@ -327,6 +327,12 @@ export default function ProfileClient() {
 
         <div className="profile-section">
           <h3>Used their service? Rate it</h3>
+          {user && (
+            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '0 0 8px' }}>
+              Signed in as {user.email} ·{' '}
+              <a href="#" onClick={(e) => { e.preventDefault(); signOut(); }} style={{ textDecoration: 'underline' }}>Sign out</a>
+            </p>
+          )}
 
           {myRating ? (
             <div>
