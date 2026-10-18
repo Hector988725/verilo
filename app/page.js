@@ -52,6 +52,8 @@ export default function HomePage() {
   const [existingDistricts, setExistingDistricts] = useState([]);
   const [locating, setLocating] = useState(false);
   const [locateErr, setLocateErr] = useState('');
+  const [navigating, setNavigating] = useState('');
+  const [loadingDistricts, setLoadingDistricts] = useState(false);
 
   function detectLocation() {
     if (!navigator.geolocation) { setLocateErr('Location is not supported on this browser.'); return; }
@@ -97,9 +99,12 @@ export default function HomePage() {
   function pickState(state) {
     setSelectedState(state);
     setStep('district');
+    setExistingDistricts([]);
+    setLoadingDistricts(true);
     supabase.from('cities').select('name').eq('state', state).order('name').then(({ data }) => {
       setExistingDistricts((data || []).map((c) => c.name));
-    });
+      setLoadingDistricts(false);
+    }, () => setLoadingDistricts(false));
   }
 
   const filteredDistricts = existingDistricts.filter((d) =>
@@ -108,6 +113,8 @@ export default function HomePage() {
   const exactMatch = existingDistricts.some((d) => d.toLowerCase() === districtQuery.trim().toLowerCase());
 
   function goToDistrict(district) {
+    if (navigating) return;
+    setNavigating(district.trim());
     const base = '/city/' + encodeURIComponent(district.trim());
     const qs = '?state=' + encodeURIComponent(selectedState);
     router.push(addIntent ? `${base}/add${qs}` : `${base}${qs}`);
@@ -141,7 +148,7 @@ export default function HomePage() {
         />
         <div className="city-list">
           {filteredStates.map((s) => (
-            <a key={s} className="city-item" onClick={() => pickState(s)} href="#">{s}</a>
+            <a key={s} className="city-item" onClick={(e) => { e.preventDefault(); pickState(s); }} href="#">{s}</a>
           ))}
           {filteredStates.length === 0 && (
             <p style={{ color: 'var(--muted)', fontSize: 13.5, textAlign: 'center' }}>{t('no_matching_state')}</p>
@@ -186,8 +193,9 @@ export default function HomePage() {
       />
       <div className="city-list">
         {filteredDistricts.map((d) => (
-          <a key={d} className="city-item" onClick={() => goToDistrict(d)} href="#">{d}</a>
+          <a key={d} className="city-item" onClick={(e) => { e.preventDefault(); goToDistrict(d); }} href="#" style={navigating === d ? { opacity: 0.6 } : undefined}>{d}{navigating === d ? ' — opening…' : ''}</a>
         ))}
+        {loadingDistricts && <p style={{ color: 'var(--muted)', fontSize: 13.5, textAlign: 'center' }}>Loading…</p>}
       </div>
       {districtQuery.trim() && !exactMatch && (
         <p style={{ marginTop: 16, fontSize: 13.5, color: 'var(--marigold-deep)', cursor: 'pointer', fontWeight: 600 }} onClick={() => goToDistrict(districtQuery)}>
