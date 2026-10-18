@@ -7,6 +7,7 @@ import { catLabel, catColor, catReviewPrompt } from '../../../../lib/categories'
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 import { useAuth } from '../../../../components/AuthProvider';
 import { trackEvent } from '../../../../lib/track';
+import { MIN_RATINGS_FOR_AVG, ratingLabel } from '../../../../lib/ratings';
 
 function WhatsAppIcon(props) {
   return (
