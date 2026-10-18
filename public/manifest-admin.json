@@ -1,0 +1,26 @@
+{
+  "name": "Verilo Admin",
+  "short_name": "Verilo Admin",
+  "description": "Verilo owner panel: reports, dues and districts.",
+  "id": "/admin/",
+  "start_url": "/admin/reports",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#9C2E20",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/admin-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/admin-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

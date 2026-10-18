@@ -1,4 +1,4 @@
-const CACHE_NAME = 'verilo-v1';
+const CACHE_NAME = 'verilo-v2';
 const OFFLINE_URLS = ['/', '/manifest.json', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -21,11 +21,17 @@ self.addEventListener('activate', (event) => {
 // fall back to cache only when offline.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Never cache or intercept API calls or the owner/provider panels: they carry
+  // private data (reports, dues, provider details) that must not sit in cache storage.
+  const path = new URL(event.request.url).pathname;
+  if (path.startsWith('/api/') || path.startsWith('/admin') || path.startsWith('/provider')) return;
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
         return response;
       })
       .catch(() => caches.match(event.request))

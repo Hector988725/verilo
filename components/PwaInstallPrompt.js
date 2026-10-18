@@ -1,9 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function PwaInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [visible, setVisible] = useState(false);
+  const pathname = usePathname() || '';
+  const app = pathname.startsWith('/admin') ? 'admin' : pathname.startsWith('/provider') ? 'provider' : 'main';
+  const label = app === 'admin' ? 'Install Verilo Admin' : app === 'provider' ? 'Install Verilo Provider' : 'Install Verilo for quick access';
+  const iconSrc = app === 'main' ? '/icons/icon-192.png' : `/icons/${app}-192.png`;
 
   useEffect(() => {
     function handler(e) {
@@ -39,10 +44,10 @@ export default function PwaInstallPrompt() {
         width: 40, height: 40, borderRadius: 12, flex: '0 0 auto', overflow: 'hidden',
         border: '1px solid rgba(36,31,22,0.10)',
       }}>
-        <img src="/icons/icon-192.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={iconSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </span>
       <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.3, flex: 1 }}>
-        Install Verilo for quick access
+        {label}
       </span>
       <button
         onClick={install}

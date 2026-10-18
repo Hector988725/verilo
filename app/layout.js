@@ -8,13 +8,14 @@ export const metadata = {
   title: 'Verilo — Trusted local professionals',
   description: 'Find trusted plumbers, electricians, tutors and more in your area.',
   manifest: '/manifest.json',
-  themeColor: '#FFFFFF',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Verilo',
   },
 };
+
+export const viewport = { themeColor: '#FFFFFF' };
 
 export default function RootLayout({ children }) {
   return (
@@ -25,8 +26,6 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Mukta:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <meta name="theme-color" content="#FFFFFF" />
       </head>
       <body>
         <AuthProvider>
