@@ -8,6 +8,7 @@ export default function DueListPage() {
   const [passInput, setPassInput] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [linkModal, setLinkModal] = useState(null); // { name, link } | null
@@ -20,13 +21,23 @@ export default function DueListPage() {
 
   async function handleLogin(e) {
     e.preventDefault();
+    if (signingIn) return;
     setLoginError('');
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passcode: passInput }),
-    });
-    if (res.ok) {
+    setSigningIn(true);
+    let res;
+    try {
+      res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: passInput }),
+      });
+    } catch (err) {
+      res = null;
+    }
+    setSigningIn(false);
+    if (!res) {
+      setLoginError('Network problem, please try again');
+    } else if (res.ok) {
       localStorage.setItem('verilo_admin_ok', '1'); // convenience flag only — real check is server-side
       setUnlocked(true);
     } else {
@@ -117,7 +128,7 @@ export default function DueListPage() {
               </button>
             </div>
             {loginError && <p style={{ color: '#9C2E20', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
-            <button className="btn-primary" type="submit">Enter</button>
+            <button className="btn-primary" type="submit" disabled={signingIn}>{signingIn ? 'Checking...' : 'Enter'}</button>
           </form>
         </div>
       </div>

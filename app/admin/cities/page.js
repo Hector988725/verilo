@@ -7,6 +7,7 @@ export default function AdminCitiesPage() {
   const [passInput, setPassInput] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
   const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -21,13 +22,23 @@ export default function AdminCitiesPage() {
 
   async function handleLogin(e) {
     e.preventDefault();
+    if (signingIn) return;
     setLoginError('');
-    const res = await fetch('/api/admin/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ passcode: passInput }),
-    });
-    if (res.ok) {
+    setSigningIn(true);
+    let res;
+    try {
+      res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode: passInput }),
+      });
+    } catch (err) {
+      res = null;
+    }
+    setSigningIn(false);
+    if (!res) {
+      setLoginError('Network problem, please try again');
+    } else if (res.ok) {
       localStorage.setItem('verilo_admin_ok', '1');
       setUnlocked(true);
     } else {
@@ -113,7 +124,7 @@ export default function AdminCitiesPage() {
               </button>
             </div>
             {loginError && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{loginError}</p>}
-            <button className="btn-primary" type="submit">Enter</button>
+            <button className="btn-primary" type="submit" disabled={signingIn}>{signingIn ? 'Checking...' : 'Enter'}</button>
           </form>
         </div>
       </div>
