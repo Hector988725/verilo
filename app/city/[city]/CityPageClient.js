@@ -103,6 +103,22 @@ function CityPageContent() {
   const [sortBy, setSortBy] = useState('rating');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [reviewFor, setReviewFor] = useState(null);
+  const [reviewRows, setReviewRows] = useState([]);
+  const [reviewLoading, setReviewLoading] = useState(false);
+
+  function openReviews(item) {
+    setReviewFor(item);
+    setReviewRows([]);
+    setReviewLoading(true);
+    supabase
+      .from('ratings')
+      .select('id, stars, review_text, reviewer_name, created_at')
+      .eq('listing_id', item.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => { setReviewRows(data || []); setReviewLoading(false); }, () => setReviewLoading(false));
+  }
 
   useEffect(() => {
     async function load() {
@@ -252,7 +268,11 @@ function CityPageContent() {
       <div className="listing-body">
         <p className="listing-service" style={{ color: catColor(item.service) }}>{catLabel(item.service)}</p>
         <p className="listing-name">{item.name}</p>
-        <p className="listing-rating">
+        <p
+          className="listing-rating"
+          style={item.ratingCount > 0 ? { cursor: 'pointer', textDecoration: 'underline' } : undefined}
+          onClick={item.ratingCount > 0 ? (e) => { e.preventDefault(); e.stopPropagation(); openReviews(item); } : undefined}
+        >
           {item.avgRating ? <><Stars value={item.avgRating} /> {item.avgRating.toFixed(1)} ({item.ratingCount})</> : item.ratingCount > 0 ? ratingLabel(item.ratingCount) : t('no_ratings_yet')}
         </p>
         {item.area && <p className="listing-meta">📍 {item.area}{item.pincode ? ` - ${item.pincode}` : ''}</p>}
@@ -425,6 +445,30 @@ function CityPageContent() {
           <ShopCard key={'shop-' + m.s.store_id} shop={m.s} q={q} t={t} lang={lang} />
         ) : providerCard(m.l))}
       </div>
+
+      {reviewFor && (
+        <div onClick={() => setReviewFor(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--paper, #fff)', width: '100%', maxWidth: 520, maxHeight: '75vh', overflowY: 'auto', borderRadius: '14px 14px 0 0', padding: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <strong style={{ fontSize: 16 }}>{reviewFor.name} — {ratingLabel(reviewFor.ratingCount)}</strong>
+              <button onClick={() => setReviewFor(null)} aria-label="Close" style={{ border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            {reviewLoading && <p style={{ color: 'var(--muted)', fontSize: 13.5 }}>Loading…</p>}
+            {!reviewLoading && reviewRows.length === 0 && <p style={{ color: 'var(--muted)', fontSize: 13.5 }}>No reviews yet.</p>}
+            {reviewRows.map((r) => (
+              <div key={r.id} style={{ padding: '10px 0', borderTop: '1px solid var(--line)' }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700 }}>
+                  <Stars value={r.stars} /> <span style={{ marginLeft: 6 }}>{r.reviewer_name || 'Customer'}</span>
+                </div>
+                {r.review_text && <p style={{ margin: '4px 0 0', fontSize: 14 }}>{r.review_text}</p>}
+              </div>
+            ))}
+            <Link href={`/city/${encodeURIComponent(city)}/${reviewFor.id}`} style={{ display: 'block', marginTop: 12, textAlign: 'center', fontWeight: 700, fontSize: 14 }}>
+              View full profile →
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
