@@ -10,6 +10,9 @@ import { MIN_RATINGS_FOR_AVG, ratingLabel } from '../../../lib/ratings';
 import { trackEvent } from '../../../lib/track';
 import { useLanguage } from '../../../components/LanguageProvider';
 
+// City Shops view shows shops 20 at a time ("Show more" adds the next 20).
+const SHOPS_PAGE_SIZE = 20;
+
 export default function CityPageClient() {
   return (
     <Suspense fallback={<div className="wrap"><p style={{ textAlign: 'center', color: 'var(--muted)' }}>Loading...</p></div>}>
@@ -78,7 +81,7 @@ function ShopCard({ shop, q, t, lang }) {
         <p className="listing-meta">{[items, shop.timings && `🕐 ${shop.timings}`].filter(Boolean).join(' · ')}</p>
       </div>
       <div className="shop-actions">
-        <span className="listing-call-btn shop-order-btn">🛒 {t('order_online')} →</span>
+        <span className="listing-call-btn shop-order-btn">{t('order_online')} →</span>
         {shop.maps_url && (
           <a className="listing-call-btn shop-maps-btn" href={shop.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Directions">📍</a>
         )}
@@ -104,6 +107,7 @@ function CityPageContent() {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [loading, setLoading] = useState(true);
   const [reviewFor, setReviewFor] = useState(null);
+  const [shopsShown, setShopsShown] = useState(SHOPS_PAGE_SIZE); // City Shops page: 20 at a time
   const [reviewRows, setReviewRows] = useState([]);
   const [reviewLoading, setReviewLoading] = useState(false);
 
@@ -254,6 +258,9 @@ function CityPageContent() {
     return out;
   }, [filtered, visibleShops, activeTab, q]);
 
+  // Back to the first 20 whenever the view, search or area changes.
+  useEffect(() => { setShopsShown(SHOPS_PAGE_SIZE); }, [activeTab, q, areaKey]);
+
   const addHref = `/city/${encodeURIComponent(city)}/add${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`;
 
   const providerCard = (item) => (
@@ -386,6 +393,27 @@ function CityPageContent() {
         </div>
       )}
 
+      {shops.length > 0 && (
+        <button
+          onClick={() => setActiveTab(activeTab === 'shops' ? 'all' : 'shops')}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%',
+            padding: '12px 16px', margin: '0 0 12px', borderRadius: 12, cursor: 'pointer',
+            fontWeight: 700, fontSize: 14.5, fontFamily: 'inherit',
+            background: activeTab === 'shops' ? '#fff' : catColor('shops'),
+            color: activeTab === 'shops' ? catColor('shops') : '#fff',
+            border: `1.5px solid ${catColor('shops')}`,
+          }}
+        >
+          {activeTab === 'shops' ? t('all_services_btn') : (
+            <>
+              <CategoryIcon name="shops" width={20} height={20} />
+              {t('city_shops_btn')} · {shops.length} {t('shops_count_word')}
+            </>
+          )}
+        </button>
+      )}
+
       <div className="cat-strip">
         {CATEGORIES.map((cat) => (
           <button
@@ -442,10 +470,19 @@ function CityPageContent() {
       )}
 
       <div className="listings-grid-v2">
-        {mixed.map((m) => m.kind === 'shop' ? (
+        {(activeTab === 'shops' ? mixed.slice(0, shopsShown) : mixed).map((m) => m.kind === 'shop' ? (
           <ShopCard key={'shop-' + m.s.store_id} shop={m.s} q={q} t={t} lang={lang} />
         ) : providerCard(m.l))}
       </div>
+
+      {activeTab === 'shops' && mixed.length > shopsShown && (
+        <button
+          onClick={() => setShopsShown((n) => n + SHOPS_PAGE_SIZE)}
+          style={{ display: 'block', margin: '16px auto 0', padding: '10px 22px', borderRadius: 999, border: `1.5px solid ${catColor('shops')}`, background: '#fff', color: catColor('shops'), fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
+        >
+          {t('show_more_shops')} ({mixed.length - shopsShown})
+        </button>
+      )}
 
       {reviewFor && (
         <div onClick={() => setReviewFor(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
