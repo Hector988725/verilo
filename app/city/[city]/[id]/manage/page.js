@@ -243,6 +243,19 @@ function ManageContent() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       <Link href={`/city/${encodeURIComponent(city)}/${id}`} className="back-link">← View my public profile</Link>
 
+      {isWelcome && (
+        <div className="profile-card" style={{ background: '#FFFFFF', border: '1.5px solid rgba(36,31,22,0.12)' }}>
+          <h3>📱 Get the Verilo Provider app</h3>
+          <p style={{ margin: '0 0 10px' }}>
+            Manage your listing and see your reviews in one tap from your home screen.
+          </p>
+          {/* Plain link on purpose: the provider area is its own installable app and must load fresh. */}
+          <a href="/provider/dashboard?install=1" className="btn-primary" style={{ display: 'inline-block', width: 'auto', padding: '8px 16px', textDecoration: 'none', margin: 0 }}>
+            Open Provider app
+          </a>
+        </div>
+      )}
+
       {isWelcome && !listing.is_active && (
         <div className="profile-card" style={{ background: '#F3EEDD', border: '1.5px dashed #8C6224' }}>
           <h3>👋 Almost there!</h3>

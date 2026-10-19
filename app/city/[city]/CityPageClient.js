@@ -327,7 +327,8 @@ function CityPageContent() {
           >
             {t('register')}
           </Link>
-          <Link
+          {/* Plain link on purpose: the provider area is its own installable app, so it must load with its own manifest. */}
+          <a
             href="/provider/dashboard"
             style={{
               display: 'inline-flex', alignItems: 'center', padding: '7px 14px', fontSize: 12.5, fontWeight: 700,
@@ -336,7 +337,7 @@ function CityPageContent() {
             }}
           >
             My Dashboard
-          </Link>
+          </a>
         </div>
       </div>
 
