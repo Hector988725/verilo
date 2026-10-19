@@ -9,6 +9,7 @@ import { shareApp } from '../../../lib/shareApp';
 import { MIN_RATINGS_FOR_AVG, ratingLabel } from '../../../lib/ratings';
 import { trackEvent } from '../../../lib/track';
 import { useLanguage } from '../../../components/LanguageProvider';
+import { ShopCard, productHits } from '../../../components/ShopCard';
 
 // City Shops view shows shops 20 at a time ("Show more" adds the next 20).
 const SHOPS_PAGE_SIZE = 20;
@@ -37,57 +38,6 @@ function greetingWord(t) {
   if (h < 12) return t('good_morning');
   if (h < 17) return t('good_afternoon');
   return t('good_evening');
-}
-
-function productHits(shop, q) {
-  if (!q) return [];
-  return (shop.products || []).filter((p) =>
-    `${p.n} ${p.c} ${p.b}`.toLowerCase().includes(q)
-  );
-}
-
-function money(p) {
-  return p == null ? '' : ` ₹${Number(p) % 1 === 0 ? Number(p) : Number(p).toFixed(2)}+`;
-}
-
-function ShopCard({ shop, q, t, lang }) {
-  const hits = productHits(shop, q).slice(0, 3);
-  const typeLabel = shop.business_type ? shop.business_type.charAt(0).toUpperCase() + shop.business_type.slice(1) : '';
-  // Ek nazar me: dukaan kis cheez ki hai (top categories), kitni cheezein, kab khuli. Poora card dabane par seedha dukaan khulti hai.
-  const sells = shop.categories.slice(0, 3).map((c) => c.name).join(' · ');
-  const items = shop.product_count > 0 ? `${shop.product_count}${shop.product_count >= 40 ? '+' : ''} ${lang === 'hi' ? 'चीज़ें' : 'items'}` : '';
-  return (
-    <div className="listing-card shop-card">
-      <div className="listing-photo">
-        {shop.logo_url ? <img src={shop.logo_url} alt="" /> : <span className="listing-photo-fallback">{initials(shop.name)}</span>}
-        <span className="listing-photo-tag" style={{ background: catColor('shops') }}>
-          <CategoryIcon name="shops" width={10} height={10} />
-        </span>
-      </div>
-      <div className="listing-body">
-        <p className="listing-service" style={{ color: catColor('shops') }}>
-          {t('shop_word')}{typeLabel ? ` · ${typeLabel}` : ''}
-        </p>
-        <a className="listing-name shop-link" href={shop.order_url} target="_blank" rel="noopener noreferrer">{shop.name}</a>
-        {hits.length > 0 ? (
-          <p className="shop-match">
-            {hits.map((p, i) => <span key={i}>{i ? ' · ' : ''}{p.n}{money(p.p)}</span>)}
-          </p>
-        ) : sells ? (
-          <p className="shop-sells">{sells}</p>
-        ) : shop.tagline ? (
-          <p className="shop-sells">{shop.tagline}</p>
-        ) : null}
-        <p className="listing-meta">{[items, shop.timings && `🕐 ${shop.timings}`].filter(Boolean).join(' · ')}</p>
-      </div>
-      <div className="shop-actions">
-        <span className="listing-call-btn shop-order-btn">{t('order_online')} →</span>
-        {shop.maps_url && (
-          <a className="listing-call-btn shop-maps-btn" href={shop.maps_url} target="_blank" rel="noopener noreferrer" aria-label="Directions">📍</a>
-        )}
-      </div>
-    </div>
-  );
 }
 
 function CityPageContent() {
@@ -312,6 +262,19 @@ function CityPageContent() {
           <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="back-link" style={{ margin: 0 }}>{t('switch_area')}</a>
           <span style={{ color: 'var(--line)' }}>·</span>
           <span onClick={shareApp} className="back-link" style={{ margin: 0, cursor: 'pointer' }}>{t('share_verilo')}</span>
+          {shops.length > 0 && (
+            <>
+              <span style={{ color: 'var(--line)' }}>·</span>
+              <Link
+                href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+                className="back-link"
+                style={{ margin: 0, color: catColor('shops'), display: 'inline-flex', alignItems: 'center', gap: 5 }}
+              >
+                <CategoryIcon name="shops" width={14} height={14} />
+                {t('city_shops_btn')}
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -391,27 +354,6 @@ function CityPageContent() {
             ))}
           </select>
         </div>
-      )}
-
-      {shops.length > 0 && (
-        <button
-          onClick={() => setActiveTab(activeTab === 'shops' ? 'all' : 'shops')}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%',
-            padding: '12px 16px', margin: '0 0 12px', borderRadius: 12, cursor: 'pointer',
-            fontWeight: 700, fontSize: 14.5, fontFamily: 'inherit',
-            background: activeTab === 'shops' ? '#fff' : catColor('shops'),
-            color: activeTab === 'shops' ? catColor('shops') : '#fff',
-            border: `1.5px solid ${catColor('shops')}`,
-          }}
-        >
-          {activeTab === 'shops' ? t('all_services_btn') : (
-            <>
-              <CategoryIcon name="shops" width={20} height={20} />
-              {t('city_shops_btn')} · {shops.length} {t('shops_count_word')}
-            </>
-          )}
-        </button>
       )}
 
       <div className="cat-strip">
