@@ -60,6 +60,26 @@ function CityPageContent() {
   const [shopsShown, setShopsShown] = useState(SHOPS_PAGE_SIZE); // City Shops page: 20 at a time
   const [reviewRows, setReviewRows] = useState([]);
   const [reviewLoading, setReviewLoading] = useState(false);
+  // "Switch area" / location pill: district list of the same state, opens on this page
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [districtList, setDistrictList] = useState(null);
+  const [districtLoading, setDistrictLoading] = useState(false);
+
+  function openSwitcher() {
+    setSwitcherOpen(true);
+    if (districtList !== null || !cityState) return;
+    setDistrictLoading(true);
+    supabase.from('cities').select('name').eq('state', cityState).order('name').then(({ data }) => {
+      setDistrictList((data || []).map((c) => c.name));
+      setDistrictLoading(false);
+    }, () => setDistrictLoading(false));
+  }
+
+  const actionPill = {
+    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 13px', borderRadius: 999,
+    border: '1.5px solid var(--line-strong)', background: 'var(--paper, #fff)', color: 'var(--ink)',
+    fontSize: 13, fontWeight: 700, textDecoration: 'none', cursor: 'pointer', fontFamily: 'inherit', margin: 0,
+  };
 
   function openReviews(item) {
     setReviewFor(item);
@@ -77,6 +97,10 @@ function CityPageContent() {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      setShops([]);
+      setActiveTab('all');
+      setSearch('');
+      setAreaFilter('');
       // Case-insensitive lookup so "Anuppur" and "anuppur" are treated as the same place.
       let query = supabase.from('cities').select('id, state').ilike('name', city);
       if (stateFromUrl) query = query.eq('state', stateFromUrl);
@@ -249,7 +273,9 @@ function CityPageContent() {
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 16 }}>
           <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)', flexShrink: 0, lineHeight: 1.3, textDecoration: 'none', cursor: 'pointer' }}>Verilo</a>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
-            <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="location-pill">📍 {city}{cityState ? `, ${cityState}` : ''}</a>
+            <button type="button" onClick={openSwitcher} className="location-pill" style={{ cursor: 'pointer', fontFamily: 'inherit' }} aria-haspopup="dialog">
+              📍 {city}{cityState ? `, ${cityState}` : ''} <span style={{ fontSize: 10 }}>▾</span>
+            </button>
             <div style={{ display: 'flex', border: '1.5px solid var(--line-strong)', borderRadius: 999, overflow: 'hidden' }}>
               <button onClick={() => setLang('en')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'en' ? 'var(--navy)' : 'transparent', color: lang === 'en' ? '#fff' : 'var(--muted)' }}>EN</button>
               <button onClick={() => setLang('hi')} style={{ padding: '4px 9px', fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', background: lang === 'hi' ? 'var(--navy)' : 'transparent', color: lang === 'hi' ? '#fff' : 'var(--muted)' }}>हिं</button>
@@ -259,21 +285,16 @@ function CityPageContent() {
         <p className="greeting-eyebrow">{greetingWord(t)},</p>
         <p className="greeting-headline">{t('find_trusted_people')}</p>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          <a onClick={(e) => { e.preventDefault(); router.replace('/'); }} href="/" className="back-link" style={{ margin: 0 }}>{t('switch_area')}</a>
-          <span style={{ color: 'var(--line)' }}>·</span>
-          <span onClick={shareApp} className="back-link" style={{ margin: 0, cursor: 'pointer' }}>{t('share_verilo')}</span>
+          <button type="button" onClick={openSwitcher} style={actionPill}>🔄 {t('switch_area')}</button>
+          <button type="button" onClick={shareApp} style={actionPill}>↗ {t('share_verilo')}</button>
           {shops.length > 0 && (
-            <>
-              <span style={{ color: 'var(--line)' }}>·</span>
-              <Link
-                href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
-                className="back-link"
-                style={{ margin: 0, color: catColor('shops'), display: 'inline-flex', alignItems: 'center', gap: 5 }}
-              >
-                <CategoryIcon name="shops" width={14} height={14} />
-                {t('city_shops_btn')}
-              </Link>
-            </>
+            <Link
+              href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+              style={{ ...actionPill, color: catColor('shops'), borderColor: catColor('shops') }}
+            >
+              <CategoryIcon name="shops" width={14} height={14} />
+              {t('all_shops_in').replace('{city}', city)}
+            </Link>
           )}
         </div>
       </header>
@@ -424,6 +445,44 @@ function CityPageContent() {
         >
           {t('show_more_shops')} ({mixed.length - shopsShown})
         </button>
+      )}
+
+      {switcherOpen && (
+        <div onClick={() => setSwitcherOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--paper, #fff)', width: '100%', maxWidth: 520, maxHeight: '75vh', overflowY: 'auto', borderRadius: '14px 14px 0 0', padding: 18 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <strong style={{ fontSize: 16 }}>{t('switch_district_title')}</strong>
+              <button onClick={() => setSwitcherOpen(false)} aria-label="Close" style={{ border: 'none', background: 'transparent', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
+            </div>
+            {cityState && <p style={{ margin: '0 0 10px', fontSize: 13, color: 'var(--muted)' }}>{cityState}</p>}
+            {districtLoading && <p style={{ color: 'var(--muted)', fontSize: 13.5 }}>Loading…</p>}
+            {(districtList || []).map((name) => {
+              const current = name.toLowerCase() === city.toLowerCase();
+              return (
+                <Link
+                  key={name}
+                  href={`/city/${encodeURIComponent(name)}?state=${encodeURIComponent(cityState)}`}
+                  onClick={() => setSwitcherOpen(false)}
+                  style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '13px 4px',
+                    borderTop: '1px solid var(--line)', textDecoration: 'none', fontSize: 15, fontWeight: current ? 800 : 600,
+                    color: current ? 'var(--ink)' : 'var(--ink)',
+                  }}
+                >
+                  <span>📍 {name}</span>
+                  <span style={{ fontSize: 12, color: 'var(--muted)' }}>{current ? '✓' : '→'}</span>
+                </Link>
+              );
+            })}
+            <a
+              href="/"
+              onClick={(e) => { e.preventDefault(); setSwitcherOpen(false); router.replace('/'); }}
+              style={{ display: 'block', marginTop: 12, paddingTop: 14, borderTop: '1px solid var(--line)', textAlign: 'center', fontWeight: 700, fontSize: 14 }}
+            >
+              {t('change_state_btn')} →
+            </a>
+          </div>
+        </div>
       )}
 
       {reviewFor && (
