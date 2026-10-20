@@ -69,9 +69,14 @@ export default function ProviderDashboard() {
       <header style={{ textAlign: 'left' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontFamily: "'Rozha One', serif", fontSize: 22, color: 'var(--navy)' }}>Verilo</span>
-          <button onClick={signOut} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, color: 'var(--muted)', cursor: 'pointer' }}>
-            Sign Out
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <a href="/" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12.5, color: 'var(--muted)', textDecoration: 'underline' }}>
+              View Verilo as a customer ↗
+            </a>
+            <button onClick={signOut} style={{ background: 'none', border: '1px solid var(--line)', borderRadius: 999, padding: '5px 12px', fontSize: 12.5, color: 'var(--muted)', cursor: 'pointer' }}>
+              Sign Out
+            </button>
+          </div>
         </div>
         <p className="greeting-headline" style={{ marginTop: 10 }}>Your Listings</p>
         <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: -10 }}>{user.email}</p>
@@ -129,6 +134,16 @@ export default function ProviderDashboard() {
           >
             {l.is_active ? 'Manage / Renew' : 'Manage / Pay Now'}
           </Link>
+          {l.is_active && (
+            <a
+              href={`/city/${encodeURIComponent(l.cities?.name || '')}/${l.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'block', textAlign: 'center', marginTop: 10, fontSize: 13, color: 'var(--muted)', textDecoration: 'underline' }}
+            >
+              View my listing as a customer ↗
+            </a>
+          )}
           {l.is_active && (
             <button
               type="button"

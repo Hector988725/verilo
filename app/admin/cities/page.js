@@ -140,6 +140,7 @@ export default function AdminCitiesPage() {
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <Link href="/admin/due" className="back-link">Due List</Link>
           <Link href="/admin/reports" className="back-link">Reports</Link>
+          <a href="/" target="_blank" rel="noopener noreferrer" className="back-link">View site ↗</a>
           <button
             type="button"
             onClick={handleLogout}

@@ -133,6 +133,7 @@ export default function ReportsPage() {
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <Link href="/admin/due" className="back-link">Go to Due List →</Link>
           <Link href="/admin/cities" className="back-link">City Cleanup →</Link>
+          <a href="/" target="_blank" rel="noopener noreferrer" className="back-link">View site ↗</a>
           <button
             type="button"
             onClick={handleLogout}
