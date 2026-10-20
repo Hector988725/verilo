@@ -34,9 +34,19 @@ export default function PwaInstallPrompt() {
     setWantsInstall(app === 'provider' && new URLSearchParams(window.location.search).get('install') === '1');
   }, [app, pathname]);
 
+  // The "Install app" link on the provider dashboard asks for the popup through this event.
+  useEffect(() => {
+    function onRequest() {
+      if (appRef.current === 'provider') setWantsInstall(true);
+    }
+    window.addEventListener('verilo:install-request', onRequest);
+    return () => window.removeEventListener('verilo:install-request', onRequest);
+  }, []);
+
   // Opened from "install the app" but the browser never offered the install: either the app is
   // already installed or this browser installs from its own menu. Say so instead of staying silent.
-  const ready = visible && deferredPrompt && eventApp === app;
+  const canPrompt = !!deferredPrompt && eventApp === app;
+  const ready = canPrompt; // popup flow: works even after the bottom banner was dismissed
   useEffect(() => {
     if (!wantsInstall || ready) { setNoPromptHint(false); return; }
     const timer = setTimeout(() => setNoPromptHint(true), 2500);
@@ -108,7 +118,7 @@ export default function PwaInstallPrompt() {
     );
   }
 
-  if (!ready) return null;
+  if (!(visible && canPrompt)) return null;
 
   return (
     <div style={{ ...cardStyle, position: 'fixed', bottom: 16, left: 16, right: 16, maxWidth: 420, margin: '0 auto', zIndex: 60 }}>

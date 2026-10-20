@@ -9,6 +9,13 @@ import { shareListing } from '../../../lib/shareApp';
 
 export default function ProviderDashboard() {
   const { user, loading, signOut } = useAuth();
+  const [canOfferInstall, setCanOfferInstall] = useState(false);
+  useEffect(() => {
+    try {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      setCanOfferInstall(!standalone);
+    } catch (e) {}
+  }, []);
   const [listings, setListings] = useState(null); // null = loading
   const [linking, setLinking] = useState(false);
 
@@ -79,7 +86,21 @@ export default function ProviderDashboard() {
           </div>
         </div>
         <p className="greeting-headline" style={{ marginTop: 10 }}>Your Listings</p>
-        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: -10 }}>{user.email}</p>
+        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: -10 }}>
+          {user.email}
+          {canOfferInstall && (
+            <>
+              {' · '}
+              <a
+                href="#"
+                onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('verilo:install-request')); }}
+                style={{ color: 'var(--muted)', textDecoration: 'underline' }}
+              >
+                Install app
+              </a>
+            </>
+          )}
+        </p>
       </header>
 
       {(listings === null || linking) && <p style={{ textAlign: 'center', color: 'var(--muted)' }}>Loading your listings...</p>}
