@@ -13,6 +13,7 @@ import { ShopCard, productHits } from '../../../components/ShopCard';
 
 // City Shops view shows shops 20 at a time ("Show more" adds the next 20).
 const SHOPS_PAGE_SIZE = 20;
+const SHOP_PREVIEW = 4; // All tab: how many shop tiles show before "See all shops"
 
 export default function CityPageClient() {
   return (
@@ -211,26 +212,10 @@ function CityPageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shops, activeTab, q, areaKey]);
 
-  // "All" me providers aur shops mix: har 3 providers ke baad 1 shop (search me matching shops sabse upar)
-  const mixed = useMemo(() => {
-    if (activeTab === 'shops') return visibleShops.map((s) => ({ kind: 'shop', s }));
-    const ps = filtered.map((l) => ({ kind: 'provider', l }));
-    const ss = visibleShops.map((s) => ({ kind: 'shop', s }));
-    if (!ss.length) return ps;
-    if (q) {
-      const hit = ss.filter((x) => productHits(x.s, q).length > 0);
-      const rest = ss.filter((x) => productHits(x.s, q).length === 0);
-      return [...hit, ...ps, ...rest];
-    }
-    const out = [];
-    let si = 0;
-    ps.forEach((p, i) => {
-      out.push(p);
-      if ((i + 1) % 3 === 0 && si < ss.length) out.push(ss[si++]);
-    });
-    while (si < ss.length) out.push(ss[si++]);
-    return out;
-  }, [filtered, visibleShops, activeTab, q]);
+  // Shops ab chhote tiles me alag block (ek line me kai), providers apne card grid me.
+  // All tab me shuru ke SHOP_PREVIEW shops, baaki "See all shops" se; search me sab matching shops.
+  const providerItems = activeTab === 'shops' ? [] : filtered;
+  const shopItems = visibleShops;
 
   // Back to the first 20 whenever the view, search or area changes.
   useEffect(() => { setShopsShown(SHOPS_PAGE_SIZE); }, [activeTab, q, areaKey]);
@@ -425,25 +410,54 @@ function CityPageContent() {
 
       {loading && <p style={{ color: 'var(--muted)', textAlign: 'center' }}>Loading...</p>}
 
-      {!loading && mixed.length === 0 && (
+      {!loading && providerItems.length + shopItems.length === 0 && (
         <div className="empty">
           <div className="empty-title">No listings yet</div>
           <div>Be the first service provider listed here</div>
         </div>
       )}
 
-      <div className="listings-grid-v2">
-        {(activeTab === 'shops' ? mixed.slice(0, shopsShown) : mixed).map((m) => m.kind === 'shop' ? (
-          <ShopCard key={'shop-' + m.s.store_id} shop={m.s} q={q} t={t} lang={lang} />
-        ) : providerCard(m.l))}
-      </div>
+      {activeTab === 'shops' && shopItems.length > 0 && (
+        <div className="shops-grid">
+          {shopItems.slice(0, shopsShown).map((s) => (
+            <ShopCard key={'shop-' + s.store_id} shop={s} q={q} t={t} lang={lang} compact />
+          ))}
+        </div>
+      )}
 
-      {activeTab === 'shops' && mixed.length > shopsShown && (
+      {activeTab !== 'shops' && shopItems.length > 0 && (
+        <section style={{ margin: '0 0 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', margin: '0 2px 8px' }}>
+            <strong style={{ fontSize: 14, color: catColor('shops') }}>{t('shops_label')} · {shopItems.length}</strong>
+            {!q && shopItems.length > SHOP_PREVIEW && (
+              <Link
+                href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+                style={{ fontSize: 12.5, fontWeight: 700, color: catColor('shops'), textDecoration: 'none' }}
+              >
+                {t('see_all_shops')}
+              </Link>
+            )}
+          </div>
+          <div className="shops-grid">
+            {(q ? shopItems : shopItems.slice(0, SHOP_PREVIEW)).map((s) => (
+              <ShopCard key={'shop-' + s.store_id} shop={s} q={q} t={t} lang={lang} compact />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {providerItems.length > 0 && (
+        <div className="listings-grid-v2">
+          {providerItems.map((l) => providerCard(l))}
+        </div>
+      )}
+
+      {activeTab === 'shops' && shopItems.length > shopsShown && (
         <button
           onClick={() => setShopsShown((n) => n + SHOPS_PAGE_SIZE)}
           style={{ display: 'block', margin: '16px auto 0', padding: '10px 22px', borderRadius: 999, border: `1.5px solid ${catColor('shops')}`, background: '#fff', color: catColor('shops'), fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}
         >
-          {t('show_more_shops')} ({mixed.length - shopsShown})
+          {t('show_more_shops')} ({shopItems.length - shopsShown})
         </button>
       )}
 

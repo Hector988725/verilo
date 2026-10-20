@@ -61,9 +61,9 @@ function ShopsContent() {
         </div>
       )}
 
-      <div className="listings-grid-v2">
+      <div className="shops-grid">
         {shops.slice(0, shown).map((s) => (
-          <ShopCard key={s.store_id} shop={s} q="" t={t} lang={lang} />
+          <ShopCard key={s.store_id} shop={s} q="" t={t} lang={lang} compact />
         ))}
       </div>
 

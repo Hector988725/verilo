@@ -226,6 +226,24 @@ h1 {
 .shop-actions .listing-call-btn { flex: 1 1 auto; text-align: center; }
 .shop-order-btn { background: var(--navy); box-shadow: 0 6px 14px rgba(22,35,46,0.28); pointer-events: none; }
 .shop-maps-btn { flex: 0 0 auto !important; position: relative; z-index: 1; background: var(--paper-dim); color: var(--ink); box-shadow: none; border: 1px solid var(--line); }
+/* ---- Compact shop tiles: 2 per row on phones, 3 on tablets, 4 on computers ---- */
+.shops-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+@media (min-width: 640px) { .shops-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; } }
+@media (min-width: 1000px) { .shops-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.shop-tile {
+  position: relative; background: var(--paper); color: var(--ink); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: var(--shadow); padding: 9px; display: flex; flex-direction: column; gap: 5px; cursor: pointer; min-width: 0; overflow: hidden;
+}
+.shop-tile-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.shop-tile-logo { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 9px; background: var(--paper-dim); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.shop-tile-logo img { width: 100%; height: 100%; object-fit: cover; }
+.shop-tile-head { min-width: 0; flex: 1; }
+.shop-tile-name { font-family: 'Rozha One', serif; font-size: 14px; font-weight: 400; margin: 0; line-height: 1.2; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop-tile-sub, .shop-tile-meta { font-size: 11px; font-weight: 600; margin: 0; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop-tile .shop-match { font-size: 11px; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.shop-tile .shop-actions { margin-top: 2px; gap: 6px; }
+.shop-tile .listing-call-btn { padding: 7px 6px; font-size: 11.5px; border-radius: 7px; white-space: nowrap; min-width: 0; }
+.shop-tile .shop-maps-btn { padding: 7px 9px; }
 .listings-grid-v2 { display: block; }
 @media (min-width: 640px) {
   .listings-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
