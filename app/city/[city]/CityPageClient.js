@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
@@ -363,17 +363,25 @@ function CityPageContent() {
       )}
 
       <div className="cat-strip">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.key}
-            className={'cat-chip' + (cat.key === activeTab ? ' active' : '')}
-            style={{ '--cat-color': catColor(cat.key) }}
-            onClick={() => setActiveTab(cat.key)}
-          >
-            <span className="cat-chip-icon"><CategoryIcon name={cat.key} width={22} height={22} /></span>
-            <span className="cat-chip-label">{cat.label}</span>
-          </button>
-        ))}
+        {CATEGORIES.map((cat, i) => {
+          const prev = CATEGORIES[i - 1];
+          const startsEvents = cat.group === 'events' && prev?.group !== 'events';
+          const endsEvents = cat.group !== 'events' && prev?.group === 'events';
+          return (
+            <Fragment key={cat.key}>
+              {startsEvents && <span className="cat-group-tag">Events</span>}
+              {endsEvents && <span className="cat-divider" />}
+              <button
+                className={'cat-chip' + (cat.key === activeTab ? ' active' : '')}
+                style={{ '--cat-color': catColor(cat.key) }}
+                onClick={() => setActiveTab(cat.key)}
+              >
+                <span className="cat-chip-icon"><CategoryIcon name={cat.key} width={22} height={22} /></span>
+                <span className="cat-chip-label">{cat.label}</span>
+              </button>
+            </Fragment>
+          );
+        })}
         {shops.length > 0 && (
           <button
             className={'cat-chip' + (activeTab === 'shops' ? ' active' : '')}

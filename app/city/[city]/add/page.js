@@ -6,22 +6,9 @@ import Script from 'next/script';
 import BannerPositionPicker from '../../../../components/BannerPositionPicker';
 import PhoneOtpVerify from '../../../../components/PhoneOtpVerify';
 import { supabase } from '../../../../lib/supabaseClient';
-import { CATEGORIES } from '../../../../lib/categories';
+import { CATEGORIES, SPECIALIZATION_LABELS } from '../../../../lib/categories';
 import { saveMyToken } from '../../../../lib/ownership';
 import { useAuth } from '../../../../components/AuthProvider';
-
-const SPECIALIZATION_LABELS = {
-  tuition: { label: 'Subject(s) You Teach', placeholder: 'e.g. Maths & Science, Class 9-12' },
-  plumber: { label: 'Specialization', placeholder: 'e.g. Pipe fitting, bathroom fitting' },
-  electrician: { label: 'Specialization', placeholder: 'e.g. Wiring, AC repair, appliance repair' },
-  mistri: { label: 'Specialization', placeholder: 'e.g. Furniture, doors, woodwork' },
-  mechanic: { label: 'Specialization', placeholder: 'e.g. Bike repair, car servicing' },
-  'ac-repair': { label: 'Specialization', placeholder: 'e.g. AC servicing, fridge, washing machine repair' },
-  beautician: { label: 'Services Offered', placeholder: 'e.g. Haircut, facial, bridal makeup' },
-  tailor: { label: 'Specialization', placeholder: 'e.g. Blouse stitching, alterations, uniforms' },
-  'milk-veg': { label: 'What You Deliver', placeholder: 'e.g. Fresh milk, seasonal vegetables' },
-  other: { label: 'Specialization', placeholder: 'What do you specialize in?' },
-};
 
 export default function AddListingPage() {
   return (
@@ -251,7 +238,12 @@ function AddListingContent() {
 
         <label>Service Type *</label>
         <select value={form.service} onChange={(e) => update('service', e.target.value)}>
-          {CATEGORIES.filter((c) => c.key !== 'all').map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          <optgroup label="Services">
+            {CATEGORIES.filter((c) => c.key !== 'all' && c.group !== 'events').map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </optgroup>
+          <optgroup label="Events">
+            {CATEGORIES.filter((c) => c.group === 'events').map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
+          </optgroup>
         </select>
 
         <label>{SPECIALIZATION_LABELS[form.service]?.label || 'Specialization'}</label>
