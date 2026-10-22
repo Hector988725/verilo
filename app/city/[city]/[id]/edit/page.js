@@ -6,6 +6,9 @@ import { supabase } from '../../../../../lib/supabaseClient';
 import { CATEGORIES, SPECIALIZATION_LABELS } from '../../../../../lib/categories';
 import { getMyToken } from '../../../../../lib/ownership';
 import BannerPositionPicker from '../../../../../components/BannerPositionPicker';
+import { compressImage } from '../../../../../lib/compressImage';
+
+const MAX_PORTFOLIO = 6;
 
 // Best-effort parse of old free-text experience values ("8 years", "8", "6 months")
 // into a separate number + unit, for editing listings created before the
@@ -30,6 +33,8 @@ export default function EditListingPage() {
   const [bannerFile, setBannerFile] = useState(null);
   const [bannerPreview, setBannerPreview] = useState('');
   const [bannerPositionV, setBannerPositionV] = useState(50);
+  // Portfolio: existing photos (already uploaded URLs) + new files picked in this session.
+  const [portfolio, setPortfolio] = useState([]); // [{ url, file? }]
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [allowed, setAllowed] = useState(null);
@@ -37,14 +42,15 @@ export default function EditListingPage() {
   useEffect(() => {
     setAllowed(!!getMyToken(id));
 
-    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, banner_position, fb_url, instagram_url, youtube_url, gmb_url').eq('id', id).single().then(({ data }) => {
+    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, banner_position, fb_url, instagram_url, youtube_url, gmb_url, portfolio_urls, travels_to').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
           qualification: data.qualification || '', ...parseExperience(data.experience),
           about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '', pincode: data.pincode || '',
-          fbUrl: data.fb_url || '', instagramUrl: data.instagram_url || '', youtubeUrl: data.youtube_url || '', gmbUrl: data.gmb_url || '',
+          fbUrl: data.fb_url || '', instagramUrl: data.instagram_url || '', youtubeUrl: data.youtube_url || '', gmbUrl: data.gmb_url || '', travelsTo: data.travels_to || '',
         });
+        setPortfolio((data.portfolio_urls || []).map((url) => ({ url })));
         setPhotoPreview(data.photo_url || '');
         setBannerPreview(data.banner_url || '');
         const match = /(\d+)%/.exec(data.banner_position || '');
@@ -70,6 +76,21 @@ export default function EditListingPage() {
     setBannerPositionV(50);
   }
 
+  function handlePortfolioAdd(e) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    setPortfolio((cur) => {
+      const room = MAX_PORTFOLIO - cur.length;
+      const added = files.slice(0, Math.max(0, room)).map((file) => ({ url: URL.createObjectURL(file), file }));
+      return [...cur, ...added];
+    });
+  }
+
+  function removePortfolio(index) {
+    setPortfolio((cur) => cur.filter((_, i) => i !== index));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setSubmitting(true);
@@ -93,12 +114,28 @@ export default function EditListingPage() {
         banner_url = bannerPublicUrl.publicUrl;
       }
 
+      const isEvents = CATEGORIES.find((c) => c.key === form.service)?.group === 'events';
+      let portfolio_urls;
+      if (isEvents) {
+        portfolio_urls = [];
+        for (const item of portfolio) {
+          if (!item.file) { portfolio_urls.push(item.url); continue; }
+          const small = await compressImage(item.file);
+          const safeName = small.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const fileName = `portfolio-${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeName}`;
+          const { error: pErr } = await supabase.storage.from('listing-photos').upload(fileName, small);
+          if (pErr) throw pErr;
+          portfolio_urls.push(supabase.storage.from('listing-photos').getPublicUrl(fileName).data.publicUrl);
+        }
+      }
+
       const updatePayload = {
         name: form.name, service: form.service,
         qualification: form.qualification || null, experience: form.experienceValue ? `${form.experienceValue} ${form.experienceUnit}` : null,
         about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null, pincode: form.pincode || null,
         fb_url: form.fbUrl || null, instagram_url: form.instagramUrl || null, youtube_url: form.youtubeUrl || null, gmb_url: form.gmbUrl || null,
       };
+      if (isEvents) { updatePayload.portfolio_urls = portfolio_urls; updatePayload.travels_to = form.travelsTo || null; }
       if (photo_url) updatePayload.photo_url = photo_url;
       if (banner_url) updatePayload.banner_url = banner_url;
       if (bannerFile || bannerPreview) updatePayload.banner_position = `center ${bannerPositionV}%`;
@@ -189,6 +226,33 @@ export default function EditListingPage() {
 
         <label>{SPECIALIZATION_LABELS[form.service]?.label || 'Specialization'}</label>
         <input value={form.qualification} onChange={(e) => update('qualification', e.target.value)} placeholder={SPECIALIZATION_LABELS[form.service]?.placeholder || ''} />
+
+        {CATEGORIES.find((c) => c.key === form.service)?.group === 'events' && (
+          <>
+            <label>Portfolio photos (up to {MAX_PORTFOLIO})</label>
+            <p style={{ fontSize: 12, color: 'var(--muted)', margin: '-8px 0 8px' }}>
+              Show your best work: events, shoots, looks, stage setups. Customers book people whose work they can see.
+              Photos are resized automatically.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 8 }}>
+              {portfolio.map((item, i) => (
+                <div key={item.url} style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 10, overflow: 'hidden', background: '#F3EEDD' }}>
+                  <img src={item.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button type="button" onClick={() => removePortfolio(i)} aria-label="Remove photo"
+                    style={{ position: 'absolute', top: 4, right: 4, width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: 15, cursor: 'pointer', lineHeight: 1 }}>×</button>
+                </div>
+              ))}
+            </div>
+            {portfolio.length < MAX_PORTFOLIO ? (
+              <input type="file" accept="image/*" multiple onChange={handlePortfolioAdd} />
+            ) : (
+              <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: 0 }}>Maximum {MAX_PORTFOLIO} photos. Remove one to add another.</p>
+            )}
+
+            <label>Also works in (cities you travel to, optional)</label>
+            <input value={form.travelsTo} onChange={(e) => update('travelsTo', e.target.value)} maxLength={200} placeholder="e.g. Shahdol, Rewa, Jabalpur" />
+          </>
+        )}
 
         <label>Experience</label>
         <div style={{ display: 'flex', gap: 8 }}>

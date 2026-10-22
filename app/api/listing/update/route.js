@@ -7,9 +7,10 @@ import { CATEGORIES } from '../../../../lib/categories';
 const SERVICES = CATEGORIES.map((c) => c.key).filter((k) => k !== 'all');
 
 // Only fields a professional should be able to edit themselves.
-const ALLOWED_FIELDS = ['name', 'service', 'qualification', 'experience', 'about', 'phone', 'area', 'note', 'photo_url', 'banner_url', 'banner_position', 'maps_link', 'pincode', 'fb_url', 'instagram_url', 'youtube_url', 'gmb_url'];
+const ALLOWED_FIELDS = ['name', 'service', 'qualification', 'experience', 'about', 'phone', 'area', 'note', 'photo_url', 'banner_url', 'banner_position', 'maps_link', 'pincode', 'fb_url', 'instagram_url', 'youtube_url', 'gmb_url', 'portfolio_urls', 'travels_to'];
 
-const MAX_LEN = { name: 80, qualification: 200, about: 1000, area: 120, note: 300, maps_link: 500, fb_url: 300, instagram_url: 300, youtube_url: 300, gmb_url: 300 };
+const MAX_PORTFOLIO = 6;
+const MAX_LEN = { travels_to: 200, name: 80, qualification: 200, about: 1000, area: 120, note: 300, maps_link: 500, fb_url: 300, instagram_url: 300, youtube_url: 300, gmb_url: 300 };
 const URL_FIELDS = ['maps_link', 'fb_url', 'instagram_url', 'youtube_url', 'gmb_url'];
 
 function storageUrlOk(u) {
@@ -50,6 +51,13 @@ function cleanField(key, raw) {
     if (!text) return { value: null };
     return storageUrlOk(text) ? { value: text } : { error: 'Invalid photo' };
   }
+  if (key === 'portfolio_urls') {
+    if (raw === null || raw === undefined) return { value: null };
+    if (!Array.isArray(raw)) return { error: 'Invalid portfolio' };
+    if (raw.length > MAX_PORTFOLIO) return { error: `You can add up to ${MAX_PORTFOLIO} portfolio photos` };
+    if (!raw.every((u) => typeof u === 'string' && u && storageUrlOk(u))) return { error: 'Invalid portfolio photo' };
+    return { value: raw.length ? raw : null };
+  }
   // Remaining fields are plain text, some of them links.
   if (!text) return { value: null };
   if (MAX_LEN[key] && text.length > MAX_LEN[key]) return { error: 'One of the fields is too long' };
@@ -81,8 +89,8 @@ export async function POST(req) {
     for (const key of keys) {
       const cleaned = cleanField(key, updates[key]);
       if (cleaned.error) {
-        const sent = String(updates[key] ?? '').trim();
-        const stored = String(current[key] ?? '').trim();
+        const sent = JSON.stringify(updates[key] ?? '');
+        const stored = JSON.stringify(current[key] ?? '');
         if (sent === stored) continue; // unchanged legacy value: leave it alone
         return NextResponse.json({ error: cleaned.error }, { status: 400 });
       }

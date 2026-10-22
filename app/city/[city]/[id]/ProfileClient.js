@@ -70,6 +70,7 @@ export default function ProfileClient() {
   const [authErr, setAuthErr] = useState('');
   const [authInfo, setAuthInfo] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
+  const [lightbox, setLightbox] = useState(null); // index of portfolio photo open full-screen
   const [authSent, setAuthSent] = useState(false); // confirmation mail bhej di: form chhupao
 
   async function load() {
@@ -77,7 +78,7 @@ export default function ProfileClient() {
     // which would also hand back manage_token (the listing's private key).
     const { data: listingData } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, phone_verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, phone_verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url, portfolio_urls, travels_to')
       .eq('id', id)
       .single();
     setListing(listingData);
@@ -286,6 +287,45 @@ export default function ProfileClient() {
           {listing.qualification.split(',').map((s, i) => s.trim() && (
             <span key={i} className="service-pill">{s.trim()}</span>
           ))}
+        </div>
+      )}
+
+      {listing.travels_to && (
+        <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 14px' }}>
+          <strong style={{ color: 'var(--ink)' }}>Also works in:</strong> {listing.travels_to}
+        </p>
+      )}
+
+      {Array.isArray(listing.portfolio_urls) && listing.portfolio_urls.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <h3 style={{ fontSize: 15, margin: '0 0 8px' }}>Portfolio</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+            {listing.portfolio_urls.map((u, i) => (
+              <button key={u} type="button" onClick={() => setLightbox(i)} aria-label={`Open photo ${i + 1}`}
+                style={{ padding: 0, border: 'none', borderRadius: 10, overflow: 'hidden', aspectRatio: '1 / 1', cursor: 'zoom-in', background: '#F3EEDD' }}>
+                <img src={u} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {lightbox !== null && listing.portfolio_urls?.[lightbox] && (
+        <div onClick={() => setLightbox(null)} role="dialog" aria-label="Portfolio photo"
+          style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <img src={listing.portfolio_urls[lightbox]} alt="" style={{ maxWidth: '100%', maxHeight: '100%', borderRadius: 8 }} />
+          <button type="button" onClick={() => setLightbox(null)} aria-label="Close"
+            style={{ position: 'absolute', top: 14, right: 14, width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.9)', fontSize: 22, cursor: 'pointer' }}>×</button>
+          {listing.portfolio_urls.length > 1 && (
+            <>
+              <button type="button" aria-label="Previous photo"
+                onClick={(e) => { e.stopPropagation(); setLightbox((lightbox + listing.portfolio_urls.length - 1) % listing.portfolio_urls.length); }}
+                style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.9)', fontSize: 24, cursor: 'pointer' }}>‹</button>
+              <button type="button" aria-label="Next photo"
+                onClick={(e) => { e.stopPropagation(); setLightbox((lightbox + 1) % listing.portfolio_urls.length); }}
+                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.9)', fontSize: 24, cursor: 'pointer' }}>›</button>
+            </>
+          )}
         </div>
       )}
 
