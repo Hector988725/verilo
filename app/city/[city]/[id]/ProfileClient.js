@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../lib/supabaseClient';
-import { catLabel, catColor, catReviewPrompt } from '../../../../lib/categories';
+import { catLabel, catColor, catReviewPrompt, isEventCategory } from '../../../../lib/categories';
 import { CategoryIcon } from '../../../../lib/categoryIcons';
 import { useAuth } from '../../../../components/AuthProvider';
 import { trackEvent } from '../../../../lib/track';
@@ -70,6 +70,7 @@ export default function ProfileClient() {
   const [authErr, setAuthErr] = useState('');
   const [authInfo, setAuthInfo] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
+  const [eventDate, setEventDate] = useState('');
   const [lightbox, setLightbox] = useState(null); // index of portfolio photo open full-screen
   const [authSent, setAuthSent] = useState(false); // confirmation mail bhej di: form chhupao
 
@@ -78,7 +79,7 @@ export default function ProfileClient() {
     // which would also hand back manage_token (the listing's private key).
     const { data: listingData } = await supabase
       .from('listings')
-      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, phone_verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url, portfolio_urls, travels_to')
+      .select('id, name, service, phone, area, pincode, qualification, experience, about, note, photo_url, banner_url, banner_position, verified, phone_verified, is_available, unavailable_note, maps_link, fb_url, instagram_url, youtube_url, gmb_url, portfolio_urls, travels_to, starting_price, event_types')
       .eq('id', id)
       .single();
     setListing(listingData);
@@ -290,6 +291,18 @@ export default function ProfileClient() {
         </div>
       )}
 
+      {(listing.starting_price || (listing.event_types && listing.event_types.length > 0)) && (
+        <div style={{ marginBottom: 14 }}>
+          {listing.starting_price ? (
+            <p style={{ fontSize: 14, margin: '0 0 8px' }}>
+              <strong>Starting from ₹{Number(listing.starting_price).toLocaleString('en-IN')}</strong>
+              <span style={{ color: 'var(--muted)', fontSize: 12.5 }}> · final price depends on your event</span>
+            </p>
+          ) : null}
+          {(listing.event_types || []).map((t) => <span key={t} className="service-pill">{t}</span>)}
+        </div>
+      )}
+
       {listing.travels_to && (
         <p style={{ fontSize: 13.5, color: 'var(--muted)', margin: '0 0 14px' }}>
           <strong style={{ color: 'var(--ink)' }}>Also works in:</strong> {listing.travels_to}
@@ -306,6 +319,22 @@ export default function ProfileClient() {
                 <img src={u} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {isEventCategory(listing.service) && listing.phone && (
+        <div style={{ background: '#fff', border: '1px solid var(--line, #E3DECF)', borderRadius: 12, padding: 12, marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Check if they are free on your date</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <input type="date" aria-label="Event date" value={eventDate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setEventDate(e.target.value)} style={{ flex: '1 1 150px', margin: 0 }} />
+            <a
+              href={`https://wa.me/91${listing.phone}?text=${encodeURIComponent(`Hi, I found your listing "${listing.name}" on Verilo. Are you available${eventDate ? ' on ' + new Date(eventDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ' for my event'}? Please share your charges.`)}`}
+              target="_blank" rel="noopener noreferrer" onClick={() => trackEvent(id, 'whatsapp')}
+              style={{ flex: '1 1 150px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: '#25D366', color: '#fff', borderRadius: 10, padding: '10px 12px', fontWeight: 700, fontSize: 13.5, textDecoration: 'none' }}
+            >
+              <WhatsAppIcon /> Ask on WhatsApp
+            </a>
           </div>
         </div>
       )}

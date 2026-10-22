@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '../../../../../lib/supabaseClient';
-import { CATEGORIES, SPECIALIZATION_LABELS } from '../../../../../lib/categories';
+import { CATEGORIES, SPECIALIZATION_LABELS, EVENT_TYPES } from '../../../../../lib/categories';
 import { getMyToken } from '../../../../../lib/ownership';
 import BannerPositionPicker from '../../../../../components/BannerPositionPicker';
 import { compressImage } from '../../../../../lib/compressImage';
@@ -42,13 +42,13 @@ export default function EditListingPage() {
   useEffect(() => {
     setAllowed(!!getMyToken(id));
 
-    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, banner_position, fb_url, instagram_url, youtube_url, gmb_url, portfolio_urls, travels_to').eq('id', id).single().then(({ data }) => {
+    supabase.from('listings').select('id, name, service, qualification, experience, about, phone, area, note, maps_link, pincode, photo_url, banner_url, banner_position, fb_url, instagram_url, youtube_url, gmb_url, portfolio_urls, travels_to, starting_price, event_types').eq('id', id).single().then(({ data }) => {
       if (data) {
         setForm({
           name: data.name || '', service: data.service || 'plumber',
           qualification: data.qualification || '', ...parseExperience(data.experience),
           about: data.about || '', phone: data.phone || '', area: data.area || '', note: data.note || '', mapsLink: data.maps_link || '', pincode: data.pincode || '',
-          fbUrl: data.fb_url || '', instagramUrl: data.instagram_url || '', youtubeUrl: data.youtube_url || '', gmbUrl: data.gmb_url || '', travelsTo: data.travels_to || '',
+          fbUrl: data.fb_url || '', instagramUrl: data.instagram_url || '', youtubeUrl: data.youtube_url || '', gmbUrl: data.gmb_url || '', travelsTo: data.travels_to || '', startingPrice: data.starting_price ?? '', eventTypes: data.event_types || [],
         });
         setPortfolio((data.portfolio_urls || []).map((url) => ({ url })));
         setPhotoPreview(data.photo_url || '');
@@ -135,7 +135,7 @@ export default function EditListingPage() {
         about: form.about || null, phone: form.phone, area: form.area || null, note: form.note || null, maps_link: form.mapsLink || null, pincode: form.pincode || null,
         fb_url: form.fbUrl || null, instagram_url: form.instagramUrl || null, youtube_url: form.youtubeUrl || null, gmb_url: form.gmbUrl || null,
       };
-      if (isEvents) { updatePayload.portfolio_urls = portfolio_urls; updatePayload.travels_to = form.travelsTo || null; }
+      if (isEvents) { updatePayload.portfolio_urls = portfolio_urls; updatePayload.travels_to = form.travelsTo || null; updatePayload.starting_price = form.startingPrice === '' ? null : String(form.startingPrice); updatePayload.event_types = form.eventTypes; }
       if (photo_url) updatePayload.photo_url = photo_url;
       if (banner_url) updatePayload.banner_url = banner_url;
       if (bannerFile || bannerPreview) updatePayload.banner_position = `center ${bannerPositionV}%`;
@@ -248,6 +248,24 @@ export default function EditListingPage() {
             ) : (
               <p style={{ fontSize: 12.5, color: 'var(--muted)', margin: 0 }}>Maximum {MAX_PORTFOLIO} photos. Remove one to add another.</p>
             )}
+
+            <label>Starting price in ₹ (optional)</label>
+            <input type="number" min="0" max="9999999" value={form.startingPrice} onChange={(e) => update('startingPrice', e.target.value)} placeholder="e.g. 5000" />
+
+            <label>Events you do</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 6 }}>
+              {EVENT_TYPES.map((t) => {
+                const on = form.eventTypes.includes(t);
+                return (
+                  <button key={t} type="button" aria-pressed={on}
+                    onClick={() => update('eventTypes', on ? form.eventTypes.filter((x) => x !== t) : [...form.eventTypes, t])}
+                    style={{ padding: '7px 12px', borderRadius: 999, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+                      border: on ? '1.5px solid #8C6224' : '1.5px solid #ddd6c4', background: on ? '#F3E6C8' : '#fff', color: '#3a3320', fontWeight: on ? 700 : 500 }}>
+                    {on ? '✓ ' : ''}{t}
+                  </button>
+                );
+              })}
+            </div>
 
             <label>Also works in (cities you travel to, optional)</label>
             <input value={form.travelsTo} onChange={(e) => update('travelsTo', e.target.value)} maxLength={200} placeholder="e.g. Shahdol, Rewa, Jabalpur" />

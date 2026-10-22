@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 import { verifyOwnerToken } from '../../../../lib/verifyOwnerToken';
 import { digits10 } from '../../../../lib/otpProof';
-import { CATEGORIES } from '../../../../lib/categories';
+import { CATEGORIES, EVENT_TYPES } from '../../../../lib/categories';
 
 const SERVICES = CATEGORIES.map((c) => c.key).filter((k) => k !== 'all');
 
 // Only fields a professional should be able to edit themselves.
-const ALLOWED_FIELDS = ['name', 'service', 'qualification', 'experience', 'about', 'phone', 'area', 'note', 'photo_url', 'banner_url', 'banner_position', 'maps_link', 'pincode', 'fb_url', 'instagram_url', 'youtube_url', 'gmb_url', 'portfolio_urls', 'travels_to'];
+const ALLOWED_FIELDS = ['name', 'service', 'qualification', 'experience', 'about', 'phone', 'area', 'note', 'photo_url', 'banner_url', 'banner_position', 'maps_link', 'pincode', 'fb_url', 'instagram_url', 'youtube_url', 'gmb_url', 'portfolio_urls', 'travels_to', 'starting_price', 'event_types'];
 
 const MAX_PORTFOLIO = 6;
 const MAX_LEN = { travels_to: 200, name: 80, qualification: 200, about: 1000, area: 120, note: 300, maps_link: 500, fb_url: 300, instagram_url: 300, youtube_url: 300, gmb_url: 300 };
@@ -57,6 +57,16 @@ function cleanField(key, raw) {
     if (raw.length > MAX_PORTFOLIO) return { error: `You can add up to ${MAX_PORTFOLIO} portfolio photos` };
     if (!raw.every((u) => typeof u === 'string' && u && storageUrlOk(u))) return { error: 'Invalid portfolio photo' };
     return { value: raw.length ? raw : null };
+  }
+  if (key === 'starting_price') {
+    if (raw === null || raw === undefined || text === '') return { value: null };
+    if (!/^\d{1,7}$/.test(text)) return { error: 'Starting price must be a whole number of rupees' };
+    return { value: parseInt(text, 10) };
+  }
+  if (key === 'event_types') {
+    if (raw === null || raw === undefined) return { value: null };
+    if (!Array.isArray(raw) || !raw.every((t) => EVENT_TYPES.includes(t))) return { error: 'Invalid event type' };
+    return { value: raw.length ? [...new Set(raw)] : null };
   }
   // Remaining fields are plain text, some of them links.
   if (!text) return { value: null };
