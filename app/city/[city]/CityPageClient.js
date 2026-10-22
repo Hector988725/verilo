@@ -1,5 +1,5 @@
 'use client';
-import { Fragment, Suspense, useEffect, useMemo, useState } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
@@ -65,6 +65,25 @@ function CityPageContent() {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [districtList, setDistrictList] = useState(null);
   const [districtLoading, setDistrictLoading] = useState(false);
+
+  // Category strip: arrow buttons for mouse users (phones just swipe). Arrows show only while there is more to scroll.
+  const stripRef = useRef(null);
+  const [stripEnds, setStripEnds] = useState({ left: false, right: false });
+  function updateStripEnds() {
+    const el = stripRef.current;
+    if (!el) return;
+    setStripEnds({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+  }
+  function scrollStrip(dir) {
+    const el = stripRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * Math.max(240, el.clientWidth * 0.7), behavior: 'smooth' });
+  }
+  useEffect(() => {
+    updateStripEnds();
+    window.addEventListener('resize', updateStripEnds);
+    return () => window.removeEventListener('resize', updateStripEnds);
+  }, [shops.length, loading]);
 
   function openSwitcher() {
     setSwitcherOpen(true);
@@ -362,7 +381,14 @@ function CityPageContent() {
         </div>
       )}
 
-      <div className="cat-strip">
+      <div className="cat-strip-wrap">
+        {stripEnds.left && (
+          <button type="button" className="cat-arrow cat-arrow-left" onClick={() => scrollStrip(-1)} aria-label="Scroll categories left">‹</button>
+        )}
+        {stripEnds.right && (
+          <button type="button" className="cat-arrow cat-arrow-right" onClick={() => scrollStrip(1)} aria-label="Scroll categories right">›</button>
+        )}
+      <div className="cat-strip" ref={stripRef} onScroll={updateStripEnds}>
         {CATEGORIES.map((cat, i) => {
           const prev = CATEGORIES[i - 1];
           const startsEvents = cat.group === 'events' && prev?.group !== 'events';
@@ -392,6 +418,7 @@ function CityPageContent() {
             <span className="cat-chip-label">{t('shops_label')}</span>
           </button>
         )}
+      </div>
       </div>
 
       {activeTab !== 'all' && (

@@ -99,6 +99,17 @@ h1 {
 /* ---- Category icon strip ---- */
 .cat-strip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; margin: 14px 0 4px; scrollbar-width: none; }
 .cat-strip::-webkit-scrollbar { display: none; }
+/* Mouse users get arrow buttons on the category strip; touch screens just swipe, so arrows are hidden there. */
+.cat-strip-wrap { position: relative; }
+.cat-arrow {
+  position: absolute; top: 14px; z-index: 5; width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: var(--paper, #fff); color: var(--ink); font-size: 22px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 0 3px; font-family: inherit;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+}
+.cat-arrow-left { left: -6px; }
+.cat-arrow-right { right: -6px; }
+@media (hover: none) { .cat-arrow { display: none; } }
 .cat-chip {
   flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
   width: 76px; cursor: pointer; background: none; border: none; padding: 0; font-family: inherit;
