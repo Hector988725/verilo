@@ -369,3 +369,7 @@ textarea { resize: vertical; min-height: 50px; }
 }
 .reviewer-name { font-size: 13px; font-weight: 700; color: var(--ink); }
 .reviewer-date { font-size: 11.5px; color: var(--muted); margin-left: auto; }
+
+/* Portfolio thumbnails on a provider profile: 3 across on phones, one compact row of 6 on wider screens. */
+.portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+@media (min-width: 700px) { .portfolio-grid { grid-template-columns: repeat(6, 1fr); } }

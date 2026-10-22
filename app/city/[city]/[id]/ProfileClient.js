@@ -312,7 +312,7 @@ export default function ProfileClient() {
       {Array.isArray(listing.portfolio_urls) && listing.portfolio_urls.length > 0 && (
         <div style={{ marginBottom: 16 }}>
           <h3 style={{ fontSize: 15, margin: '0 0 8px' }}>Portfolio</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+          <div className="portfolio-grid">
             {listing.portfolio_urls.map((u, i) => (
               <button key={u} type="button" onClick={() => setLightbox(i)} aria-label={`Open photo ${i + 1}`}
                 style={{ padding: 0, border: 'none', borderRadius: 10, overflow: 'hidden', aspectRatio: '1 / 1', cursor: 'zoom-in', background: '#F3EEDD' }}>
