@@ -13,6 +13,6 @@ export async function GET(req) {
   });
   return NextResponse.json(
     { shops: result.shops, ...(result.ok ? {} : { problem: result.reason }) },
-    { headers: { 'Cache-Control': 'public, s-maxage=30' } }
+    { headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=30' } }
   );
 }

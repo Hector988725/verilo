@@ -63,11 +63,22 @@ export default function HomePage() {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
-            { headers: { Accept: 'application/json' } }
-          );
-          const data = await res.json();
+          // Wahi ~5 km ka ilaka pehle detect ho chuka ho to network ke bina turant wahi jawab.
+          const cellKey = `verilo_geo_${latitude.toFixed(2)}_${longitude.toFixed(2)}`;
+          let data = null;
+          try { data = JSON.parse(localStorage.getItem(cellKey) || 'null'); } catch (e) {}
+          if (!data) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 7000);
+            try {
+              const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+                { headers: { Accept: 'application/json' }, signal: ctrl.signal }
+              );
+              data = await res.json();
+              try { if (data && data.address) localStorage.setItem(cellKey, JSON.stringify({ address: data.address })); } catch (e) {}
+            } finally { clearTimeout(timer); }
+          }
           const addr = data?.address || {};
           const detectedState = INDIAN_STATES.find((s) => s.toLowerCase() === (addr.state || '').toLowerCase());
           const detectedDistrict = addr.state_district || addr.county || addr.city_district || addr.city || addr.town;
@@ -88,7 +99,7 @@ export default function HomePage() {
         }
       },
       () => { setLocating(false); setLocateErr('Location permission denied. Please pick your state manually.'); },
-      { timeout: 10000 }
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
     );
   }
 

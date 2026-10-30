@@ -121,12 +121,25 @@ function CityPageContent() {
   }
 
   useEffect(() => {
+    let cancelled = false;
+    // Dukaan shops ka fetch alag aur turant shuru (city/listings ka intezaar nahi) — fail ho to baaki page par asar nahi.
+    function fetchShops(st) {
+      const sp = new URLSearchParams({ city });
+      if (st) sp.set('state', st);
+      return fetch('/api/shops?' + sp.toString())
+        .then((res) => (res.ok ? res.json() : null))
+        .then((j) => { if (!cancelled && j) setShops(Array.isArray(j.shops) ? j.shops : []); })
+        .catch(() => {});
+    }
     async function load() {
       setLoading(true);
       setShops([]);
       setActiveTab('all');
       setSearch('');
       setAreaFilter('');
+      // State URL me hai to shops parallel me abhi shuru; warna city milne ke baad.
+      let shopsStarted = false;
+      if (stateFromUrl) { shopsStarted = true; fetchShops(stateFromUrl); }
       // Case-insensitive lookup so "Anuppur" and "anuppur" are treated as the same place.
       let query = supabase.from('cities').select('id, state').ilike('name', city);
       if (stateFromUrl) query = query.eq('state', stateFromUrl);
@@ -145,6 +158,7 @@ function CityPageContent() {
       }
       if (!cityRow) { setLoading(false); return; }
       setCityState(cityRow.state || stateFromUrl);
+      if (!shopsStarted) fetchShops(cityRow.state || stateFromUrl);
 
       // Explicit column list — never select('*') on a public page, since
       // that would also hand back manage_token (each listing's private key).
@@ -154,22 +168,12 @@ function CityPageContent() {
         .eq('city_id', cityRow.id)
         .eq('is_active', true);
 
+      if (cancelled) return;
       setListings(listingRows || []);
       setLoading(false);
-
-      // Dukaan Order System ki opt-in shops (alag fetch: fail ho to baaki page par asar nahi)
-      try {
-        const sp = new URLSearchParams({ city });
-        const st = cityRow.state || stateFromUrl;
-        if (st) sp.set('state', st);
-        const res = await fetch('/api/shops?' + sp.toString());
-        if (res.ok) {
-          const j = await res.json();
-          setShops(Array.isArray(j.shops) ? j.shops : []);
-        }
-      } catch (e) {}
     }
     load();
+    return () => { cancelled = true; };
   }, [city, stateFromUrl]);
 
 
