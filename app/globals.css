@@ -247,16 +247,16 @@ h1 {
 .shop-order-btn { background: var(--navy); box-shadow: 0 6px 14px rgba(22,35,46,0.28); pointer-events: none; }
 .shop-maps-btn { flex: 0 0 auto !important; position: relative; z-index: 1; background: var(--paper-dim); color: var(--ink); box-shadow: none; border: 1px solid var(--line); }
 /* ---- Shop "stories": gol ring logo, neeche naam + Shop now ---- */
-.shops-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 8px; align-items: start; }
+.shops-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 6px; align-items: start; }
 @media (min-width: 640px) { .shops-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 @media (min-width: 1000px) { .shops-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
 .shop-story { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; color: var(--ink); min-width: 0; text-align: center; }
-.shop-story-ring { width: 76px; height: 76px; border-radius: 50%; padding: 3px; background: conic-gradient(from 200deg, #f9a825, #e8590c, #c2255c, #f9a825); display: flex; align-items: center; justify-content: center; }
+.shop-story-ring { width: 100%; max-width: 76px; aspect-ratio: 1 / 1; border-radius: 50%; padding: 3px; background: conic-gradient(from 200deg, #f9a825, #e8590c, #c2255c, #f9a825); display: flex; align-items: center; justify-content: center; }
 .shop-story-logo { width: 100%; height: 100%; border-radius: 50%; background: var(--paper-dim); border: 3px solid var(--paper); box-sizing: border-box; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .shop-story-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .shop-story-initials { font-family: 'Rozha One', serif; font-size: 20px; color: var(--brass-deep); }
-.shop-story-name { font-size: 11.5px; font-weight: 700; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.shop-story-btn { background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+.shop-story-name { font-size: 11px; font-weight: 700; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop-story-btn { background: var(--navy); color: #fff; font-size: 10.5px; font-weight: 700; padding: 4px 9px; white-space: nowrap; border-radius: 999px; }
 .listings-grid-v2 { display: block; }
 @media (min-width: 640px) {
   .listings-grid-v2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
@@ -375,7 +375,7 @@ textarea { resize: vertical; min-height: 50px; }
 .shop-modal-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(20,24,30,0.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: shopFade .18s ease-out; }
 .shop-modal { position: relative; width: 100%; max-width: 340px; max-height: 90vh; overflow-y: auto; background: var(--paper); border-radius: 22px; padding: 26px 20px 20px; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.35); animation: shopPop .2s ease-out; }
 .shop-modal-x { position: absolute; top: 8px; right: 12px; background: none; border: 0; font-size: 26px; line-height: 1; color: var(--muted); cursor: pointer; }
-.shop-modal-ring { width: 96px; height: 96px; margin: 0 auto 10px; }
+.shop-modal-ring { width: 96px; max-width: none; height: 96px; margin: 0 auto 10px; }
 .shop-modal-name { font-family: 'Rozha One', serif; font-weight: 400; font-size: 21px; margin: 0; color: var(--ink); }
 .shop-modal-type { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 2px 0 0; }
 .shop-modal-tag { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
