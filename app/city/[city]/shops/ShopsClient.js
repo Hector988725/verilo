@@ -1,7 +1,7 @@
 'use client';
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '../../../../components/LanguageProvider';
 import { ShopCard } from '../../../../components/ShopCard';
 
@@ -18,6 +18,7 @@ export default function ShopsClient() {
 function ShopsContent() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { t, lang } = useLanguage();
   const city = decodeURIComponent(params.city);
   const state = searchParams.get('state') || '';
@@ -48,7 +49,18 @@ function ShopsContent() {
 
   return (
     <div className="wrap">
-      <Link href={backHref} className="back-link">← {city}</Link>
+      <Link
+        href={backHref}
+        className="back-link"
+        onClick={(e) => {
+          e.preventDefault();
+          // City page se aaye the to history me ek kadam peeche jao (naya entry nahi) — warna replace.
+          let from = '';
+          try { from = sessionStorage.getItem('verilo_from_city') || ''; sessionStorage.removeItem('verilo_from_city'); } catch (err) {}
+          if (from === city && window.history.length > 1) router.back();
+          else router.replace(backHref);
+        }}
+      >← {city}</Link>
       <p style={{ margin: '0 0 14px', fontFamily: "'Rozha One', serif", fontSize: 20 }}>
         {t('shops_label')} · {city}
       </p>

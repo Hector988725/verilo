@@ -51,6 +51,12 @@ function CityPageContent() {
   const [listings, setListings] = useState([]);
   const [shops, setShops] = useState([]);
   const [cityState, setCityState] = useState(stateFromUrl);
+  // Shops page se "← city" par back-stack na badhe: yaad rakho ki shops page isi city page se aaya.
+  const markFromCity = () => { try { sessionStorage.setItem('verilo_from_city', city); } catch (e) {} };
+  // Login page par "← city" link dikhane ke liye last dekhi hui city yaad rakho.
+  useEffect(() => {
+    try { sessionStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '' })); } catch (e) {}
+  }, [city, cityState]);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [areaFilter, setAreaFilter] = useState('');
@@ -294,6 +300,7 @@ function CityPageContent() {
           {shops.length > 0 && (
             <Link
               href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+              onClick={markFromCity}
               style={{ ...actionPill, color: catColor('shops'), borderColor: catColor('shops') }}
             >
               <CategoryIcon name="shops" width={14} height={14} />
@@ -467,6 +474,7 @@ function CityPageContent() {
             {!q && shopItems.length > SHOP_PREVIEW && (
               <Link
                 href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+                onClick={markFromCity}
                 style={{ fontSize: 12.5, fontWeight: 700, color: catColor('shops'), textDecoration: 'none' }}
               >
                 {t('see_all_shops')}

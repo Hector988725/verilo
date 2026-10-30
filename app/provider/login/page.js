@@ -1,5 +1,6 @@
 'use client';
 import { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '../../../components/AuthProvider';
 
@@ -24,6 +25,21 @@ function ProviderLoginContent() {
   useEffect(() => {
     if (user) router.replace(next);
   }, [user, next]);
+
+  // Last dekhi hui city (ya ?next=/city/<city>/... se) — "← <city>" link ke liye.
+  const [lastCity, setLastCity] = useState(null);
+  useEffect(() => {
+    let c = null;
+    try { c = JSON.parse(sessionStorage.getItem('verilo_last_city') || 'null'); } catch (e) {}
+    if (!c) {
+      const m = /^\/city\/([^/?]+)/.exec(next);
+      if (m) {
+        const st = /[?&]state=([^&]+)/.exec(next);
+        try { c = { city: decodeURIComponent(m[1]), state: st ? decodeURIComponent(st[1]) : '' }; } catch (e) {}
+      }
+    }
+    if (c && c.city) setLastCity(c);
+  }, [next]);
 
   const [mode, setMode] = useState('signin');
   const [name, setName] = useState('');
@@ -80,6 +96,16 @@ function ProviderLoginContent() {
 
   return (
     <div className="city-screen">
+      <div style={{ width: '100%', maxWidth: 360, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+        <Link href="/" replace style={{ fontFamily: "'Rozha One', serif", fontSize: 20, color: 'var(--navy)', textDecoration: 'none' }}>← Verilo</Link>
+        {lastCity && (
+          <Link
+            href={`/city/${encodeURIComponent(lastCity.city)}${lastCity.state ? '?state=' + encodeURIComponent(lastCity.state) : ''}`}
+            replace
+            style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand-green)', textDecoration: 'none', border: '1.5px solid var(--brand-green)', borderRadius: 999, padding: '5px 12px' }}
+          >📍 {lastCity.city}</Link>
+        )}
+      </div>
       <div className="pin"></div>
       <h1>Verilo</h1>
       <p className="tagline">Service Provider Login</p>
