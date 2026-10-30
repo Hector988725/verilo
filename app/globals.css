@@ -250,7 +250,7 @@ h1 {
 .shops-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 8px; align-items: start; }
 @media (min-width: 640px) { .shops-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 @media (min-width: 1000px) { .shops-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
-.shop-story { display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; color: var(--ink); min-width: 0; text-align: center; }
+.shop-story { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; text-decoration: none; color: var(--ink); min-width: 0; text-align: center; }
 .shop-story-ring { width: 76px; height: 76px; border-radius: 50%; padding: 3px; background: conic-gradient(from 200deg, #f9a825, #e8590c, #c2255c, #f9a825); display: flex; align-items: center; justify-content: center; }
 .shop-story-logo { width: 100%; height: 100%; border-radius: 50%; background: var(--paper-dim); border: 3px solid var(--paper); box-sizing: border-box; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .shop-story-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
@@ -370,3 +370,20 @@ textarea { resize: vertical; min-height: 50px; }
 /* Portfolio thumbnails on a provider profile: 3 across on phones, one compact row of 6 on wider screens. */
 .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 @media (min-width: 700px) { .portfolio-grid { grid-template-columns: repeat(6, 1fr); } }
+
+/* ---- Shop popup: piche blur, beech me card ---- */
+.shop-modal-backdrop { position: fixed; inset: 0; z-index: 1000; background: rgba(20,24,30,0.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px; animation: shopFade .18s ease-out; }
+.shop-modal { position: relative; width: 100%; max-width: 340px; max-height: 90vh; overflow-y: auto; background: var(--paper); border-radius: 22px; padding: 26px 20px 20px; text-align: center; box-shadow: 0 24px 60px rgba(0,0,0,0.35); animation: shopPop .2s ease-out; }
+.shop-modal-x { position: absolute; top: 8px; right: 12px; background: none; border: 0; font-size: 26px; line-height: 1; color: var(--muted); cursor: pointer; }
+.shop-modal-ring { width: 96px; height: 96px; margin: 0 auto 10px; }
+.shop-modal-name { font-family: 'Rozha One', serif; font-weight: 400; font-size: 21px; margin: 0; color: var(--ink); }
+.shop-modal-type { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; margin: 2px 0 0; }
+.shop-modal-tag { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.shop-modal-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+.shop-modal-chips span { background: var(--paper-dim); border-radius: 999px; padding: 4px 10px; font-size: 11.5px; font-weight: 600; color: var(--ink); }
+.shop-modal-facts { margin: 14px 0 16px; text-align: left; }
+.shop-modal-facts p { margin: 5px 0; font-size: 13px; color: var(--ink); line-height: 1.35; }
+.shop-modal-go { display: block; background: var(--navy); color: #fff; font-weight: 800; font-size: 14.5px; padding: 13px 0; border-radius: 12px; text-decoration: none; }
+.shop-modal-dir { display: block; margin-top: 10px; font-size: 12.5px; font-weight: 700; color: var(--muted); text-decoration: none; }
+@keyframes shopFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shopPop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
