@@ -56,6 +56,7 @@ function CityPageContent() {
   // Login page par "← city" link dikhane ke liye last dekhi hui city yaad rakho.
   useEffect(() => {
     try { sessionStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '' })); } catch (e) {}
+    try { localStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '' })); } catch (e) {}
   }, [city, cityState]);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');

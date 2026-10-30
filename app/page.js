@@ -51,6 +51,17 @@ export default function HomePage() {
   const [districtQuery, setDistrictQuery] = useState('');
   const [existingDistricts, setExistingDistricts] = useState([]);
   const [locating, setLocating] = useState(false);
+  const [slowHint, setSlowHint] = useState(false);
+  const [lastCity, setLastCity] = useState(null);
+  useEffect(() => {
+    try { const c = JSON.parse(localStorage.getItem('verilo_last_city') || 'null'); if (c && c.city) setLastCity(c); } catch (e) {}
+  }, []);
+  // Detecting 5 second se zyada chale to manual chunne ka hint dikhao.
+  useEffect(() => {
+    if (!locating) { setSlowHint(false); return; }
+    const id = setTimeout(() => setSlowHint(true), 5000);
+    return () => clearTimeout(id);
+  }, [locating]);
   const [locateErr, setLocateErr] = useState('');
   const [navigating, setNavigating] = useState('');
   const [loadingDistricts, setLoadingDistricts] = useState(false);
@@ -149,6 +160,19 @@ export default function HomePage() {
         >
           📍 {locating ? t('detecting_location') : t('use_my_location')}
         </button>
+        {locating && slowHint && <p style={{ color: 'var(--muted)', fontSize: 12.5, marginTop: 6, textAlign: 'center', maxWidth: 300 }}>Thoda time lag raha hai… chaho to neeche se apna state chun lo.</p>}
+        {lastCity && !locating && (
+          <button
+            onClick={() => {
+              const base = '/city/' + encodeURIComponent(lastCity.city);
+              const qs = lastCity.state ? '?state=' + encodeURIComponent(lastCity.state) : '';
+              router.push(addIntent ? `${base}/add${qs}` : `${base}${qs}`);
+            }}
+            style={{ marginTop: 10, background: 'var(--paper)', border: '1.5px solid var(--brand-green)', borderRadius: 999, color: 'var(--brand-green)', padding: '9px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}
+          >
+            ↩ {lastCity.city}{lastCity.state ? `, ${lastCity.state}` : ''}
+          </button>
+        )}
         {locateErr && <p style={{ color: 'var(--vermillion)', fontSize: 12.5, marginTop: 6, textAlign: 'center', maxWidth: 300 }}>{locateErr}</p>}
         <p style={{ fontSize: 12, color: 'var(--muted)', margin: '14px 0 4px' }}>{t('or_pick_manually')}</p>
         <input
