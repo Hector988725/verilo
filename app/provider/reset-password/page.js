@@ -1,4 +1,6 @@
 'use client';
+import PasswordMeter from '../../../components/PasswordMeter';
+import { passwordError } from '../../../lib/password';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
@@ -15,7 +17,7 @@ export default function ResetPasswordPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setErr('');
-    if (!password || password.length < 6) { setErr('Password must be at least 6 characters.'); return; }
+    { const pe = passwordError(password); if (pe) { setErr(pe); return; } }
     if (password !== confirm) { setErr('Passwords do not match.'); return; }
 
     setBusy(true);
@@ -45,13 +47,14 @@ export default function ResetPasswordPage() {
                 type={showPass ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="Create a strong password"
                 style={{ paddingRight: 44 }}
               />
               <button type="button" onClick={() => setShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
                 {showPass ? '🙈' : '👁️'}
               </button>
             </div>
+            <div style={{ marginTop: 8 }}><PasswordMeter password={password} /></div>
             <label>Confirm Password</label>
             <input type={showPass ? 'text' : 'password'} value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter password" />
             {err && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{err}</p>}

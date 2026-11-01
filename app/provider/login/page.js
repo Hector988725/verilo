@@ -1,4 +1,6 @@
 'use client';
+import PasswordMeter from '../../../components/PasswordMeter';
+import { passwordError } from '../../../lib/password';
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -74,6 +76,7 @@ function ProviderLoginContent() {
 
     if (!email.trim() || !password) { setErr('Please fill in email and password.'); return; }
     if (mode === 'signup' && !name.trim()) { setErr('Please enter your name.'); return; }
+    if (mode === 'signup') { const pe = passwordError(password, { email }); if (pe) { setErr(pe); return; } }
 
     setBusy(true);
     try {
@@ -167,13 +170,14 @@ function ProviderLoginContent() {
                   type={showPass ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
+                  placeholder={mode === 'signup' ? 'Create a strong password' : 'Password'}
                   style={{ paddingRight: 44 }}
                 />
                 <button type="button" onClick={() => setShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
                   {showPass ? '🙈' : '👁️'}
                 </button>
               </div>
+              {mode === 'signup' && <div style={{ marginTop: 8 }}><PasswordMeter password={password} email={email} /></div>}
             </>
           )}
           {mode === 'signin' && (

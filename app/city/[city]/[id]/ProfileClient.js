@@ -1,4 +1,6 @@
 'use client';
+import PasswordMeter from '../../../../components/PasswordMeter';
+import { passwordError } from '../../../../lib/password';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -106,6 +108,7 @@ export default function ProfileClient() {
     setAuthInfo('');
     if (!authEmail.trim() || !authPassword) { setAuthErr('Please fill in email and password.'); return; }
     if (authMode === 'signup' && !authName.trim()) { setAuthErr('Please enter your name.'); return; }
+    if (authMode === 'signup') { const pe = passwordError(authPassword, { email: authEmail }); if (pe) { setAuthErr(pe); return; } }
 
     setAuthBusy(true);
     if (authMode === 'signup') {
@@ -446,13 +449,14 @@ export default function ProfileClient() {
                       type={authShowPass ? 'text' : 'password'}
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
-                      placeholder="At least 6 characters"
+                      placeholder={authMode === 'signup' ? 'Create a strong password' : 'Password'}
                       style={{ paddingRight: 44 }}
                     />
                     <button type="button" onClick={() => setAuthShowPass((s) => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: 'var(--muted)', padding: 4 }}>
                       {authShowPass ? '🙈' : '👁️'}
                     </button>
                   </div>
+                  {authMode === 'signup' && <div style={{ marginTop: 8 }}><PasswordMeter password={authPassword} email={authEmail} /></div>}
                   {authErr && <p style={{ color: 'var(--vermillion)', fontSize: 13, marginTop: 8 }}>{authErr}</p>}
                   {authInfo && <p style={{ color: 'var(--verified)', fontSize: 13, marginTop: 8 }}>{authInfo}</p>}
                   <button className="btn-primary" type="submit" disabled={authBusy}>
