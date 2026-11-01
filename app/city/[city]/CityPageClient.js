@@ -224,7 +224,7 @@ function CityPageContent() {
     } else {
       list = [...list].sort((a, b) => new Date(b.joined_at) - new Date(a.joined_at));
     }
-    if (pinFromUrl && pinOn) list = [...list].sort((a, b) => (b.pincode === pinFromUrl) - (a.pincode === pinFromUrl)); // stable: PIN wale upar
+    if (pinFromUrl && pinOn) list = list.filter((l) => l.pincode === pinFromUrl); // sirf isi PIN ke providers
     return list;
   }, [withRating, activeTab, search, sortBy, areaKey, pinFromUrl, pinOn]);
 
@@ -242,7 +242,7 @@ function CityPageContent() {
     if (q) list = list.filter(shopMatches);
     // search me jin shops me product mila wo upar
     if (q) list = [...list].sort((a, b) => productHits(b, q).length - productHits(a, q).length);
-    if (pinFromUrl && pinOn) list = [...list].sort((a, b) => (b.pincode === pinFromUrl) - (a.pincode === pinFromUrl));
+    if (pinFromUrl && pinOn) list = list.filter((x) => x.pincode === pinFromUrl); // sirf isi PIN ki shops
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shops, activeTab, q, areaKey, pinFromUrl, pinOn]);
@@ -255,6 +255,7 @@ function CityPageContent() {
   // Back to the first 20 whenever the view, search or area changes.
   useEffect(() => { setShopsShown(SHOPS_PAGE_SIZE); }, [activeTab, q, areaKey]);
 
+  const shopsQs = (cityState || pinFromUrl) ? '?' + [cityState ? 'state=' + encodeURIComponent(cityState) : '', pinFromUrl && pinOn ? 'pin=' + pinFromUrl : ''].filter(Boolean).join('&') : '';
   const addHref = `/city/${encodeURIComponent(city)}/add${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`;
 
   const providerCard = (item) => (
@@ -309,7 +310,7 @@ function CityPageContent() {
           <button type="button" onClick={shareApp} style={actionPill}>↗ {t('share_verilo')}</button>
           {shops.length > 0 && (
             <Link
-              href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+              href={`/city/${encodeURIComponent(city)}/shops${shopsQs}`}
               onClick={markFromCity}
               style={{ ...actionPill, color: catColor('shops'), borderColor: catColor('shops') }}
             >
@@ -356,12 +357,13 @@ function CityPageContent() {
       {pinFromUrl && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 12, padding: '9px 12px', marginBottom: 10, fontSize: 13 }}>
           <span>
-            📍 PIN <b>{pinFromUrl}</b> — {listings.filter((l) => l.pincode === pinFromUrl).length + shops.filter((x) => x.pincode === pinFromUrl).length} in your PIN
-            {pinOn ? ' (shown first)' : ''}
+            📍 {pinOn ? <>Only PIN <b>{pinFromUrl}</b></> : <>All of <b>{city}</b></>}
+            {' — '}{listings.filter((l) => l.pincode === pinFromUrl).length + shops.filter((x) => x.pincode === pinFromUrl).length} in this PIN
+            {pinOn && listings.length + shops.length > 0 ? `, ${listings.length + shops.length} in ${city}` : ''}
           </span>
           <span style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => setPinOn((v) => !v)} style={{ background: 'none', border: 'none', color: 'var(--brand-green)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
-              {pinOn ? `Show all of ${city}` : 'Show my PIN first'}
+              {pinOn ? `Show all of ${city}` : `Only PIN ${pinFromUrl}`}
             </button>
             <a href="/" style={{ color: 'var(--muted)', fontSize: 12.5, textDecoration: 'underline' }}>Change PIN</a>
           </span>
@@ -478,8 +480,10 @@ function CityPageContent() {
 
       {!loading && providerItems.length + shopItems.length === 0 && (
         <div className="empty">
-          <div className="empty-title">No listings yet</div>
-          <div>Be the first service provider listed here</div>
+          <div className="empty-title">{pinFromUrl && pinOn ? `Nothing in PIN ${pinFromUrl} yet` : 'No listings yet'}</div>
+          <div>{pinFromUrl && pinOn
+            ? <>No providers or shops are listed in this PIN yet. <button onClick={() => setPinOn(false)} style={{ background: 'none', border: 'none', color: 'var(--brand-green)', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>Show all of {city}</button></>
+            : 'Be the first service provider listed here'}</div>
         </div>
       )}
 
@@ -497,7 +501,7 @@ function CityPageContent() {
             <strong style={{ fontSize: 14, color: catColor('shops') }}>{t('shops_label')} · {shopItems.length}</strong>
             {!q && shopItems.length > SHOP_PREVIEW && (
               <Link
-                href={`/city/${encodeURIComponent(city)}/shops${cityState ? '?state=' + encodeURIComponent(cityState) : ''}`}
+                href={`/city/${encodeURIComponent(city)}/shops${shopsQs}`}
                 onClick={markFromCity}
                 style={{ fontSize: 12.5, fontWeight: 700, color: catColor('shops'), textDecoration: 'none' }}
               >
