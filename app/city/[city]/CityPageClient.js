@@ -48,6 +48,8 @@ function CityPageContent() {
   const { t, lang, setLang } = useLanguage();
   const city = decodeURIComponent(params.city);
   const stateFromUrl = searchParams.get('state') || '';
+  const pinFromUrl = /^[1-9]\d{5}$/.test(searchParams.get('pin') || '') ? searchParams.get('pin') : '';
+  const [pinOn, setPinOn] = useState(true); // PIN wale pehle; "Show all" se band
   const [listings, setListings] = useState([]);
   const [shops, setShops] = useState([]);
   const [cityState, setCityState] = useState(stateFromUrl);
@@ -55,9 +57,9 @@ function CityPageContent() {
   const markFromCity = () => { try { sessionStorage.setItem('verilo_from_city', city); } catch (e) {} };
   // Login page par "← city" link dikhane ke liye last dekhi hui city yaad rakho.
   useEffect(() => {
-    try { sessionStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '' })); } catch (e) {}
-    try { localStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '' })); } catch (e) {}
-  }, [city, cityState]);
+    try { sessionStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '', pin: pinFromUrl })); } catch (e) {}
+    try { localStorage.setItem('verilo_last_city', JSON.stringify({ city, state: cityState || '', pin: pinFromUrl })); } catch (e) {}
+  }, [city, cityState, pinFromUrl]);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [areaFilter, setAreaFilter] = useState('');
@@ -127,6 +129,7 @@ function CityPageContent() {
     function fetchShops(st) {
       const sp = new URLSearchParams({ city });
       if (st) sp.set('state', st);
+      if (pinFromUrl) sp.set('pin', pinFromUrl);
       return fetch('/api/shops?' + sp.toString())
         .then((res) => (res.ok ? res.json() : null))
         .then((j) => { if (!cancelled && j) setShops(Array.isArray(j.shops) ? j.shops : []); })
@@ -175,7 +178,7 @@ function CityPageContent() {
     }
     load();
     return () => { cancelled = true; };
-  }, [city, stateFromUrl]);
+  }, [city, stateFromUrl, pinFromUrl]);
 
 
   const withRating = listings.map((l) => {
@@ -221,8 +224,9 @@ function CityPageContent() {
     } else {
       list = [...list].sort((a, b) => new Date(b.joined_at) - new Date(a.joined_at));
     }
+    if (pinFromUrl && pinOn) list = [...list].sort((a, b) => (b.pincode === pinFromUrl) - (a.pincode === pinFromUrl)); // stable: PIN wale upar
     return list;
-  }, [withRating, activeTab, search, sortBy, areaKey]);
+  }, [withRating, activeTab, search, sortBy, areaKey, pinFromUrl, pinOn]);
 
   // Dukaan shops: search me naam, address, pincode, shop type AUR unke products (naam/category/brand) match hote hain.
   const q = search.trim().toLowerCase();
@@ -238,9 +242,10 @@ function CityPageContent() {
     if (q) list = list.filter(shopMatches);
     // search me jin shops me product mila wo upar
     if (q) list = [...list].sort((a, b) => productHits(b, q).length - productHits(a, q).length);
+    if (pinFromUrl && pinOn) list = [...list].sort((a, b) => (b.pincode === pinFromUrl) - (a.pincode === pinFromUrl));
     return list;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shops, activeTab, q, areaKey]);
+  }, [shops, activeTab, q, areaKey, pinFromUrl, pinOn]);
 
   // Shops ab chhote tiles me alag block (ek line me kai), providers apne card grid me.
   // All tab me shuru ke SHOP_PREVIEW shops, baaki "See all shops" se; search me sab matching shops.
@@ -348,6 +353,20 @@ function CityPageContent() {
         </div>
       </div>
 
+      {pinFromUrl && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 12, padding: '9px 12px', marginBottom: 10, fontSize: 13 }}>
+          <span>
+            📍 PIN <b>{pinFromUrl}</b> — {listings.filter((l) => l.pincode === pinFromUrl).length + shops.filter((x) => x.pincode === pinFromUrl).length} in your PIN
+            {pinOn ? ' (shown first)' : ''}
+          </span>
+          <span style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => setPinOn((v) => !v)} style={{ background: 'none', border: 'none', color: 'var(--brand-green)', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}>
+              {pinOn ? `Show all of ${city}` : 'Show my PIN first'}
+            </button>
+            <a href="/" style={{ color: 'var(--muted)', fontSize: 12.5, textDecoration: 'underline' }}>Change PIN</a>
+          </span>
+        </div>
+      )}
       <div className="search-row" style={{ position: 'relative', marginBottom: 14 }}>
         <input className="search-bar" placeholder={t('search_placeholder')} value={search} onChange={(e) => setSearch(e.target.value)} />
         <button className="filter-btn" onClick={() => setShowSortMenu((s) => !s)} aria-label="Sort options">

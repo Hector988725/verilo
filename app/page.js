@@ -65,6 +65,27 @@ export default function HomePage() {
   const [locateErr, setLocateErr] = useState('');
   const [navigating, setNavigating] = useState('');
   const [loadingDistricts, setLoadingDistricts] = useState(false);
+  const [pin, setPin] = useState('');
+  const [pinBusy, setPinBusy] = useState(false);
+  const [pinErr, setPinErr] = useState('');
+
+  // PIN code se seedha apna ilaka: server se district + state nikal kar us city ke page par, ?pin= ke saath.
+  async function goPin(e) {
+    if (e) e.preventDefault();
+    if (!/^[1-9]\d{5}$/.test(pin)) { setPinErr('Enter a valid 6-digit PIN code.'); return; }
+    setPinBusy(true); setPinErr('');
+    try {
+      const res = await fetch('/api/pincode?pin=' + pin);
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok || !j.city) { setPinErr(j.error || 'PIN code not found. Please pick your state and district below.'); setPinBusy(false); return; }
+      const base = '/city/' + encodeURIComponent(j.city);
+      const qs = '?' + (j.state ? 'state=' + encodeURIComponent(j.state) + '&' : '') + 'pin=' + pin;
+      router.push(addIntent ? `${base}/add${qs}` : `${base}${qs}`);
+    } catch (err) {
+      setPinErr('Could not check the PIN code. Please check your internet or pick your state below.');
+      setPinBusy(false);
+    }
+  }
 
   function detectLocation() {
     if (!navigator.geolocation) { setLocateErr('Location is not supported on this browser.'); return; }
@@ -165,15 +186,29 @@ export default function HomePage() {
           <button
             onClick={() => {
               const base = '/city/' + encodeURIComponent(lastCity.city);
-              const qs = lastCity.state ? '?state=' + encodeURIComponent(lastCity.state) : '';
+              const qs = (lastCity.state ? '?state=' + encodeURIComponent(lastCity.state) : '') + (lastCity.pin ? (lastCity.state ? '&' : '?') + 'pin=' + lastCity.pin : '');
               router.push(addIntent ? `${base}/add${qs}` : `${base}${qs}`);
             }}
             style={{ marginTop: 10, background: 'var(--paper)', border: '1.5px solid var(--brand-green)', borderRadius: 999, color: 'var(--brand-green)', padding: '9px 18px', fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}
           >
-            ↩ {lastCity.city}{lastCity.state ? `, ${lastCity.state}` : ''}
+            ↩ {lastCity.pin ? `${lastCity.pin} · ` : ''}{lastCity.city}{lastCity.state ? `, ${lastCity.state}` : ''}
           </button>
         )}
         {locateErr && <p style={{ color: 'var(--vermillion)', fontSize: 12.5, marginTop: 6, textAlign: 'center', maxWidth: 300 }}>{locateErr}</p>}
+        <form onSubmit={goPin} style={{ display: 'flex', gap: 8, marginTop: 12, width: '100%', maxWidth: 320 }}>
+          <input
+            className="city-search"
+            style={{ flex: 1, margin: 0 }}
+            placeholder="Enter your PIN code"
+            inputMode="numeric"
+            maxLength={6}
+            value={pin}
+            onChange={(e) => { setPin(e.target.value.replace(/\D/g, '')); setPinErr(''); }}
+            aria-label="PIN code"
+          />
+          <button type="submit" disabled={pinBusy} style={{ background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: 999, padding: '0 18px', fontWeight: 700, fontSize: 13.5, cursor: 'pointer' }}>{pinBusy ? '…' : 'Go'}</button>
+        </form>
+        {pinErr && <p style={{ color: 'var(--vermillion)', fontSize: 12.5, marginTop: 6, textAlign: 'center', maxWidth: 300 }}>{pinErr}</p>}
         <p style={{ fontSize: 12, color: 'var(--muted)', margin: '14px 0 4px' }}>{t('or_pick_manually')}</p>
         <input
           className="city-search"
