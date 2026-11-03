@@ -6,6 +6,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import { saveMyToken, getAllMyListings } from '../../../lib/ownership';
 import { catLabel, initials } from '../../../lib/categories';
 import { shareListing } from '../../../lib/shareApp';
+import ProviderPushToggle from '../../../components/ProviderPushToggle';
 
 export default function ProviderDashboard() {
   const { user, loading, signOut } = useAuth();
@@ -86,7 +87,8 @@ export default function ProviderDashboard() {
           </div>
         </div>
         <p className="greeting-headline" style={{ marginTop: 10 }}>Your Listings</p>
-        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: -10 }}>
+        <ProviderPushToggle />
+        <p style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>
           {user.email}
           {canOfferInstall && (
             <>

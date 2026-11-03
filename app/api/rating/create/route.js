@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 import { getUserFromRequest } from '../../../../lib/serverAuth';
 import { clientIp, rateLimited } from '../../../../lib/rateLimit';
+import { notifyProvider } from '../../../../lib/pushServer';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -51,6 +52,10 @@ export async function POST(req) {
       if (error.code === '23505') return NextResponse.json({ error: "You've already reviewed this listing." }, { status: 409 });
       return NextResponse.json({ error: 'Could not save your rating. Please try again.' }, { status: 500 });
     }
+    // Provider ko phone par alert (fail ho to bhi rating save rehti hai)
+    await notifyProvider(admin, listing.owner_id, {
+      title: `⭐ New ${stars}-star review`, body: `${name}${text ? ': ' + text.slice(0, 120) : ''}`, tag: 'review-' + listingId,
+    });
     return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
