@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import Razorpay from 'razorpay';
 import { NextResponse } from 'next/server';
+import { razorpay } from '../../../../lib/razorpay';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 
 export async function POST(req) {
@@ -20,10 +20,6 @@ export async function POST(req) {
 
     // Fetch the order back from Razorpay to read how many months were actually
     // paid for — never trust a client-supplied value for this.
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
     const order = await razorpay.orders.fetch(razorpay_order_id);
     const months = parseInt(order.notes?.months || '1', 10);
 

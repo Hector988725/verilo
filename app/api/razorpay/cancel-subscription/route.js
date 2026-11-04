@@ -1,5 +1,5 @@
-import Razorpay from 'razorpay';
 import { NextResponse } from 'next/server';
+import { razorpay } from '../../../../lib/razorpay';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 import { verifyOwnerToken } from '../../../../lib/verifyOwnerToken';
 
@@ -20,11 +20,6 @@ export async function POST(req) {
     if (!listing?.razorpay_subscription_id) {
       return NextResponse.json({ error: 'No active AutoPay subscription found' }, { status: 400 });
     }
-
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
 
     // cancelAtCycleEnd = true: no further charge happens, but the provider
     // keeps their already-paid days (trial_ends_at) — same as the webhook's

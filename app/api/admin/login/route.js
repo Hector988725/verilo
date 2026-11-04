@@ -12,7 +12,7 @@ export async function POST(req) {
 
   // httpOnly cookie: browsers send it automatically on requests, but
   // client-side JavaScript can never read its value (blocks basic snooping).
-  cookies().set('verilo_admin', process.env.ADMIN_PASSCODE, {
+  (await cookies()).set('verilo_admin', process.env.ADMIN_PASSCODE, {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',

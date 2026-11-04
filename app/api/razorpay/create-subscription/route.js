@@ -1,5 +1,5 @@
-import Razorpay from 'razorpay';
 import { NextResponse } from 'next/server';
+import { razorpay } from '../../../../lib/razorpay';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 
 // Razorpay subscriptions need a finite total_count — there's no literal
@@ -14,11 +14,6 @@ export async function POST(req) {
 
     const planId = process.env.RAZORPAY_MONTHLY_PLAN_ID;
     if (!planId) return NextResponse.json({ error: 'RAZORPAY_MONTHLY_PLAN_ID not configured' }, { status: 500 });
-
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
 
     const subscription = await razorpay.subscriptions.create({
       plan_id: planId,

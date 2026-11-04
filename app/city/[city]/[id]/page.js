@@ -7,7 +7,8 @@ const CATEGORY_LABELS = {
   tailor: 'Tailor', tuition: 'Tuition Teacher', 'milk-veg': 'Milk/Veg Delivery', other: 'Service Provider',
 };
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata(props) {
+  const params = await props.params;
   const city = decodeURIComponent(params.city);
   const id = params.id;
 

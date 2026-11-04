@@ -1,5 +1,5 @@
-import Razorpay from 'razorpay';
 import { NextResponse } from 'next/server';
+import { razorpay } from '../../../../lib/razorpay';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 
 // Plan pricing: months -> amount in paise. Longer plans are discounted to
@@ -17,11 +17,6 @@ export async function POST(req) {
 
     const plan = PLANS[months] ? months : 1;
     const amount = PLANS[plan];
-
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET,
-    });
 
     const order = await razorpay.orders.create({
       amount,
