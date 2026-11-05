@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
+import { notifyProvider } from '../../../../lib/pushServer';
 
 // Configure this exact URL in Razorpay Dashboard -> Settings -> Webhooks,
 // with the same secret as RAZORPAY_WEBHOOK_SECRET, subscribed to:
@@ -33,6 +34,18 @@ export async function POST(req) {
   }
 
   const admin = supabaseAdmin();
+
+  // Is subscription wale listing ke owner ko alert (fail ho to bhi webhook 200 hi dega)
+  async function alertOwner(payload) {
+    try {
+      const { data: l } = await admin
+        .from('listings')
+        .select('id, owner_id')
+        .eq('razorpay_subscription_id', subscriptionId)
+        .maybeSingle();
+      if (l && l.owner_id) await notifyProvider(admin, l.owner_id, { ...payload, tag: (payload.tag || 'sub') + '-' + l.id });
+    } catch (e) { /* ignore */ }
+  }
 
   try {
     switch (event.event) {
@@ -72,6 +85,11 @@ export async function POST(req) {
             });
           }
         }
+        await alertOwner({
+          title: '✅ AutoPay payment received',
+          body: 'Your monthly Verilo payment was successful. Your listing stays active.',
+          tag: 'paid',
+        });
         break;
       }
 
@@ -82,6 +100,11 @@ export async function POST(req) {
           .from('listings')
           .update({ subscription_status: 'pending' })
           .eq('razorpay_subscription_id', subscriptionId);
+        await alertOwner({
+          title: '⚠️ AutoPay payment failed',
+          body: 'Your monthly payment could not be taken. Razorpay will retry. Please make sure your account has balance.',
+          tag: 'autopay-fail',
+        });
         break;
 
       case 'subscription.halted':
@@ -91,6 +114,11 @@ export async function POST(req) {
           .from('listings')
           .update({ subscription_status: 'halted', is_autopay: false, is_active: false })
           .eq('razorpay_subscription_id', subscriptionId);
+        await alertOwner({
+          title: '❌ AutoPay stopped — listing hidden',
+          body: 'Repeated payment attempts failed. Open your Verilo manage page and renew to go live again.',
+          tag: 'autopay-halted',
+        });
         break;
 
       case 'subscription.cancelled':

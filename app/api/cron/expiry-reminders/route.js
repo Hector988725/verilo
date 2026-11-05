@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 import { sendEmail } from '../../../../lib/email';
+import { notifyProvider } from '../../../../lib/pushServer';
 
 // Called once a day (see setup instructions) — same auth pattern as the
 // expire-listings cron. Emails providers whose paid period ends within the
@@ -35,31 +36,44 @@ export async function GET(req) {
   let sent = 0;
   const failures = [];
 
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/+$/, '');
+
   for (const listing of toRemind) {
+    const expiryDate = new Date(listing.trial_ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+    const manageUrl = `${siteUrl}/city/${encodeURIComponent(listing.cities?.name || '')}/${listing.id}/manage`;
+    let delivered = false;
+
+    // 1) Phone par push alert
+    const pushed = await notifyProvider(admin, listing.owner_id, {
+      title: '⏰ Your Verilo listing expires soon',
+      body: `"${listing.name}" expires on ${expiryDate}. Renew now to stay visible.`,
+      url: `/city/${encodeURIComponent(listing.cities?.name || '')}/${listing.id}/manage`,
+      tag: 'expiry-' + listing.id,
+    });
+    if (pushed > 0) delivered = true;
+
+    // 2) Email (agar email mile)
     const { data: userData } = await admin.auth.admin.getUserById(listing.owner_id);
     const email = userData?.user?.email;
-    if (!email) continue;
+    if (email) {
+      const result = await sendEmail({
+        to: email,
+        subject: `Your Verilo listing "${listing.name}" expires on ${expiryDate}`,
+        html: `
+          <p>Hi,</p>
+          <p>Your listing <strong>${listing.name}</strong> on Verilo is set to expire on <strong>${expiryDate}</strong>.</p>
+          <p>Renew now to stay visible to customers without any gap:</p>
+          <p><a href="${manageUrl}" style="display:inline-block;background:#9C2E20;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">Renew my listing</a></p>
+          <p style="color:#888;font-size:12px;">— Verilo</p>
+        `,
+      });
+      if (result.success) delivered = true;
+      else failures.push({ id: listing.id, error: result.error });
+    }
 
-    const expiryDate = new Date(listing.trial_ends_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-    const manageUrl = `https://verilo-seven.vercel.app/city/${encodeURIComponent(listing.cities?.name || '')}/${listing.id}/manage`;
-
-    const result = await sendEmail({
-      to: email,
-      subject: `Your Verilo listing "${listing.name}" expires on ${expiryDate}`,
-      html: `
-        <p>Hi,</p>
-        <p>Your listing <strong>${listing.name}</strong> on Verilo is set to expire on <strong>${expiryDate}</strong>.</p>
-        <p>Renew now to stay visible to customers without any gap:</p>
-        <p><a href="${manageUrl}" style="display:inline-block;background:#9C2E20;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">Renew my listing</a></p>
-        <p style="color:#888;font-size:12px;">— Verilo</p>
-      `,
-    });
-
-    if (result.success) {
+    if (delivered) {
       sent++;
       await admin.from('listings').update({ reminder_sent_for: listing.trial_ends_at }).eq('id', listing.id);
-    } else {
-      failures.push({ id: listing.id, error: result.error });
     }
   }
 

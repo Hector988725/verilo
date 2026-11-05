@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
+import { notifyListingOwner } from '../../../../lib/pushServer';
 
 // Called from the client right after Razorpay's checkout handler fires for a
 // subscription payment. This gives instant UI feedback ("you're live!")
@@ -39,6 +40,12 @@ export async function POST(req) {
       })
       .eq('id', listing_id)
       .eq('razorpay_subscription_id', razorpay_subscription_id);
+
+    await notifyListingOwner(admin, listing_id, {
+      title: '✅ AutoPay is ON',
+      body: 'Payment received. Your Verilo listing is active and will renew automatically every month.',
+      tag: 'paid-' + listing_id,
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {

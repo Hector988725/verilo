@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { razorpay } from '../../../../lib/razorpay';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
+import { notifyListingOwner } from '../../../../lib/pushServer';
 
 export async function POST(req) {
   try {
@@ -34,6 +35,12 @@ export async function POST(req) {
     const newTrialEnd = new Date();
     newTrialEnd.setDate(newTrialEnd.getDate() + months * 30);
     await admin.from('listings').update({ trial_ends_at: newTrialEnd.toISOString(), is_active: true }).eq('id', listing_id);
+
+    await notifyListingOwner(admin, listing_id, {
+      title: '✅ Payment received',
+      body: `Your Verilo listing is active for ${months} month${months > 1 ? 's' : ''}. Thank you!`,
+      tag: 'paid-' + listing_id,
+    });
 
     return NextResponse.json({ success: true, months });
   } catch (err) {
