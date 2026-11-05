@@ -3,9 +3,9 @@ import { razorpay } from '../../../../lib/razorpay';
 import { supabaseAdmin } from '../../../../lib/supabaseClient';
 
 // Razorpay subscriptions need a finite total_count — there's no literal
-// "forever" option. 1200 monthly cycles (100 years) is the standard trick
+// "forever" option. 60 monthly cycles (5 years) is within UPI's max mandate validity (100 years is rejected)
 // for "runs until the customer cancels", which is what we want here.
-const TOTAL_CYCLES = 1200;
+const TOTAL_CYCLES = 60;
 
 export async function POST(req) {
   try {

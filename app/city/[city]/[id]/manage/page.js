@@ -98,13 +98,14 @@ function ManageContent() {
   }
 
   const PLAN_LABELS = {
-    1: { title: '1 Month', price: '₹30', note: 'AutoPay — renews automatically every month' },
+    1: { title: '1 Month', price: '₹30', note: 'One-time payment — no AutoPay' },
+    auto: { title: 'Monthly AutoPay', price: '₹30/month', note: 'Optional — renews automatically, cancel anytime' },
     6: { title: '6 Months', price: '₹150', note: 'Save ₹30 — 1 month free' },
     12: { title: '12 Months', price: '₹300', note: 'Save ₹60 — 2 months free' },
   };
 
   async function handlePayNow(months) {
-    if (months === 1) return handleStartAutopay();
+    if (months === 'auto') return handleStartAutopay();
 
     setPayingNow(true);
     try {
@@ -341,7 +342,7 @@ function ManageContent() {
           </div>
         ) : (
           <div style={{ display: 'grid', gap: 10 }}>
-            {[1, 6, 12].map((m) => (
+            {[1, 'auto', 6, 12].map((m) => (
               <button
                 key={m}
                 className="btn-primary"
@@ -349,7 +350,7 @@ function ManageContent() {
                 disabled={payingNow}
                 style={{
                   marginTop: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                  background: m === 12 ? '#8C6224' : m === 6 ? '#9C2E20' : '#6B7280', textAlign: 'left', padding: '12px 16px',
+                  background: m === 12 ? '#8C6224' : m === 6 ? '#9C2E20' : m === 'auto' ? '#1F6F52' : '#6B7280', textAlign: 'left', padding: '12px 16px',
                 }}
               >
                 <span>
