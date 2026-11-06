@@ -29,6 +29,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
+        <BrandSplash />
         <AuthProvider>
           <LanguageProvider>
             {children}
@@ -36,7 +37,6 @@ export default function RootLayout({ children }) {
           </LanguageProvider>
         </AuthProvider>
         <PwaInstallPrompt />
-        <BrandSplash />
         <script
           dangerouslySetInnerHTML={{
             __html: `
