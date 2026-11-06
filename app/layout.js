@@ -1,6 +1,7 @@
 import './globals.css';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
 import Footer from '../components/Footer';
+import BrandSplash from '../components/BrandSplash';
 import { AuthProvider } from '../components/AuthProvider';
 import { LanguageProvider } from '../components/LanguageProvider';
 
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
           </LanguageProvider>
         </AuthProvider>
         <PwaInstallPrompt />
+        <BrandSplash />
         <script
           dangerouslySetInnerHTML={{
             __html: `
