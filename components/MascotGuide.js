@@ -7,10 +7,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const NO_RULES = [];
 const KEY = "mascot_guide_on";
-const W = 64;
-const H = 92;
-const DOCK_SCALE = 0.74;
-const MOVE_MS = 800;
+const SCALE = 0.85; // mascot ka size: chhota/bada karna ho to sirf ye number badlo
+const VB_W = 40;
+const VB_H = 74;
+const W = Math.round(VB_W * SCALE);
+const H = Math.round(VB_H * SCALE);
+const DOCK_SCALE = 0.85;
+const MOVE_MS = 900;
 const ACTIVITIES = ["wipe", "sweep", "polish", "wave"];
 
 const RULES = [
@@ -22,6 +25,7 @@ const RULES = [
   [/delete|remove|hatao|hata do|cancel/, "Dhyan se! Ye hatane ke baad wapas nahi aayega."],
   [/save|update|submit|confirm|\bdone\b|bhej/, "Ye aapki bhari hui jaankari save kar dega."],
   [/search|find|khoj|dhoond/, "Yaha kaam ya naam likho, aapke shehar ke matching log dikh jayenge."],
+  [/dismiss|not now|later|abhi nahi/, "Ye is message ko abhi ke liye hata dega."],
   [/back|close|wapas|✕|×/, "Ye pichhli screen par wapas le jayega."],
   [/install/, "Ye app ko aapke phone ki home screen par laga dega, bilkul normal app ki tarah."],
   [/whatsapp/, "Ye seedha WhatsApp kholega, wahi se baat kar sakte ho."],
@@ -69,48 +73,54 @@ function findLogo() {
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const home = () => ({ x: window.innerWidth - W - 14, y: window.innerHeight - H - 90 });
 
-// Poora chhota mascot: chehra (tumhari image se) + SVG body. Kapde par sirf "hector365".
+const SKIN = "#F4B88A";
+const ORANGE = "#F28A1E";
+const NAVY = "#243B6B";
+
+// Patla lamba mascot: chehra (tumhari image se) + SVG body. Kapde par sirf "Hector365".
 function Character({ pose, flip }) {
   return (
-    <svg className={`mc mc-${pose}${flip ? " mc-flip" : ""}`} viewBox="0 0 64 92" width={W} height={H}
+    <svg className={`mc mc-${pose}${flip ? " mc-flip" : ""}`} viewBox={`0 0 ${VB_W} ${VB_H}`} width={W} height={H}
       style={{ display: "block", overflow: "visible", transform: flip ? "scaleX(-1)" : "none" }} aria-hidden="true">
-      <ellipse cx="32" cy="89" rx="17" ry="3" fill="rgba(40,30,70,.2)" />
+      <ellipse cx="20" cy="70.8" rx="10" ry="1.7" fill="rgba(30,30,60,.2)" />
       <g className="mc-bob">
-        {/* legs */}
-        <g className="mc-l-leg"><rect x="22" y="62" width="8" height="19" rx="3.5" fill="#3A3470" /><rect x="19.5" y="78" width="12.5" height="7" rx="3.5" fill="#25203F" /></g>
-        <g className="mc-r-leg"><rect x="34" y="62" width="8" height="19" rx="3.5" fill="#3A3470" /><rect x="32" y="78" width="12.5" height="7" rx="3.5" fill="#25203F" /></g>
-        {/* torso + apron */}
-        <rect x="17" y="43" width="30" height="26" rx="9" fill="#FBFAFF" />
-        <path d="M21 49 h22 v19 a4 4 0 0 1 -4 4 h-14 a4 4 0 0 1 -4 -4z" fill="#5B34B5" />
-        <path d="M23 49 L27 43 M41 49 L37 43" stroke="#5B34B5" strokeWidth="2.2" strokeLinecap="round" />
-        <text className="mc-tx" x="32" y="62.5" fontSize="5.4" fontWeight="800" fill="#FFFFFF" textAnchor="middle"
-          textLength="19" lengthAdjust="spacingAndGlyphs" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>hector365</text>
+        <g className="mc-l-leg"><rect x="14.1" y="45.5" width="5.4" height="21" rx="2.5" fill={NAVY} /><rect x="12.6" y="64.2" width="8" height="4.2" rx="2.1" fill="#F6F6FA" stroke="#D6D6E2" strokeWidth=".3" /><rect x="12.6" y="66.2" width="8" height=".8" fill={ORANGE} /></g>
+        <g className="mc-r-leg"><rect x="20.5" y="45.5" width="5.4" height="21" rx="2.5" fill={NAVY} /><rect x="19.4" y="64.2" width="8" height="4.2" rx="2.1" fill="#F6F6FA" stroke="#D6D6E2" strokeWidth=".3" /><rect x="19.4" y="66.2" width="8" height=".8" fill={ORANGE} /></g>
+        {/* polo shirt */}
+        <path d="M11.5 31.5 Q11.5 28 15.5 28 H24.5 Q28.5 28 28.5 31.5 L27.6 46.5 H12.4Z" fill="#FBFAFF" stroke="#E7E4F0" strokeWidth=".3" />
+        <path d="M15.6 27.6 L20 33.8 L24.4 27.6 L22.8 27.1 L20 30.9 L17.2 27.1Z" fill={ORANGE} />
+        <text className="mc-tx" x="20" y="39.6" fontSize="4.1" fontWeight="800" fontStyle="italic" fill={NAVY} textAnchor="middle"
+          textLength="13.5" lengthAdjust="spacingAndGlyphs" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>Hector365</text>
+        <path d="M14 41.3 Q20 43.2 26 40.6" stroke={ORANGE} strokeWidth=".8" fill="none" strokeLinecap="round" />
         {/* neck + head */}
-        <rect x="28" y="38" width="8" height="9" rx="3" fill="#F2B98F" />
-        <g className="mc-head"><image href="/mascot.png" x="8.5" y="-4" width="47" height="50.5" /></g>
+        <rect x="17.4" y="23" width="5.2" height="7" rx="2" fill={SKIN} />
+        <g className="mc-head"><image href="/mascot.png" x="7.5" y="-1.5" width="25" height="26.3" /></g>
         {/* left arm */}
-        <g className="mc-l-arm"><rect x="12.5" y="47.5" width="7.5" height="12" rx="3.7" fill="#FBFAFF" /><rect x="12.5" y="56" width="7.5" height="3.6" rx="1.8" fill="#6B3FD4" /><circle cx="16.3" cy="63" r="3.7" fill="#F2B98F" /></g>
+        <g className="mc-l-arm">
+          <rect x="7.8" y="35.6" width="3.4" height="7.4" rx="1.7" fill={SKIN} /><circle cx="9.5" cy="43.4" r="2.1" fill={SKIN} />
+          <rect x="7" y="28.4" width="5" height="7.4" rx="2.4" fill="#FBFAFF" stroke="#E7E4F0" strokeWidth=".3" /><rect x="7" y="34.2" width="5" height="1.8" rx=".9" fill={ORANGE} />
+        </g>
         {/* broom (sweep) */}
-        <g className="mc-broom"><rect x="55" y="52" width="2" height="34" rx="1" fill="#A9743D" /><path d="M51 86 h10 l2 5 h-14z" fill="#E0B84A" /></g>
+        <g className="mc-broom"><rect x="33.6" y="30" width="1.3" height="39" rx=".6" fill="#A9743D" /><path d="M31.4 67.5 h6.1 l1.2 4 h-8.5z" fill="#E0B84A" /></g>
         {/* right arm */}
         <g className="mc-r-arm">
-          <rect className="mc-cloth" x="43" y="62" width="10" height="8" rx="2.5" fill="#F6D56A" stroke="#E0B84A" strokeWidth=".6" />
-          <rect x="44" y="47.5" width="7.5" height="12" rx="3.7" fill="#FBFAFF" /><rect x="44" y="56" width="7.5" height="3.6" rx="1.8" fill="#6B3FD4" />
-          <circle cx="47.8" cy="63" r="3.7" fill="#F2B98F" />
+          <rect className="mc-cloth" x="27.4" y="41.4" width="6.4" height="5.2" rx="1.6" fill="#F6D56A" stroke="#E0B84A" strokeWidth=".4" />
+          <rect x="28.6" y="35.6" width="3.4" height="7.4" rx="1.7" fill={SKIN} /><circle cx="30.3" cy="43.4" r="2.1" fill={SKIN} />
+          <rect x="28" y="28.4" width="5" height="7.4" rx="2.4" fill="#FBFAFF" stroke="#E7E4F0" strokeWidth=".3" /><rect x="28" y="34.2" width="5" height="1.8" rx=".9" fill={ORANGE} />
         </g>
       </g>
     </svg>
   );
 }
 
-export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules = NO_RULES }) {
+export default function MascotGuide({ name = "Saathi", accent = "#F28A1E", rules = NO_RULES }) {
   const [mounted, setMounted] = useState(false);
   const [on, setOn] = useState(true);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [left, setLeft] = useState(false);
   const [moving, setMoving] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [bubble, setBubble] = useState(null);
+  const [bubble, setBubble] = useState(null); // { text, kind: tip | ask | note }
   const [typed, setTyped] = useState("");
   const [act, setAct] = useState(0);
   const posRef = useRef(pos);
@@ -133,8 +143,8 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
     moveTimer.current = setTimeout(() => setMoving(false), reduce ? 0 : MOVE_MS);
   }, [reduce]);
 
-  const say = useCallback((text, ms) => {
-    setBubble({ text });
+  const say = useCallback((text, ms, kind = "tip") => {
+    setBubble({ text, kind });
     clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setBubble(null), ms || Math.max(5200, text.length * 75));
   }, []);
@@ -145,7 +155,7 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
     let isOn = true;
     try { isOn = localStorage.getItem(KEY) !== "0"; } catch (e) { /* ignore */ }
     setOn(isOn);
-    setPos(isOn ? { x: window.innerWidth + 10, y: window.innerHeight - H - 90 } : { x: 8, y: 8 });
+    setPos(isOn ? { x: window.innerWidth + 10, y: window.innerHeight - H - 90 } : { x: 8, y: 2 });
     setMounted(true);
     if (!isOn) return;
     let greeted = false;
@@ -155,7 +165,7 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
       if (greeted || !onRef.current) return;
       try { sessionStorage.setItem("mascot_greeted", "1"); } catch (e) { /* ignore */ }
       say(`Namaste! Main ${name} hoon. Kahin bhi dabao, main wahan aakar samjha dunga.`, 6500);
-    }, 3600);
+    }, 3700);
     return () => { clearTimeout(t1); clearTimeout(t2); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -168,7 +178,7 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
       i += 1;
       setTyped(bubble.text.slice(0, i));
       if (i >= bubble.text.length) clearInterval(id);
-    }, reduce ? 0 : 22);
+    }, reduce ? 0 : 24);
     return () => clearInterval(id);
   }, [bubble, reduce]);
 
@@ -188,7 +198,7 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
       const vw = window.innerWidth, vh = window.innerHeight;
       const px = e.clientX || vw / 2, py = e.clientY || vh / 2;
       const x = px + W + 20 > vw ? clamp(px - W - 12, 4, vw - W - 4) : clamp(px + 10, 4, vw - W - 4);
-      const y = py < 140 ? clamp(py + 18, 4, vh - H - 4) : clamp(py - H - 4, 4, vh - H - 4);
+      const y = py < 120 ? clamp(py + 16, 4, vh - H - 4) : clamp(py - H - 2, 4, vh - H - 4);
       moveTo(x, y);
       setBubble(null);
       setTimeout(() => { if (onRef.current) say(text); }, reduce ? 0 : MOVE_MS - 100);
@@ -204,7 +214,7 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
       if (a && /^(input|textarea|select)$/i.test(a.tagName)) return;
       const vw = window.innerWidth, vh = window.innerHeight;
       moveTo(clamp(Math.random() * (vw - W - 20) + 6, 6, vw - W - 6), vh - H - 90);
-    }, 16000);
+    }, 17000);
     return () => clearInterval(id);
   }, [moveTo]);
 
@@ -215,8 +225,8 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
       const r = findLogo();
       if (r) {
         setHidden(false);
-        const x = clamp(r.right - 8, 0, window.innerWidth - W);
-        const y = Math.max(2, r.bottom + 4 - H);
+        const x = clamp(r.right - 4, 0, window.innerWidth - W);
+        const y = Math.max(2, r.bottom + 3 - H);
         const cur = posRef.current;
         if (Math.abs(cur.x - x) > 1 || Math.abs(cur.y - y) > 1) moveTo(x, y);
       } else if (window.scrollY < 60) {
@@ -229,7 +239,7 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
     place();
     const tl = setTimeout(() => setLeft(true), reduce ? 0 : MOVE_MS + 80); // logo ki taraf muh
     const id = setInterval(place, 500);
-    const id2 = setInterval(() => setAct((a) => (a + 1) % ACTIVITIES.length), 4500);
+    const id2 = setInterval(() => setAct((a) => (a + 1) % ACTIVITIES.length), 5000);
     window.addEventListener("resize", place);
     return () => { clearTimeout(tl); clearInterval(id); clearInterval(id2); window.removeEventListener("resize", place); };
   }, [on, moveTo, reduce]);
@@ -237,19 +247,24 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
   function turnOff() {
     setOn(false); persist(false);
     setLeft(true);
-    say("Theek hai! Main logo ke paas ja raha hoon. Wahan safai karta rahunga. Mujhe dabaoge to wapas guide karunga.", 4200);
+    say("Theek hai! Main logo ke paas ja raha hoon. Mujhe dabaoge to wapas guide karunga.", 3800, "note");
   }
 
   function turnOn() {
     setOn(true); persist(true);
     setLeft(false);
+    setBubble(null);
     const h = home();
     moveTo(h.x, h.y);
     setTimeout(() => say("Main wapas aa gaya! Kahin bhi dabao, main wahan aakar samjha dunga."), reduce ? 0 : MOVE_MS - 100);
   }
 
   function onMascotClick() {
-    if (!on) { turnOn(); return; }
+    if (!on) {
+      if (bubble && bubble.kind === "ask") { setBubble(null); return; }
+      say("Kya main aapko guide karun?", 9000, "ask");
+      return;
+    }
     if (bubble) { setBubble(null); return; }
     say("Kisi bhi button ya link ko dabao, main wahan aakar batata hoon ki wo kya karta hai.");
   }
@@ -257,95 +272,102 @@ export default function MascotGuide({ name = "Saathi", accent = "#6B3FD4", rules
   if (!mounted) return null;
 
   const vw = typeof window !== "undefined" ? window.innerWidth : 360;
-  const bw = Math.min(250, vw - 20);
+  const bw = Math.min(205, vw - 20);
   const bx = clamp(pos.x + W / 2 - bw / 2, 10, vw - bw - 10) - pos.x;
-  const above = pos.y > 150;
-  const tail = clamp(W / 2 - bx - 6, 14, bw - 24);
+  const above = pos.y > 110;
+  const tail = clamp(W / 2 - bx - 5, 12, bw - 22);
   const activity = ACTIVITIES[act];
-  const pose = on ? (moving ? "walk" : bubble ? "talk" : "idle") : (moving ? "walk" : activity);
-  const showSparks = !on && (activity === "wipe" || activity === "polish");
+  const pose = on ? (moving ? "walk" : bubble ? "talk" : "idle") : (moving ? "walk" : bubble ? "talk" : activity);
+  const showSparks = !on && !bubble && (activity === "wipe" || activity === "polish");
+  const btn = { whiteSpace: "nowrap", border: "none", borderRadius: 999, padding: "4px 11px", fontWeight: 700, fontSize: 11, cursor: "pointer" };
 
   return (
     <div data-mascot="1" aria-live="polite" style={{
       position: "fixed", left: 0, top: 0, zIndex: 9000, pointerEvents: "none",
       transform: `translate(${pos.x}px, ${pos.y}px)`,
-      transition: reduce ? "none" : `transform ${MOVE_MS}ms cubic-bezier(.4,.1,.2,1), opacity .3s`,
+      transition: reduce ? "none" : `transform ${MOVE_MS}ms cubic-bezier(.45,.05,.3,1), opacity .3s`,
       opacity: hidden ? 0 : 1, width: W, height: H,
     }}>
       <style>{`
         .mc *{transform-box:view-box}
-        .mc-l-leg{transform-origin:26px 62px}.mc-r-leg{transform-origin:38px 62px}
-        .mc-l-arm{transform-origin:16px 49px}.mc-r-arm{transform-origin:48px 49px}
-        .mc-head{transform-origin:32px 42px}.mc-bob{transform-origin:32px 88px}
-        .mc-broom{transform-origin:56px 54px;display:none}.mc-cloth{display:none}
-        .mc-flip .mc-tx{transform:scaleX(-1);transform-origin:32px 61px}
-        @keyframes mcSwing{from{transform:rotate(-26deg)}to{transform:rotate(26deg)}}
-        @keyframes mcBob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
-        @keyframes mcBreath{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.2px)}}
-        @keyframes mcWaveA{from{transform:rotate(-140deg)}to{transform:rotate(-172deg)}}
-        @keyframes mcRub{from{transform:rotate(-100deg)}to{transform:rotate(-138deg)}}
-        @keyframes mcNod{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
-        @keyframes mcSwish{from{transform:rotate(-14deg)}to{transform:rotate(12deg)}}
+        .mc-l-leg{transform-origin:16.8px 46px}.mc-r-leg{transform-origin:23.2px 46px}
+        .mc-l-arm{transform-origin:10.6px 30px}.mc-r-arm{transform-origin:29.4px 30px}
+        .mc-head{transform-origin:20px 24px}.mc-bob{transform-origin:20px 70px}
+        .mc-broom{transform-origin:34.2px 31px;display:none}.mc-cloth{display:none}
+        .mc-flip .mc-tx{transform:scaleX(-1);transform-origin:20px 38.5px}
+        .mc-l-leg,.mc-r-leg,.mc-l-arm,.mc-r-arm,.mc-head,.mc-bob,.mc-broom{transition:transform .5s ease}
+        @keyframes mcSwing{from{transform:rotate(-17deg)}to{transform:rotate(17deg)}}
+        @keyframes mcSwingArm{from{transform:rotate(-13deg)}to{transform:rotate(13deg)}}
+        @keyframes mcBob{from{transform:translateY(0)}to{transform:translateY(-.9px)}}
+        @keyframes mcBreath{0%,100%{transform:translateY(0)}50%{transform:translateY(-.5px)}}
+        @keyframes mcTalkArm{from{transform:rotate(-38deg)}to{transform:rotate(-72deg)}}
+        @keyframes mcWave{from{transform:rotate(-146deg)}to{transform:rotate(-170deg)}}
+        @keyframes mcRub{from{transform:rotate(-84deg)}to{transform:rotate(-112deg)}}
+        @keyframes mcPolish{from{transform:rotate(-104deg)}to{transform:rotate(-126deg)}}
+        @keyframes mcNod{from{transform:rotate(-2deg)}to{transform:rotate(2.5deg)}}
+        @keyframes mcSwish{from{transform:rotate(-8deg)}to{transform:rotate(7deg)}}
         @keyframes mcTwinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.1) rotate(35deg)}}
-        .mc-walk .mc-bob{animation:mcBob .19s ease-in-out infinite alternate}
-        .mc-walk .mc-l-leg,.mc-walk .mc-r-arm{animation:mcSwing .38s ease-in-out infinite alternate}
-        .mc-walk .mc-r-leg,.mc-walk .mc-l-arm{animation:mcSwing .38s ease-in-out infinite alternate-reverse}
-        .mc-idle .mc-bob,.mc-talk .mc-bob{animation:mcBreath 2.6s ease-in-out infinite}
-        .mc-talk .mc-r-arm{animation:mcWaveA .5s ease-in-out infinite alternate}
-        .mc-talk .mc-head,.mc-wave .mc-head{animation:mcNod .45s ease-in-out infinite alternate}
-        .mc-wave .mc-bob,.mc-wipe .mc-bob,.mc-polish .mc-bob,.mc-sweep .mc-bob{animation:mcBreath 1.6s ease-in-out infinite}
-        .mc-wave .mc-r-arm{animation:mcWaveA .45s ease-in-out infinite alternate}
-        .mc-wipe .mc-r-arm{animation:mcRub .32s ease-in-out infinite alternate}
+        .mc-walk .mc-bob{animation:mcBob .31s ease-in-out infinite alternate}
+        .mc-walk .mc-l-leg,.mc-walk .mc-r-arm{animation:mcSwing .62s ease-in-out infinite alternate}
+        .mc-walk .mc-r-leg,.mc-walk .mc-l-arm{animation:mcSwing .62s ease-in-out infinite alternate-reverse}
+        .mc-walk .mc-r-arm,.mc-walk .mc-l-arm{animation-name:mcSwingArm}
+        .mc-idle .mc-bob,.mc-talk .mc-bob,.mc-wave .mc-bob,.mc-wipe .mc-bob,.mc-polish .mc-bob,.mc-sweep .mc-bob{animation:mcBreath 3.2s ease-in-out infinite}
+        .mc-talk .mc-r-arm{animation:mcTalkArm 1s ease-in-out infinite alternate}
+        .mc-talk .mc-head,.mc-wave .mc-head{animation:mcNod 1.3s ease-in-out infinite alternate}
+        .mc-wave .mc-r-arm{animation:mcWave .8s ease-in-out infinite alternate}
+        .mc-wipe .mc-r-arm{animation:mcRub .65s ease-in-out infinite alternate}
+        .mc-polish .mc-r-arm{animation:mcPolish .5s ease-in-out infinite alternate}
         .mc-wipe .mc-cloth,.mc-polish .mc-cloth{display:block}
-        .mc-polish .mc-r-arm{animation:mcWaveA .28s ease-in-out infinite alternate}
-        .mc-sweep .mc-broom{display:block;animation:mcSwish .6s ease-in-out infinite alternate}
-        .mc-sweep .mc-r-arm{transform:rotate(-30deg)}.mc-sweep .mc-l-arm{transform:rotate(-24deg)}
-        .mg-spark{position:absolute;color:#F2B83C;font-size:13px;line-height:1;animation:mcTwinkle 1.2s ease-in-out infinite}
+        .mc-sweep .mc-broom{display:block;animation:mcSwish 1.1s ease-in-out infinite alternate}
+        .mc-sweep .mc-r-arm{transform:rotate(-20deg)}.mc-sweep .mc-l-arm{transform:rotate(-14deg)}
+        .mg-spark{position:absolute;color:#F2B83C;font-size:11px;line-height:1;animation:mcTwinkle 1.4s ease-in-out infinite}
         @media (prefers-reduced-motion: reduce){.mc *,.mg-spark{animation:none!important}}
       `}</style>
-      {bubble && on && (
+      {bubble && (
         <div data-mascot="1" style={{
           position: "absolute", left: bx, width: bw, pointerEvents: "auto",
           ...(above ? { bottom: H + 6 } : { top: H + 6 }),
-          background: "#fff", color: "#241F16", border: `2px solid ${accent}`, borderRadius: 16,
-          padding: "10px 12px", boxShadow: "0 10px 28px rgba(40,30,70,.22)", fontSize: 13.5, lineHeight: 1.45,
+          background: "#fff", color: "#241F16", border: `1.5px solid ${accent}`, borderRadius: 14,
+          padding: "8px 10px", boxShadow: "0 8px 22px rgba(40,30,20,.2)", fontSize: 12, lineHeight: 1.4,
           fontFamily: "inherit",
         }}>
           <span style={{
-            position: "absolute", left: tail, width: 12, height: 12, background: "#fff", transform: "rotate(45deg)",
-            ...(above ? { bottom: -8, borderRight: `2px solid ${accent}`, borderBottom: `2px solid ${accent}` }
-              : { top: -8, borderLeft: `2px solid ${accent}`, borderTop: `2px solid ${accent}` }),
+            position: "absolute", left: tail, width: 10, height: 10, background: "#fff", transform: "rotate(45deg)",
+            ...(above ? { bottom: -6.5, borderRight: `1.5px solid ${accent}`, borderBottom: `1.5px solid ${accent}` }
+              : { top: -6.5, borderLeft: `1.5px solid ${accent}`, borderTop: `1.5px solid ${accent}` }),
           }} />
-          <div style={{ fontWeight: 700, color: accent, fontSize: 12, marginBottom: 3 }}>{name}</div>
+          <div style={{ fontWeight: 700, color: accent, fontSize: 11, marginBottom: 2 }}>{name}</div>
           <div style={{ position: "relative" }}>
             <span style={{ visibility: "hidden" }}>{bubble.text}</span>
             <span style={{ position: "absolute", left: 0, top: 0 }}>{typed}</span>
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 8, marginTop: 8 }}>
-            <button data-mascot="1" onClick={() => setBubble(null)}
-              style={{ background: accent, color: "#fff", border: "none", borderRadius: 999, padding: "5px 12px", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
-              Samajh gaya
-            </button>
-            <button data-mascot="1" onClick={turnOff}
-              style={{ background: "none", border: "none", color: "#6B6259", fontWeight: 700, fontSize: 12, cursor: "pointer", padding: "5px 4px" }}>
-              Guide band karo
-            </button>
-          </div>
+          {bubble.kind === "tip" && (
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 6, marginTop: 7 }}>
+              <button data-mascot="1" onClick={() => setBubble(null)} style={{ ...btn, background: accent, color: "#fff" }}>Samajh gaya</button>
+              <button data-mascot="1" onClick={turnOff} style={{ ...btn, background: "none", color: "#6B6259", padding: "4px 2px" }}>Guide band karo</button>
+            </div>
+          )}
+          {bubble.kind === "ask" && (
+            <div style={{ display: "flex", gap: 8, marginTop: 7 }}>
+              <button data-mascot="1" onClick={turnOn} style={{ ...btn, background: accent, color: "#fff" }}>Haan</button>
+              <button data-mascot="1" onClick={() => setBubble(null)} style={{ ...btn, background: "none", color: "#6B6259" }}>Abhi nahi</button>
+            </div>
+          )}
         </div>
       )}
       {showSparks && (
         <>
-          <span className="mg-spark" style={{ left: -16, top: 34 }}>✦</span>
-          <span className="mg-spark" style={{ left: -32, top: 50, animationDelay: ".4s", fontSize: 10 }}>✦</span>
-          <span className="mg-spark" style={{ left: -8, top: 56, animationDelay: ".8s", fontSize: 9 }}>✦</span>
+          <span className="mg-spark" style={{ left: -12, top: 18 }}>✦</span>
+          <span className="mg-spark" style={{ left: -22, top: 30, animationDelay: ".5s", fontSize: 9 }}>✦</span>
+          <span className="mg-spark" style={{ left: -6, top: 36, animationDelay: "1s", fontSize: 8 }}>✦</span>
         </>
       )}
-      <div style={{ transform: on ? "none" : `scale(${DOCK_SCALE})`, transformOrigin: "50% 100%", transition: reduce ? "none" : "transform .5s", filter: "drop-shadow(0 4px 6px rgba(40,30,70,.22))" }}>
+      <div style={{ transform: on ? "none" : `scale(${DOCK_SCALE})`, transformOrigin: "50% 100%", transition: reduce ? "none" : "transform .5s", filter: "drop-shadow(0 3px 4px rgba(30,30,60,.2))" }}>
         <Character pose={pose} flip={left} />
       </div>
       <button data-mascot="1" onClick={onMascotClick} aria-label={on ? `${name} guide` : `${name} guide chalu karo`}
         style={{
-          position: "absolute", left: 8, top: 10, width: 48, height: 78, padding: 0, border: "none", background: "transparent",
+          position: "absolute", left: 2, top: 2, width: W - 4, height: H - 4, padding: 0, border: "none", background: "transparent",
           cursor: "pointer", pointerEvents: "auto", WebkitTapHighlightColor: "transparent",
         }} />
     </div>
