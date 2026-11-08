@@ -38,7 +38,7 @@ export default function RootLayout({ children }) {
           </LanguageProvider>
         </AuthProvider>
         <PwaInstallPrompt />
-        <MascotGuide name="Verilo Saathi" accent="#F28A1E" />
+        <MascotGuide name="Verilo Saathi" brand="Verilo" accent="#F28A1E" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
