@@ -1,6 +1,6 @@
 import './globals.css';
 import PwaInstallPrompt from '../components/PwaInstallPrompt';
-import MascotGuide from '../components/MascotGuide';
+import PoweredBy from '../components/PoweredBy';
 import Footer from '../components/Footer';
 import BrandSplash from '../components/BrandSplash';
 import { AuthProvider } from '../components/AuthProvider';
@@ -31,14 +31,15 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <BrandSplash />
+        <PoweredBy variant="header" />
         <AuthProvider>
           <LanguageProvider>
             {children}
             <Footer />
+            <PoweredBy variant="footer" />
           </LanguageProvider>
         </AuthProvider>
         <PwaInstallPrompt />
-        <MascotGuide name="Verilo Saathi" brand="Verilo" accent="#F28A1E" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
