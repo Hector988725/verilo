@@ -14,7 +14,7 @@ export default function ContactPage() {
       <div className="profile-card">
         <h3>Contact Us</h3>
         <p><strong>Business Name:</strong> Hector365</p>
-        <p><strong>Address:</strong> 110/4 Chachai Abad, Ward No. 3, Amlai Road, 484116</p>
+        <p><strong>Address:</strong> 110/4 Chachai Abad, Ward No. 3, Amlai Road, Anuppur, Madhya Pradesh - 484116, India</p>
         <p><strong>Support Email:</strong> <a href="mailto:officialhector365@gmail.com" style={{ color: '#8C6224' }}>officialhector365@gmail.com</a></p>
         <p><strong>Support Phone:</strong> <a href="tel:+918959992195" style={{ color: '#8C6224' }}>+91 89599 92195</a></p>
         <p style={{ marginTop: 12, fontSize: 13.5, color: '#6B7280' }}>

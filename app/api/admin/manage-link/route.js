@@ -24,7 +24,7 @@ export async function POST(req) {
     }
 
     const cityName = data.cities?.name || '';
-    const link = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://verilo-seven.vercel.app'}/city/${encodeURIComponent(cityName)}/${listing_id}/manage?t=${data.manage_token}`;
+    const link = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://verilo.officialhector365.workers.dev'}/city/${encodeURIComponent(cityName)}/${listing_id}/manage?t=${data.manage_token}`;
 
     return NextResponse.json({ link });
   } catch (err) {

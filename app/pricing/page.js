@@ -30,7 +30,7 @@ export default function PricingPage() {
           service, description, location, and contact option a customer sees:
         </p>
         <a
-          href="https://verilo-seven.vercel.app/city/anuppur/2f4cbeb2-07fe-4981-9507-d50e26761c1d"
+          href="https://verilo.officialhector365.workers.dev/city/anuppur/2f4cbeb2-07fe-4981-9507-d50e26761c1d"
           target="_blank"
           rel="noopener noreferrer"
           style={{ color: '#8C6224', fontWeight: 700 }}
@@ -57,7 +57,7 @@ export default function PricingPage() {
           </div>
         </div>
         <p style={{ marginTop: 14, fontSize: 13, color: '#6B7280' }}>
-          Browsing listings and calling a provider is always free for customers. See our{' '}
+          You can also choose the optional Monthly AutoPay (₹30/month, cancel anytime). Browsing listings and calling a provider is always free for customers. See our{' '}
           <Link href="/refund" style={{ color: '#8C6224' }}>Refund & Cancellation Policy</Link>{' '}
           and <Link href="/terms" style={{ color: '#8C6224' }}>Terms & Conditions</Link> for full details.
         </p>
@@ -66,7 +66,7 @@ export default function PricingPage() {
       <div className="profile-card">
         <h3>Business Details</h3>
         <p><strong>Operated by:</strong> Hector365</p>
-        <p><strong>Address:</strong> 110/4 Chachai Abad, Ward No. 3, Amlai Road, 484116</p>
+        <p><strong>Address:</strong> 110/4 Chachai Abad, Ward No. 3, Amlai Road, Anuppur, Madhya Pradesh - 484116, India</p>
         <p><strong>Contact:</strong> <Link href="/contact" style={{ color: '#8C6224' }}>See Contact Us page →</Link></p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const BASE_URL = 'https://verilo-seven.vercel.app';
+const BASE_URL = 'https://verilo.officialhector365.workers.dev';
 
 export default async function sitemap() {
   const supabase = createClient(

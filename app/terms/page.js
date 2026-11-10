@@ -13,7 +13,7 @@ export default function TermsPage() {
 
       <div className="profile-card">
         <h3>Terms & Conditions</h3>
-        <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 14 }}>Last updated: September 2026</p>
+        <p style={{ fontSize: 13, color: '#6B7280', marginBottom: 14 }}>Last updated: November 2026</p>
 
         <p>Verilo is a local service directory operated by Hector365. By using Verilo, you agree to the following terms.</p>
 
@@ -24,13 +24,25 @@ export default function TermsPage() {
         <p>Anyone adding a listing confirms that the information provided (name, phone number, service, and any other details) is accurate and belongs to them or their business. Verilo reserves the right to pause or remove any listing that is found to be false, misleading, spam, or in violation of these terms.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Fees & Listing Visibility</h4>
-        <p>A listing becomes publicly visible only after the applicable listing fee has been paid. Fees are billed for a fixed period (1, 6, or 12 months) as selected at the time of payment. See our Refund & Cancellation Policy for details on cancellations.</p>
+        <p>A listing becomes publicly visible only after the applicable listing fee has been paid. Fees are billed for a fixed period (1, 6, or 12 months) as selected at the time of payment. You can pay once for a fixed period, or choose the optional Monthly AutoPay (₹30/month) which renews automatically until you cancel it. See our Refund & Cancellation Policy for details.</p>
+
+        <h4 style={{ marginTop: 16, marginBottom: 6 }}>Your Listing Controls</h4>
+        <p>You can mark yourself unavailable, pause, or permanently delete your listing from its management page. Only the person who has the private management link/verified phone for a listing may change it. Keep your management link private.</p>
+
+        <h4 style={{ marginTop: 16, marginBottom: 6 }}>Dukaan Shops on Verilo</h4>
+        <p>Verilo may also show local shops that have opted in from the Dukaan Order System platform, so customers can find nearby stores. Orders for those shops are placed on the shop’s own storefront and are between the customer and that shop.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Ratings & Reviews</h4>
         <p>Customers may leave star ratings and written reviews on listings. Reviews should reflect genuine experiences. Verilo may remove reviews that are abusive, fake, or unrelated to the service provided.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Limitation of Liability</h4>
         <p>Verilo is a directory only. We are not responsible for the quality, safety, legality, or outcome of any service arranged through contact information found on Verilo. Any dispute regarding a service is between the customer and the service provider directly.</p>
+
+        <h4 style={{ marginTop: 16, marginBottom: 6 }}>Governing Law</h4>
+        <p>These terms are governed by the laws of India. Any dispute is subject to the courts at Anuppur, Madhya Pradesh.</p>
+
+        <h4 style={{ marginTop: 16, marginBottom: 6 }}>Changes</h4>
+        <p>We may update these terms from time to time. The “Last updated” date above shows the latest version; continued use means you accept the updated terms.</p>
 
         <h4 style={{ marginTop: 16, marginBottom: 6 }}>Contact</h4>
         <p>Questions about these terms can be sent to <a href="mailto:officialhector365@gmail.com" style={{ color: '#8C6224' }}>officialhector365@gmail.com</a> or <a href="tel:+918959992195" style={{ color: '#8C6224' }}>+91 89599 92195</a>.</p>
