@@ -86,7 +86,7 @@ export default function AdsAdminPage() {
   async function signedUpload(kind, file, ext) {
     const r = await fetch('/api/admin/ads/upload-url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind, ext, size: file.size }) });
     const j = await r.json();
-    if (!r.ok) throw new Error(j.error || 'Upload link nahi bana');
+    if (!r.ok) throw new Error(j.error || 'Could not create upload link');
     const { error } = await supabase.storage.from('ad-media').uploadToSignedUrl(j.path, j.token, file, { contentType: file.type || undefined });
     if (error) throw new Error(error.message);
     return j.publicUrl;
@@ -99,38 +99,38 @@ export default function AdsAdminPage() {
     setMsg('');
     try {
       if (f.type.startsWith('video/')) {
-        if (!/\.(mp4|webm)$/i.test(f.name)) throw new Error('Video sirf MP4 ya WebM chahiye');
-        if (f.size > 5 * 1024 * 1024) throw new Error('Video 5 MB se chhota chahiye (480p/720p, 15 second)');
-        setBusy('Video check ho raha hai...');
+        if (!/\.(mp4|webm)$/i.test(f.name)) throw new Error('Video must be MP4 or WebM');
+        if (f.size > 5 * 1024 * 1024) throw new Error('Video must be under 5 MB (480p/720p, up to 15 seconds)');
+        setBusy('Checking video...');
         const sec = await videoSeconds(f);
-        if (!(sec > 0)) throw new Error('Video padha nahi ja saka');
-        if (sec > MAX_SEC) throw new Error(`Video ${Math.round(sec)} second ka hai. 15 second tak ka chahiye.`);
-        setBusy('Video upload ho raha hai...');
+        if (!(sec > 0)) throw new Error('Could not read this video');
+        if (sec > MAX_SEC) throw new Error(`Video is ${Math.round(sec)} seconds long. Maximum is 15 seconds.`);
+        setBusy('Uploading video...');
         const url = await signedUpload('video', f, f.name.split('.').pop());
         let poster = '';
         const pb = await jpegPoster(f);
         if (pb) { const pf = new File([pb], 'poster.jpg', { type: 'image/jpeg' }); try { poster = await signedUpload('poster', pf, 'jpg'); } catch (er) { poster = ''; } }
         setForm((s) => ({ ...s, media_type: 'video', media_url: url, poster_url: poster }));
       } else if (f.type.startsWith('image/')) {
-        setBusy('Image upload ho rahi hai...');
+        setBusy('Uploading image...');
         const small = await compressImage(f, 1280, 0.82);
-        if (small.size > 2 * 1024 * 1024) throw new Error('Image 2 MB se chhoti chahiye');
+        if (small.size > 2 * 1024 * 1024) throw new Error('Image must be under 2 MB');
         const url = await signedUpload('image', small, (small.name.split('.').pop() || 'jpg'));
         setForm((s) => ({ ...s, media_type: 'image', media_url: url, poster_url: '' }));
       } else {
-        throw new Error('Sirf image ya video chunein');
+        throw new Error('Please choose an image or a video');
       }
-      setMsg('✅ File upload ho gayi');
+      setMsg('✅ File uploaded. Now fill the fields below and press the button at the bottom');
     } catch (err) { setMsg('❌ ' + err.message); }
     setBusy('');
   }
 
   async function save() {
-    if (busy) { setMsg('⏳ Thoda ruko, upload chal raha hai...'); return; }
-    if (!form.media_url) { setMsg('❌ Pehle video/image chunkar upload karo (1 number wala box) aur "✅ File upload ho gayi" aane tak ruko'); return; }
-    if (!form.advertiser.trim()) { setMsg('❌ Advertiser ka naam likho (dukaan/business ka naam)'); return; }
-    if (!form.allCities && form.cities.length === 0) { setMsg('❌ Koi city chuno ya "Sabhi cities" tick karo'); return; }
-    setMsg(''); setBusy('Save ho raha hai...');
+    if (busy) { setMsg('⏳ Please wait, upload in progress...'); return; }
+    if (!form.media_url) { setMsg('❌ First choose and upload a video or image (box 1) and wait for the green "File uploaded" message'); return; }
+    if (!form.advertiser.trim()) { setMsg('❌ Enter the advertiser name (box 2)'); return; }
+    if (!form.allCities && form.cities.length === 0) { setMsg('❌ Choose at least one city, or tick "All cities" (box 5)'); return; }
+    setMsg(''); setBusy('Saving...');
     const body = {
       action: form.id ? 'update' : 'create', id: form.id, advertiser: form.advertiser, title: form.title, media_type: form.media_type,
       media_url: form.media_url, poster_url: form.poster_url, link_type: form.link_type, link_value: form.link_value,
@@ -142,12 +142,13 @@ export default function AdsAdminPage() {
       j = await r.json().catch(() => ({}));
     } catch (e) { setBusy(''); setMsg('❌ Internet/server error: ' + e.message); return; }
     setBusy('');
-    if (!r.ok) { setMsg('❌ ' + (j.error || 'Save nahi hua')); return; }
-    setMsg('✅ Save ho gaya'); setForm(EMPTY); load();
+    if (r.status === 401) { localStorage.removeItem('verilo_admin_ok'); setUnlocked(false); return; }
+    if (!r.ok) { setMsg('❌ ' + (j.error || 'Could not save')); return; }
+    setMsg('✅ Ad saved! It will show on the city page within about a minute. The form is empty again for the next ad.'); setForm(EMPTY); load();
   }
   async function act(a, extra) {
     const r = await fetch('/api/admin/ads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: a.id, ...extra }) });
-    if (!r.ok) { const j = await r.json().catch(() => ({})); alert(j.error || 'Nahi hua'); }
+    if (!r.ok) { const j = await r.json().catch(() => ({})); alert(j.error || 'Failed'); }
     load();
   }
   function edit(a) {
@@ -157,7 +158,7 @@ export default function AdsAdminPage() {
   }
   const toggleCity = (n) => setForm((f) => ({ ...f, cities: f.cities.includes(n) ? f.cities.filter((x) => x !== n) : [...f.cities, n] }));
   const today = new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
-  const state = (a) => (!a.is_active ? ['Band', '#8A94A6'] : a.ends_on && a.ends_on < today ? ['Khatam', '#9C2E20'] : a.starts_on && a.starts_on > today ? ['Aane wala', '#8C6224'] : ['Chal raha hai', '#14342A']);
+  const state = (a) => (!a.is_active ? ['Paused', '#8A94A6'] : a.ends_on && a.ends_on < today ? ['Ended', '#9C2E20'] : a.starts_on && a.starts_on > today ? ['Scheduled', '#8C6224'] : ['Running', '#14342A']);
 
   if (!unlocked) {
     return (
@@ -191,9 +192,9 @@ export default function AdsAdminPage() {
       </header>
 
       <div className="form-card" style={{ marginBottom: 18 }}>
-        <h3 style={{ marginTop: 0 }}>{form.id ? '✏️ Ad badlo' : '➕ Naya ad'}</h3>
+        <h3 style={{ marginTop: 0 }}>{form.id ? '✏️ Edit ad' : '➕ New ad'}</h3>
 
-        <span style={label}>1. Image ya video (video 15 second tak, 5 MB tak)</span>
+        <span style={label}>1. Image or video (video up to 15 seconds and 5 MB, image up to 2 MB). One ad = one file; make a separate ad for each photo/video</span>
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" onChange={onFile} disabled={!!busy} />
         {form.media_url && (
           <div style={{ marginTop: 8, maxWidth: 320, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--line)' }}>
@@ -206,31 +207,31 @@ export default function AdsAdminPage() {
         {busy && <p style={{ fontSize: 13, color: '#8C6224' }}>⏳ {busy}</p>}
         {msg && <p style={{ fontSize: 13 }}>{msg}</p>}
 
-        <span style={label}>2. Advertiser (dukaan / business ka naam)</span>
+        <span style={label}>2. Advertiser (shop / business name)</span>
         <input style={input} value={form.advertiser} onChange={(e) => set('advertiser', e.target.value)} maxLength={80} />
-        <span style={label}>3. Chhota title (optional)</span>
+        <span style={label}>3. Short title (optional)</span>
         <input style={input} value={form.title} onChange={(e) => set('title', e.target.value)} maxLength={120} />
 
-        <span style={label}>4. Ad par tap karne par kya ho</span>
+        <span style={label}>4. What happens when someone taps the ad</span>
         <select style={input} value={form.link_type} onChange={(e) => set('link_type', e.target.value)}>
-          <option value="whatsapp">WhatsApp khule</option>
-          <option value="call">Call lage</option>
-          <option value="link">Website khule (https://)</option>
-          <option value="none">Kuch nahi (sirf dikhana)</option>
+          <option value="whatsapp">Open WhatsApp</option>
+          <option value="call">Start a call</option>
+          <option value="link">Open website (https://)</option>
+          <option value="none">Nothing (display only)</option>
         </select>
         {form.link_type !== 'none' && (
           <input style={{ ...input, marginTop: 8 }} value={form.link_value} onChange={(e) => set('link_value', e.target.value)}
-            placeholder={form.link_type === 'link' ? 'https://...' : '10 digit mobile number'} inputMode={form.link_type === 'link' ? 'url' : 'tel'} />
+            placeholder={form.link_type === 'link' ? 'https://...' : '10-digit mobile number'} inputMode={form.link_type === 'link' ? 'url' : 'tel'} />
         )}
-        {form.link_type !== 'none' && <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>Tap par jayega: {adHref({ link_type: form.link_type, link_value: form.link_value }) || '— (sahi number/link daalo)'}</p>}
+        {form.link_type !== 'none' && <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>Tap goes to: {adHref({ link_type: form.link_type, link_value: form.link_value }) || '— (enter a valid number/link)'}</p>}
 
-        <span style={label}>5. Kis shehar me dikhana hai</span>
+        <span style={label}>5. Which city should show this ad</span>
         <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>
-          <input type="checkbox" checked={form.allCities} onChange={(e) => set('allCities', e.target.checked)} /> Sab shehar
+          <input type="checkbox" checked={form.allCities} onChange={(e) => set('allCities', e.target.checked)} /> All cities
         </label>
         {!form.allCities && (
           <div style={{ marginTop: 8 }}>
-            <input style={input} placeholder="Shehar dhundo..." value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} />
+            <input style={input} placeholder="Search city..." value={cityFilter} onChange={(e) => setCityFilter(e.target.value)} />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, maxHeight: 150, overflowY: 'auto' }}>
               {shownCities.map((n) => (
                 <button key={n} type="button" onClick={() => toggleCity(n)}
@@ -239,28 +240,28 @@ export default function AdsAdminPage() {
                 </button>
               ))}
             </div>
-            <p style={{ fontSize: 12.5, margin: '6px 0 0' }}>Chune: {form.cities.length ? form.cities.join(', ') : 'koi nahi (shehar chuno)'}</p>
+            <p style={{ fontSize: 12.5, margin: '6px 0 0' }}>Selected: {form.cities.length ? form.cities.join(', ') : 'none (choose a city)'}</p>
           </div>
         )}
 
-        <span style={label}>6. Kab se kab tak (khali = hamesha)</span>
+        <span style={label}>6. Start and end date (empty = always)</span>
         <div style={{ display: 'flex', gap: 10 }}>
           <input style={input} type="date" value={form.starts_on} onChange={(e) => set('starts_on', e.target.value)} />
           <input style={input} type="date" value={form.ends_on} onChange={(e) => set('ends_on', e.target.value)} />
         </div>
 
-        <span style={label}>7. Priority (0 = normal, 10 = sabse pehle)</span>
+        <span style={label}>7. Priority (0 = normal, 10 = shown first)</span>
         <input style={{ ...input, maxWidth: 120 }} type="number" min={0} max={10} value={form.priority} onChange={(e) => set('priority', e.target.value)} />
 
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button className="btn-primary" type="button" onClick={save} disabled={!!busy}>{form.id ? 'Update karo' : 'Ad chalu karo'}</button>
+          <button className="btn-primary" type="button" onClick={save} disabled={!!busy}>{busy ? busy : form.id ? 'Update ad' : 'Start ad'}</button>
           {form.id && <button type="button" onClick={() => { setForm(EMPTY); setMsg(''); }} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line-strong)', background: '#fff', cursor: 'pointer' }}>Cancel</button>}
         </div>
         {msg && <p style={{ fontSize: 14, fontWeight: 600, marginTop: 10 }}>{msg}</p>}
       </div>
 
-      <h3>Sab ads {loading ? '...' : `(${ads.length})`}</h3>
-      {!loading && ads.length === 0 && <div className="empty"><div className="empty-title">Abhi koi ad nahi</div><div>Upar se pehla ad jodo.</div></div>}
+      <h3>All ads {loading ? '...' : `(${ads.length})`}</h3>
+      {!loading && ads.length === 0 && <div className="empty"><div className="empty-title">No ads yet</div><div>Add your first ad above.</div></div>}
       {ads.map((a) => {
         const [st, col] = state(a);
         return (
@@ -277,15 +278,15 @@ export default function AdsAdminPage() {
                 <div style={{ fontWeight: 700 }}>{a.advertiser}{a.title ? ` — ${a.title}` : ''}</div>
                 <div style={{ fontSize: 12.5, color: col, fontWeight: 700 }}>● {st}</div>
                 <div style={{ fontSize: 12.5, color: 'var(--muted)' }}>
-                  📍 {a.cities && a.cities.length ? a.cities.join(', ') : 'Sab shehar'} · 📅 {a.starts_on || 'abhi se'} → {a.ends_on || 'hamesha'}
+                  📍 {a.cities && a.cities.length ? a.cities.join(', ') : 'All cities'} · 📅 {a.starts_on || 'now'} → {a.ends_on || 'always'}
                 </div>
-                <div style={{ fontSize: 12.5, marginTop: 4 }}>👁 {a.views} view · 👆 {a.clicks} click{a.media_type === 'video' ? ` · 🔊 ${a.unmutes} awaaz` : ''}</div>
+                <div style={{ fontSize: 12.5, marginTop: 4 }}>👁 {a.views} views · 👆 {a.clicks} clicks{a.media_type === 'video' ? ` · 🔊 ${a.unmutes} unmutes` : ''}</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => act(a, { action: 'toggle', is_active: !a.is_active })} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--line-strong)', background: '#fff', cursor: 'pointer' }}>{a.is_active ? '⏸ Band karo' : '▶ Chalu karo'}</button>
-              <button type="button" onClick={() => edit(a)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--line-strong)', background: '#fff', cursor: 'pointer' }}>✏️ Badlo</button>
-              <button type="button" onClick={() => { if (confirm('Ye ad hamesha ke liye hata dein? (uski gintee bhi hat jayegi)')) act(a, { action: 'delete' }); }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #9C2E20', color: '#9C2E20', background: '#fff', cursor: 'pointer' }}>🗑 Hatao</button>
+              <button type="button" onClick={() => act(a, { action: 'toggle', is_active: !a.is_active })} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--line-strong)', background: '#fff', cursor: 'pointer' }}>{a.is_active ? '⏸ Pause' : '▶ Resume'}</button>
+              <button type="button" onClick={() => edit(a)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid var(--line-strong)', background: '#fff', cursor: 'pointer' }}>✏️ Edit</button>
+              <button type="button" onClick={() => { if (confirm('Delete this ad permanently? (its stats will be deleted too)')) act(a, { action: 'delete' }); }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #9C2E20', color: '#9C2E20', background: '#fff', cursor: 'pointer' }}>🗑 Delete</button>
             </div>
           </div>
         );
