@@ -126,14 +126,21 @@ export default function AdsAdminPage() {
   }
 
   async function save() {
+    if (busy) { setMsg('⏳ Thoda ruko, upload chal raha hai...'); return; }
+    if (!form.media_url) { setMsg('❌ Pehle video/image chunkar upload karo (1 number wala box) aur "✅ File upload ho gayi" aane tak ruko'); return; }
+    if (!form.advertiser.trim()) { setMsg('❌ Advertiser ka naam likho (dukaan/business ka naam)'); return; }
+    if (!form.allCities && form.cities.length === 0) { setMsg('❌ Koi city chuno ya "Sabhi cities" tick karo'); return; }
     setMsg(''); setBusy('Save ho raha hai...');
     const body = {
       action: form.id ? 'update' : 'create', id: form.id, advertiser: form.advertiser, title: form.title, media_type: form.media_type,
       media_url: form.media_url, poster_url: form.poster_url, link_type: form.link_type, link_value: form.link_value,
       cities: form.allCities ? [] : form.cities, starts_on: form.starts_on, ends_on: form.ends_on, priority: form.priority,
     };
-    const r = await fetch('/api/admin/ads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const j = await r.json().catch(() => ({}));
+    let r, j;
+    try {
+      r = await fetch('/api/admin/ads', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      j = await r.json().catch(() => ({}));
+    } catch (e) { setBusy(''); setMsg('❌ Internet/server error: ' + e.message); return; }
     setBusy('');
     if (!r.ok) { setMsg('❌ ' + (j.error || 'Save nahi hua')); return; }
     setMsg('✅ Save ho gaya'); setForm(EMPTY); load();
@@ -246,9 +253,10 @@ export default function AdsAdminPage() {
         <input style={{ ...input, maxWidth: 120 }} type="number" min={0} max={10} value={form.priority} onChange={(e) => set('priority', e.target.value)} />
 
         <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-          <button className="btn-primary" type="button" onClick={save} disabled={!canSave || (!form.allCities && form.cities.length === 0)}>{form.id ? 'Update karo' : 'Ad chalu karo'}</button>
+          <button className="btn-primary" type="button" onClick={save} disabled={!!busy}>{form.id ? 'Update karo' : 'Ad chalu karo'}</button>
           {form.id && <button type="button" onClick={() => { setForm(EMPTY); setMsg(''); }} style={{ padding: '10px 14px', borderRadius: 10, border: '1px solid var(--line-strong)', background: '#fff', cursor: 'pointer' }}>Cancel</button>}
         </div>
+        {msg && <p style={{ fontSize: 14, fontWeight: 600, marginTop: 10 }}>{msg}</p>}
       </div>
 
       <h3>Sab ads {loading ? '...' : `(${ads.length})`}</h3>
