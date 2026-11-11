@@ -83,6 +83,16 @@ export default function Footer() {
               🚩 Reported Listings
             </Link>
             <Link
+              href="/admin/ads"
+              onClick={() => setShowAdminMenu(false)}
+              style={{
+                color: '#fff', background: '#2A3441', padding: '10px 14px',
+                borderRadius: 8, fontSize: 13.5, textDecoration: 'none',
+              }}
+            >
+              📢 Ads
+            </Link>
+            <Link
               href="/admin/cities"
               onClick={() => setShowAdminMenu(false)}
               style={{

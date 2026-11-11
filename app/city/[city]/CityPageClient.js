@@ -10,6 +10,7 @@ import { MIN_RATINGS_FOR_AVG, ratingLabel } from '../../../lib/ratings';
 import { trackEvent } from '../../../lib/track';
 import { useLanguage } from '../../../components/LanguageProvider';
 import { ShopCard, productHits } from '../../../components/ShopCard';
+import AdSlot from '../../../components/AdSlot';
 
 // City Shops view shows shops 20 at a time ("Show more" adds the next 20).
 const SHOPS_PAGE_SIZE = 20;
@@ -453,6 +454,8 @@ function CityPageContent() {
         )}
       </div>
       </div>
+
+      <AdSlot city={city} />
 
       {activeTab !== 'all' && (
         <div style={{
