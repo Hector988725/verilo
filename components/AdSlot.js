@@ -16,6 +16,13 @@ function ping(adId, type, city) {
 function seen(id) { try { return sessionStorage.getItem('ad_v_' + id) === '1'; } catch (e) { return false; } }
 function markSeen(id) { try { sessionStorage.setItem('ad_v_' + id, '1'); } catch (e) { /* ignore */ } }
 
+function ctaLabel(ad) {
+  if (ad.cta_text) return ad.cta_text;
+  if (ad.link_type === 'call') return '📞 Call Now';
+  if (ad.link_type === 'whatsapp') return '💬 WhatsApp Now';
+  return 'Visit Now';
+}
+
 // Shehar ke hisaab ka ad: image ya chhota video. Video bina awaaz ke apne aap chalta hai;
 // awaaz sirf 🔊 dabane par (browser ka rule). Ad na ho to kuch nahi dikhta (jagah nahi ghirti).
 export default function AdSlot({ city }) {
@@ -103,13 +110,14 @@ export default function AdSlot({ city }) {
   const chip = { position: 'absolute', background: 'rgba(0,0,0,.55)', color: '#fff', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, padding: '3px 8px', borderRadius: 999 };
   return (
     <div ref={boxRef} style={{ margin: '0 0 16px' }}>
+     <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line)', background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,.06)' }}>
       <div
         role={href ? 'link' : undefined}
         tabIndex={href ? 0 : undefined}
         aria-label={ad.title || 'Sponsored'}
         onClick={href ? open : undefined}
         onKeyDown={href ? (e) => { if (e.key === 'Enter') open(); } : undefined}
-        style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', background: '#111', aspectRatio: '16 / 9', maxHeight: 210, width: '100%', cursor: href ? 'pointer' : 'default', border: '1px solid var(--line)' }}
+        style={{ position: 'relative', overflow: 'hidden', background: '#111', aspectRatio: '16 / 9', maxHeight: 210, width: '100%', cursor: href ? 'pointer' : 'default' }}
       >
         {isVideo ? (
           <video
@@ -141,6 +149,14 @@ export default function AdSlot({ city }) {
           </span>
         )}
       </div>
+      {href && (
+        <button type="button" onClick={open}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, width: '100%', border: 'none', cursor: 'pointer', background: '#14342A', color: '#fff', padding: '11px 14px', fontSize: 14.5, fontWeight: 700, textAlign: 'left' }}>
+          <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ctaLabel(ad)}</span>
+          <span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1 }}>→</span>
+        </button>
+      )}
+     </div>
     </div>
   );
 }

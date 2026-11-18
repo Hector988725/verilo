@@ -5,7 +5,7 @@ import { supabase } from '../../../lib/supabaseClient';
 import { compressImage } from '../../../lib/compressImage';
 import { adHref } from '../../../lib/adsUtil';
 
-const EMPTY = { id: null, advertiser: '', title: '', media_type: 'image', media_url: '', poster_url: '', link_type: 'whatsapp', link_value: '', allCities: true, cities: [], starts_on: '', ends_on: '', priority: 0 };
+const EMPTY = { id: null, advertiser: '', title: '', media_type: 'image', media_url: '', poster_url: '', link_type: 'whatsapp', link_value: '', cta_text: '', allCities: true, cities: [], starts_on: '', ends_on: '', priority: 0 };
 const MAX_SEC = 15.5;
 const input = { width: '100%', boxSizing: 'border-box', padding: '10px 12px', borderRadius: 10, border: '1.5px solid var(--line-strong)', fontSize: 14, background: '#fff', color: 'var(--ink)' };
 const label = { display: 'block', fontSize: 12.5, fontWeight: 700, margin: '12px 0 4px', color: 'var(--ink)' };
@@ -133,7 +133,7 @@ export default function AdsAdminPage() {
     setMsg(''); setBusy('Saving...');
     const body = {
       action: form.id ? 'update' : 'create', id: form.id, advertiser: form.advertiser, title: form.title, media_type: form.media_type,
-      media_url: form.media_url, poster_url: form.poster_url, link_type: form.link_type, link_value: form.link_value,
+      media_url: form.media_url, poster_url: form.poster_url, link_type: form.link_type, link_value: form.link_value, cta_text: form.cta_text,
       cities: form.allCities ? [] : form.cities, starts_on: form.starts_on, ends_on: form.ends_on, priority: form.priority,
     };
     let r, j;
@@ -153,7 +153,7 @@ export default function AdsAdminPage() {
   }
   function edit(a) {
     setForm({ id: a.id, advertiser: a.advertiser, title: a.title || '', media_type: a.media_type, media_url: a.media_url, poster_url: a.poster_url || '',
-      link_type: a.link_type, link_value: a.link_value || '', allCities: !(a.cities && a.cities.length), cities: a.cities || [], starts_on: a.starts_on || '', ends_on: a.ends_on || '', priority: a.priority || 0 });
+      link_type: a.link_type, link_value: a.link_value || '', cta_text: a.cta_text || '', allCities: !(a.cities && a.cities.length), cities: a.cities || [], starts_on: a.starts_on || '', ends_on: a.ends_on || '', priority: a.priority || 0 });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   const toggleCity = (n) => setForm((f) => ({ ...f, cities: f.cities.includes(n) ? f.cities.filter((x) => x !== n) : [...f.cities, n] }));
@@ -224,6 +224,19 @@ export default function AdsAdminPage() {
             placeholder={form.link_type === 'link' ? 'https://...' : '10-digit mobile number'} inputMode={form.link_type === 'link' ? 'url' : 'tel'} />
         )}
         {form.link_type !== 'none' && <p style={{ fontSize: 12, color: 'var(--muted)', margin: '4px 0 0' }}>Tap goes to: {adHref({ link_type: form.link_type, link_value: form.link_value }) || '— (enter a valid number/link)'}</p>}
+
+        {form.link_type !== 'none' && (
+          <>
+            <span style={label}>Button text under the ad (e.g. Shop Now, Visit Now, Install, Order Now)</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+              {['Shop Now', 'Visit Now', 'Order Now', 'Call Now', 'WhatsApp Now', 'Install Now', 'Learn More'].map((t) => (
+                <button key={t} type="button" onClick={() => set('cta_text', t)}
+                  style={{ padding: '5px 10px', borderRadius: 999, fontSize: 12.5, cursor: 'pointer', border: '1.5px solid #14342A', background: form.cta_text === t ? '#14342A' : '#fff', color: form.cta_text === t ? '#fff' : '#14342A' }}>{t}</button>
+              ))}
+            </div>
+            <input style={input} value={form.cta_text} onChange={(e) => set('cta_text', e.target.value)} maxLength={30} placeholder="Or type your own (empty = automatic)" />
+          </>
+        )}
 
         <span style={label}>5. Which city should show this ad</span>
         <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 14 }}>

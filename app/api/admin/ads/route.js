@@ -28,12 +28,13 @@ function clean(b) {
   const starts_on = DATE.test(b.starts_on || '') ? b.starts_on : null;
   const ends_on = DATE.test(b.ends_on || '') ? b.ends_on : null;
   if (starts_on && ends_on && ends_on < starts_on) return { error: 'Khatam hone ki tareekh shuru se pehle hai' };
+  const cta_text = String(b.cta_text || '').trim().slice(0, 30) || null;
   const priority = Math.max(0, Math.min(10, parseInt(b.priority, 10) || 0));
   return {
     row: {
       advertiser, title: String(b.title || '').trim().slice(0, 120) || null, media_type, media_url: b.media_url,
       poster_url: media_type === 'video' && b.poster_url ? b.poster_url : null,
-      link_type, link_value: link_type === 'none' ? null : link_value, cities, starts_on, ends_on, priority,
+      link_type, link_value: link_type === 'none' ? null : link_value, cities, starts_on, ends_on, priority, cta_text,
     },
   };
 }
@@ -62,11 +63,13 @@ export async function POST(req) {
       const c = clean(b);
       if (c.error) return NextResponse.json({ error: c.error }, { status: 400 });
       if (b.action === 'create') {
-        const { data, error } = await admin.from('ads').insert({ ...c.row, is_active: true }).select('id').single();
+        let { data, error } = await admin.from('ads').insert({ ...c.row, is_active: true }).select('id').single();
+        if (error && /cta_text/.test(error.message || '')) { const { cta_text, ...rest } = c.row; ({ data, error } = await admin.from('ads').insert({ ...rest, is_active: true }).select('id').single()); }
         if (error) return NextResponse.json({ error: error.message }, { status: 500 });
         return NextResponse.json({ success: true, id: data.id });
       }
-      const { error } = await admin.from('ads').update(c.row).eq('id', b.id);
+      let { error } = await admin.from('ads').update(c.row).eq('id', b.id);
+      if (error && /cta_text/.test(error.message || '')) { const { cta_text, ...rest } = c.row; ({ error } = await admin.from('ads').update(rest).eq('id', b.id)); }
       if (error) return NextResponse.json({ error: error.message }, { status: 500 });
       return NextResponse.json({ success: true });
     }
