@@ -33,6 +33,7 @@ const MENU = [["/admin/due", "ðŸ“‹ Due List / Reminders"], ["/admin/reports", "ð
 // Ek tap = guide. 5 tez tap ya 1.5 second dabaye rakho = chhupa admin menu (login passcode se hi).
 function useHectorTap() {
   const [open, setOpen] = useState(null); // 'guide' | 'admin' | null
+  const [pressed, setPressed] = useState(false);
   const count = useRef(0), tap = useRef(null), hold = useRef(null), held = useRef(false);
   const onClick = () => {
     if (held.current) { held.current = false; return; }
@@ -41,11 +42,11 @@ function useHectorTap() {
     if (count.current >= 5) { count.current = 0; setOpen("admin"); return; }
     tap.current = setTimeout(() => { count.current = 0; setOpen("guide"); }, 650);
   };
-  const start = () => { held.current = false; clearTimeout(hold.current); hold.current = setTimeout(() => { held.current = true; count.current = 0; clearTimeout(tap.current); setOpen("admin"); }, 1500); };
-  const stop = () => clearTimeout(hold.current);
+  const start = () => { setPressed(true); held.current = false; clearTimeout(hold.current); hold.current = setTimeout(() => { held.current = true; count.current = 0; clearTimeout(tap.current); setOpen("admin"); }, 1500); };
+  const stop = () => { clearTimeout(hold.current); setPressed(false); };
   const handlers = { onClick, onPointerDown: start, onPointerUp: stop, onPointerLeave: stop, onPointerCancel: stop, onContextMenu: (e) => e.preventDefault(),
     role: "button", tabIndex: 0, "aria-label": "About Hector365 and how to use Verilo", onKeyDown: (e) => { if (e.key === "Enter") setOpen("guide"); } };
-  return [open, setOpen, handlers];
+  return [open, setOpen, handlers, pressed];
 }
 
 function Sheets({ open, setOpen }) {
@@ -101,11 +102,12 @@ function Sheets({ open, setOpen }) {
 
 export default function PoweredBy({ variant = "footer" }) {
   const css = "@media print{.hc-powered{display:none!important}}";
-  const [open, setOpen, h] = useHectorTap();
+  const [open, setOpen, h, pressed] = useHectorTap();
   if (variant === "header") {
     return (
       <div className="hc-powered" {...h} style={{
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 24, boxSizing: "border-box", cursor: "pointer", WebkitTouchCallout: "none", WebkitUserSelect: "none",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 24, boxSizing: "border-box", cursor: "pointer", WebkitTouchCallout: "none", WebkitUserSelect: "none", WebkitTapHighlightColor: "transparent", outline: "none", transition: "filter .08s",
+        filter: pressed ? "brightness(.92)" : "none",
         background: "linear-gradient(#FFF9EF,#FCEFD9)", borderBottom: "1px solid rgba(242,138,30,.28)", fontFamily: FONT, userSelect: "none",
       }}>
         <style>{css}</style>
@@ -120,8 +122,9 @@ export default function PoweredBy({ variant = "footer" }) {
     <div className="hc-powered" style={{ display: "flex", justifyContent: "center", padding: "18px 12px 26px", fontFamily: FONT, userSelect: "none" }}>
       <style>{css}</style>
       <div {...h} style={{
-        display: "inline-flex", alignItems: "center", gap: 9, padding: "6px 16px 6px 7px", borderRadius: 999, cursor: "pointer", WebkitTouchCallout: "none",
-        background: "linear-gradient(#FFFFFF,#FCF1E2)", border: "1px solid rgba(242,138,30,.35)", boxShadow: "0 3px 0 #E6C48F, 0 8px 16px rgba(120,70,10,.16)",
+        display: "inline-flex", alignItems: "center", gap: 9, padding: "6px 16px 6px 7px", borderRadius: 999, cursor: "pointer", WebkitTouchCallout: "none", WebkitTapHighlightColor: "transparent", outline: "none", transition: "transform .08s, box-shadow .08s",
+        transform: pressed ? "translateY(3px) scale(.97)" : "none",
+        background: "linear-gradient(#FFFFFF,#FCF1E2)", border: "1px solid rgba(242,138,30,.35)", boxShadow: pressed ? "0 0 0 #E6C48F, 0 2px 5px rgba(120,70,10,.18)" : "0 3px 0 #E6C48F, 0 8px 16px rgba(120,70,10,.16)",
       }}>
         <Mark size={24} />
         <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.05 }}>
