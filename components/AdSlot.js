@@ -109,7 +109,7 @@ export default function AdSlot({ city }) {
 
   const chip = { position: 'absolute', background: 'rgba(0,0,0,.55)', color: '#fff', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.4, padding: '3px 8px', borderRadius: 999 };
   return (
-    <div ref={boxRef} style={{ margin: '0 0 16px' }}>
+    <div ref={boxRef} style={{ margin: '0 auto 16px', maxWidth: 560 }}>
      <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid var(--line)', background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,.06)' }}>
       <div
         role={href ? 'link' : undefined}
@@ -117,18 +117,18 @@ export default function AdSlot({ city }) {
         aria-label={ad.title || 'Sponsored'}
         onClick={href ? open : undefined}
         onKeyDown={href ? (e) => { if (e.key === 'Enter') open(); } : undefined}
-        style={{ position: 'relative', overflow: 'hidden', background: '#111', aspectRatio: '16 / 9', maxHeight: 210, width: '100%', cursor: href ? 'pointer' : 'default' }}
+        style={{ position: 'relative', overflow: 'hidden', background: '#111', aspectRatio: '16 / 9', width: '100%', cursor: href ? 'pointer' : 'default' }}
       >
         {isVideo ? (
           <video
             key={ad.id} ref={vidRef} src={ad.media_url} poster={ad.poster_url || undefined}
             muted={!sound} playsInline preload={dataSaver ? 'none' : 'metadata'} loop={ads.length < 2}
             onEnded={() => { if (ads.length > 1) setIdx((i) => i + 1); }}
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img key={ad.id} src={ad.media_url} alt={ad.title || 'Sponsored'} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img key={ad.id} src={ad.media_url} alt={ad.title || 'Sponsored'} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
         )}
         <span style={{ ...chip, top: 8, left: 8 }}>Sponsored</span>
         {isVideo && (
