@@ -75,6 +75,31 @@ export default function AdSlot({ city }) {
     return () => clearTimeout(t);
   }, [ad, ads.length, inView]);
 
+  // tab chhode / screen lock ho to video turant ruke (awaaz background me na chale)
+  useEffect(() => {
+    const onVis = () => {
+      const v = vidRef.current;
+      if (document.hidden) { if (v) v.pause(); setInView(false); }
+      else { const el = boxRef.current; if (el) { const r = el.getBoundingClientRect(); setInView(r.top < window.innerHeight * 0.8 && r.bottom > window.innerHeight * 0.2); } }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('pagehide', onVis);
+    return () => { document.removeEventListener('visibilitychange', onVis); window.removeEventListener('pagehide', onVis); };
+  }, []);
+
+  // notification bar me anjaan "phone speaker" ki jagah ad ka naam dikhe
+  useEffect(() => {
+    if (!ad || ad.media_type !== 'video' || !sound) return undefined;
+    try {
+      if ('mediaSession' in navigator && window.MediaMetadata) {
+        navigator.mediaSession.metadata = new window.MediaMetadata({ title: ad.title || ad.advertiser || 'Sponsored ad', artist: 'Sponsored · Verilo' });
+        navigator.mediaSession.setActionHandler('play', () => { const v = vidRef.current; if (v) v.play().catch(() => {}); });
+        navigator.mediaSession.setActionHandler('pause', () => { const v = vidRef.current; if (v) v.pause(); });
+      }
+    } catch (e) { /* ignore */ }
+    return () => { try { if ('mediaSession' in navigator) navigator.mediaSession.metadata = null; } catch (e) { /* ignore */ } };
+  }, [ad, sound]);
+
   // video: dikhe to chale, na dikhe to ruke
   useEffect(() => {
     const v = vidRef.current;
@@ -122,7 +147,7 @@ export default function AdSlot({ city }) {
         {isVideo ? (
           <video
             key={ad.id} ref={vidRef} src={ad.media_url} poster={ad.poster_url || undefined}
-            muted={!sound} playsInline preload={dataSaver ? 'none' : 'metadata'} loop={ads.length < 2}
+            muted={!sound} playsInline disablePictureInPicture disableRemotePlayback controlsList="nodownload noremoteplayback" preload={dataSaver ? 'none' : 'metadata'} loop={ads.length < 2}
             onEnded={() => { if (ads.length > 1) setIdx((i) => i + 1); }}
             style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
           />
