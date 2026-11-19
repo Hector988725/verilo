@@ -64,7 +64,7 @@ export default function AdsAdminPage() {
     setSigningIn(false);
     if (!res) setLoginError('Network problem, please try again');
     else if (res.ok) { localStorage.setItem('verilo_admin_ok', '1'); setUnlocked(true); }
-    else setLoginError('Wrong passcode');
+    else setLoginError(res.status === 429 ? 'Too many attempts. Try again after 15 minutes.' : 'Wrong passcode');
   }
   async function load() {
     setLoading(true);
